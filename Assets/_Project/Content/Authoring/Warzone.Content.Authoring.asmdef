@@ -1,0 +1,17 @@
+{
+    "name": "Warzone.Content.Authoring",
+    "rootNamespace": "Warzone.Content.Authoring",
+    "references": [
+        "Warzone.Foundation",
+        "Warzone.Content"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

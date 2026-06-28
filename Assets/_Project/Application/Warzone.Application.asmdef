@@ -1,0 +1,20 @@
+{
+    "name": "Warzone.Application",
+    "rootNamespace": "Warzone.Application",
+    "references": [
+        "Warzone.Foundation",
+        "Warzone.Framework",
+        "Warzone.Meta",
+        "Warzone.BattleDomain",
+        "Warzone.Content"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
