@@ -74,7 +74,7 @@ namespace Warzone.Combat
             }
 
             float range = _contentCatalog.Units[firstAliveUnit.DefinitionId].Weapon.Range;
-            return range * GetRangeMultiplier(squad.Position);
+            return range * firstAliveUnit.GetRangeMultiplier() * GetRangeMultiplier(squad.Position);
         }
 
         public float GetAttackInterval(BattleSquadState squad)
@@ -97,7 +97,7 @@ namespace Warzone.Combat
             }
 
             float speed = _contentCatalog.Units[firstAliveUnit.DefinitionId].MoveSpeed;
-            return speed * GetMoveSpeedMultiplier(squad.Position);
+            return speed * firstAliveUnit.GetMoveSpeedMultiplier() * GetMoveSpeedMultiplier(squad.Position);
         }
 
         public float GetAggroRange(BattleSquadState squad)

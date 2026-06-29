@@ -28,5 +28,15 @@ namespace Warzone.Combat
 
             unit.AddStatusEffect(new ActiveStatusEffect(definition));
         }
+
+        public void ApplyHealingAura(BattleUnitState unit, int healingAmount)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            unit.ApplyHealing(healingAmount);
+        }
     }
 }

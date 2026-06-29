@@ -12,5 +12,6 @@ namespace Warzone.Combat
         public StatusEffectDefinition Definition { get; }
         public float RemainingDuration { get; set; }
         public float TickTimer { get; set; }
+        public int StackCount { get; set; } = 1;
     }
 }

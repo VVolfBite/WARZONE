@@ -19,5 +19,16 @@ namespace Warzone.Tests.Combat
             Assert.That(unit.CurrentHealth, Is.EqualTo(8));
             Assert.That(unit.StatusEffects.Count, Is.EqualTo(0));
         }
+
+        [Test]
+        public void ApplyHealingAura_IncreasesHealth()
+        {
+            BattleUnitState unit = new BattleUnitState(new BattleEntityId(1), "unit.test", FactionId.Player, 10);
+            StatusEffectSystem system = new StatusEffectSystem();
+
+            system.ApplyHealingAura(unit, 3);
+
+            Assert.That(unit.CurrentHealth, Is.EqualTo(13));
+        }
     }
 }

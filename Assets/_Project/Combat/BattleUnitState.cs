@@ -40,6 +40,16 @@ namespace Warzone.Combat
             }
         }
 
+        public void ApplyHealing(int healing)
+        {
+            if (healing <= 0 || !IsAlive)
+            {
+                return;
+            }
+
+            CurrentHealth += healing;
+        }
+
         public void AddStatusEffect(ActiveStatusEffect statusEffect)
         {
             if (statusEffect == null)
@@ -69,6 +79,28 @@ namespace Warzone.Combat
                     _statusEffects.RemoveAt(i);
                 }
             }
+        }
+
+        public float GetMoveSpeedMultiplier()
+        {
+            float multiplier = 1f;
+            for (int i = 0; i < _statusEffects.Count; i++)
+            {
+                multiplier *= _statusEffects[i].Definition.MoveSpeedMultiplier;
+            }
+
+            return multiplier;
+        }
+
+        public float GetRangeMultiplier()
+        {
+            float multiplier = 1f;
+            for (int i = 0; i < _statusEffects.Count; i++)
+            {
+                multiplier *= _statusEffects[i].Definition.RangeMultiplier;
+            }
+
+            return multiplier;
         }
     }
 }
