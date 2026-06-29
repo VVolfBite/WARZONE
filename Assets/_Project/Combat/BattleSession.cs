@@ -10,6 +10,7 @@ namespace Warzone.Combat
         private readonly CommandProcessor _commandProcessor;
         private readonly CombatResolver _combatResolver;
         private readonly AiSystem _aiSystem = new AiSystem();
+        private readonly StatusEffectSystem _statusEffectSystem = new StatusEffectSystem();
         private readonly TerrainMap _terrainMap;
         private readonly List<DamageEvent> _pendingDamageEvents = new List<DamageEvent>();
         private readonly int _seed;
@@ -63,6 +64,7 @@ namespace Warzone.Combat
 
             ProcessQueuedCommands();
             _aiSystem.Tick(this, deltaTimeSeconds);
+            _statusEffectSystem.Tick(this, deltaTimeSeconds);
             UpdateAttackerTargets();
             UpdateMovement(deltaTimeSeconds);
             ResolveUnitSeparation();
@@ -155,6 +157,10 @@ namespace Warzone.Combat
             List<DamageEvent> events = new List<DamageEvent>(_pendingDamageEvents);
             _pendingDamageEvents.Clear();
             return events;
+        }
+
+        public void SyncStatusEffects()
+        {
         }
 
         private void UpdateAttackerTargets()
