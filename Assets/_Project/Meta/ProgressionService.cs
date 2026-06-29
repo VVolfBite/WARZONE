@@ -9,7 +9,7 @@ namespace Warzone.Meta
             int keptUnits = 0;
             for (int i = 0; i < battleResult.UnitOutcomes.Count; i++)
             {
-                if (battleResult.UnitOutcomes[i].IsSurvived)
+                if (battleResult.UnitOutcomes[i].Survived)
                 {
                     keptUnits++;
                 }

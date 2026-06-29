@@ -11,6 +11,7 @@ namespace Warzone.Adapters
         private readonly Queue<string> _notifications = new Queue<string>();
 
         private BattleRuntimeHost _battleRuntimeHost;
+        private AudioService _audioService;
         private SandboxHudOverlay _sandboxHudOverlay;
         private BattleSession _battleSession;
         private ContentCatalog _contentCatalog;
@@ -25,6 +26,7 @@ namespace Warzone.Adapters
         public void Configure(BattleRuntimeHost battleRuntimeHost, Camera mainCamera)
         {
             _battleRuntimeHost = battleRuntimeHost;
+            _audioService = FindFirstObjectByType<AudioService>();
             _battleRuntimeHost.BattleStarted += HandleBattleStarted;
 
             SelectionBoxOverlay selectionBoxOverlay = gameObject.AddComponent<SelectionBoxOverlay>();

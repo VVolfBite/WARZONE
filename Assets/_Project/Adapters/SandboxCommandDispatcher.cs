@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Numerics;
 using UnityEngine;
 using Warzone.Combat;
 
@@ -15,9 +14,9 @@ namespace Warzone.Adapters
             }
         }
 
-        public void IssueMove(BattleSession battleSession, IReadOnlyList<int> orderedSquadIds, Vector3 worldPoint, bool queue)
+        public void IssueMove(BattleSession battleSession, IReadOnlyList<int> orderedSquadIds, UnityEngine.Vector3 worldPoint, bool queue)
         {
-            List<Vector2> destinations = BuildFormationDestinations(new Vector2(worldPoint.x, worldPoint.z), orderedSquadIds.Count);
+            List<System.Numerics.Vector2> destinations = BuildFormationDestinations(new System.Numerics.Vector2(worldPoint.x, worldPoint.z), orderedSquadIds.Count);
             for (int i = 0; i < orderedSquadIds.Count; i++)
             {
                 battleSession.ExecuteCommand(new Command(
@@ -28,9 +27,9 @@ namespace Warzone.Adapters
             }
         }
 
-        private static List<Vector2> BuildFormationDestinations(Vector2 center, int count)
+        private static List<System.Numerics.Vector2> BuildFormationDestinations(System.Numerics.Vector2 center, int count)
         {
-            List<Vector2> destinations = new List<Vector2>(count);
+            List<System.Numerics.Vector2> destinations = new List<System.Numerics.Vector2>(count);
             if (count <= 0)
             {
                 return destinations;
@@ -54,7 +53,7 @@ namespace Warzone.Adapters
                 int column = i % columns;
                 float offsetX = (column * spacing) - (width * 0.5f);
                 float offsetY = (row * spacing) - (height * 0.5f);
-                destinations.Add(new Vector2(center.X + offsetX, center.Y + offsetY));
+                destinations.Add(new System.Numerics.Vector2(center.X + offsetX, center.Y + offsetY));
             }
 
             return destinations;

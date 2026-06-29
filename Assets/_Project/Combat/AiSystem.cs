@@ -31,7 +31,7 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                float distance = BattleSessionDistance(squad, target);
+                float distance = CombatResolver.GetDistance(squad, target);
                 if (distance <= 3f)
                 {
                     battleSession.ExecuteCommand(new Command(CommandType.Attack, squad.SquadId, target.SquadId));
@@ -56,7 +56,7 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                float distance = BattleSessionDistance(sourceSquad, squad);
+                float distance = CombatResolver.GetDistance(sourceSquad, squad);
                 if (distance < nearestDistance)
                 {
                     nearest = squad;
@@ -65,11 +65,6 @@ namespace Warzone.Combat
             }
 
             return nearest;
-        }
-
-        private static float BattleSessionDistance(BattleSquadState a, BattleSquadState b)
-        {
-            return BattleSession.GetDistance(a, b);
         }
     }
 }

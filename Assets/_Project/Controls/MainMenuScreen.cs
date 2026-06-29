@@ -60,7 +60,7 @@ namespace Warzone.Controls
 
             if (GUILayout.Button(_viewModel.SecondaryActionLabel, GUILayout.Height(36f)))
             {
-                Application.Quit();
+                UnityEngine.Application.Quit();
             }
 
             if (_showSettings)

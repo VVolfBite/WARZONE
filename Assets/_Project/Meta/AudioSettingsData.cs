@@ -1,18 +1,16 @@
 namespace Warzone.Meta
 {
-    public sealed class SettingsData
+    public sealed class AudioSettingsData
     {
-        public SettingsData(float masterVolume, float musicVolume, float sfxVolume, int graphicsQuality)
+        public AudioSettingsData(float masterVolume, float musicVolume, float sfxVolume)
         {
             MasterVolume = masterVolume;
             MusicVolume = musicVolume;
             SfxVolume = sfxVolume;
-            GraphicsQuality = graphicsQuality;
         }
 
         public float MasterVolume { get; }
         public float MusicVolume { get; }
         public float SfxVolume { get; }
-        public int GraphicsQuality { get; }
     }
 }

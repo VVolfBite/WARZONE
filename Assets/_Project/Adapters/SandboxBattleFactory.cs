@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Numerics;
 using UnityEngine;
 using Warzone.Combat;
-using Warzone.Content.Authoring;
 using Warzone.Content;
 using Warzone.Content.Definitions;
 
@@ -12,16 +10,6 @@ namespace Warzone.Adapters
     {
         public static ContentCatalog BuildSandboxContent()
         {
-            ContentCatalogAsset catalogAsset = Resources.Load<ContentCatalogAsset>("ContentCatalog");
-            if (catalogAsset != null)
-            {
-                ContentCatalog catalog = ContentCatalogBuilder.Build(catalogAsset);
-                if (catalog.Units.Count > 0)
-                {
-                    return catalog;
-                }
-            }
-
             WeaponDefinition playerRifle = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f);
             WeaponDefinition playerSupport = new WeaponDefinition("weapon.player.carbine", 9f, 0.5f, 3, 22f);
             WeaponDefinition enemyClaws = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f);
@@ -90,7 +78,7 @@ namespace Warzone.Adapters
             return new BattleSquadState(
                 squadId,
                 factionId,
-                new Vector2(x, y),
+                new System.Numerics.Vector2(x, y),
                 new List<BattleUnitState>
                 {
                     new BattleUnitState(new BattleEntityId(squadId), definitionId, factionId, health)

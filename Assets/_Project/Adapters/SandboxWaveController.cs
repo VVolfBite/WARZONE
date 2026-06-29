@@ -1,19 +1,22 @@
 using System.Collections.Generic;
 using Warzone.Combat;
+using Warzone.Content.Definitions;
 
 namespace Warzone.Adapters
 {
     public sealed class SandboxWaveController
     {
         private readonly Queue<string> _notifications;
+        private readonly AudioService _audioService;
         private readonly List<SandboxWaveSpawnPlan> _wavePlans = new List<SandboxWaveSpawnPlan>();
         private int _activeWaveIndex;
         private float _nextWaveCountdown;
         private bool _waitingForNextWave;
 
-        public SandboxWaveController(Queue<string> notifications)
+        public SandboxWaveController(Queue<string> notifications, AudioService audioService = null)
         {
             _notifications = notifications;
+            _audioService = audioService;
         }
 
         public int ActiveWaveIndex => _activeWaveIndex;
@@ -57,6 +60,7 @@ namespace Warzone.Adapters
                 _waitingForNextWave = true;
                 _nextWaveCountdown = _wavePlans[_activeWaveIndex].DelaySeconds;
                 _notifications.Enqueue("Wave " + _wavePlans[_activeWaveIndex].WaveIndex + " incoming");
+                _audioService?.PlayWaveAlert();
             }
 
             _nextWaveCountdown -= deltaTimeSeconds;

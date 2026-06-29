@@ -20,6 +20,7 @@ namespace Warzone.Adapters
             EnsureGroundPlane();
             Camera mainCamera = EnsureCamera();
             BattleRuntimeHost battleRuntimeHost = new GameObject("BattleRuntimeHost").AddComponent<BattleRuntimeHost>();
+            AudioService audioService = new GameObject("AudioService").AddComponent<AudioService>();
             GameFlow gameFlow = new GameFlow();
             ProgressionService progressionService = new ProgressionService();
             MissionFlow missionFlow = new MissionFlow(gameFlow, battleRuntimeHost, progressionService);
@@ -34,6 +35,8 @@ namespace Warzone.Adapters
             DebriefScreen debriefScreen = EnsureDebriefScreen();
             SandboxMissionCompletionPresenter missionCompletionPresenter = new GameObject("SandboxMissionCompletionPresenter").AddComponent<SandboxMissionCompletionPresenter>();
             missionCompletionPresenter.Configure(battleRuntimeHost, missionFlow, debriefScreen);
+            SandboxAudioListener audioListener = new GameObject("SandboxAudioListener").AddComponent<SandboxAudioListener>();
+            audioListener.Configure(battleRuntimeHost, audioService);
 
             missionStarter.StartDemoMission();
         }

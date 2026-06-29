@@ -35,7 +35,8 @@ namespace Warzone.Controls
 
         public void SaveSettings(float masterVolume, float musicVolume, int graphicsQuality)
         {
-            _settingsService.Save(new SettingsData(masterVolume, masterVolume, musicVolume, graphicsQuality));
+            float sfxVolume = _settingsService.Current.SfxVolume;
+            _settingsService.Save(new SettingsData(masterVolume, musicVolume, sfxVolume, graphicsQuality));
         }
     }
 }

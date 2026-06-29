@@ -110,7 +110,7 @@ namespace Warzone.Adapters
                 _hitFlashTime -= Time.deltaTime;
                 if (unitView != null)
                 {
-                    unitView.SetSelected(true);
+                    unitView.FlashHit();
                 }
             }
 
