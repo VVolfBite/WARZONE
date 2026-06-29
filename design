@@ -1,0 +1,2021 @@
+# WARZONE 系统架构设计说明书
+
+> **设计原则**：组合优先，继承仅用于元系统级抽象（摄像机基类、日志基类等不扰乱游戏逻辑的设施）。
+> 领域逻辑与引擎解耦，Unity 仅作为表现层和平台适配器。
+
+---
+
+## 0. 全局架构总览
+
+```
+Assets/_Project/
+├── Foundation/     # 地基工具（EventBus / ObjectPool / DI / Logger / Scheduler）
+├── Meta/           # 游戏外（Campaign / Roster / Save / Menu / Settings）
+├── Controls/       # 战场操控（Camera / Input / Selection / HUD / Audio）
+├── Combat/         # 战斗模拟（Entity / Command / Damage / AI / Mission / Ability / VFX）
+├── Content/        # 数据定义（Units / Weapons / Missions / Abilities / Traits）
+└── Adapters/       # Unity 胶水层（Scene / Rendering / NavMesh / Physics）
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Foundation                               │
+│          EventBus / ObjectPool / DI / Logger / Scheduler     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌───────────┐      ┌────────────┐      ┌──────────────┐   │
+│   │   Meta    │      │  Controls  │      │   Content    │   │
+│   │           │      │            │      │              │   │
+│   │ · 主菜单  │      │ · 摄像机   │      │ · 单位定义   │   │
+│   │ · 战役地图│      │ · 输入系统 │      │ · 武器定义   │   │
+│   │ · 花名册  │      │ · 选中系统 │      │ · 任务定义   │   │
+│   │ · 升级特质│      │ · 战斗 HUD │      │ · 技能定义   │   │
+│   │ · 存档    │      │ · 结算界面 │      │ · 特质定义   │   │
+│   │ · 设置    │      │ · 音频     │      │              │   │
+│   └───────────┘      └────────────┘      └──────────────┘   │
+│                                                              │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │                    Combat                             │   │
+│   │  · 实体组合  · 指令系统  · 战斗/伤害  · 移动寻路   │   │
+│   │  · AI 行为树 · 任务/波次 · 技能系统  · 视觉特效   │   │
+│   └─────────────────────────────────────────────────────┘   │
+│                                                              │
+├─────────────────────────────────────────────────────────────┤
+│                      Adapters                                │
+│              Scene Management / Rendering / NavMesh           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# 第一部分：Foundation（地基工具）
+
+---
+
+## 1. 事件总线（EventBus）
+
+全局发布-订阅通道，解耦系统间通信。
+
+### 1.1 核心接口
+
+```
+IEventBus {
+    void Publish<T>(T eventData) where T : struct;
+    IDisposable Subscribe<T>(Action<T> handler, int priority = 0) where T : struct;
+    void PublishDeferred<T>(T eventData);   // 延迟到帧末分发
+    void ClearAllSubscriptions();            // 场景卸载时清理
+}
+```
+
+### 1.2 分发模式
+
+| 模式 | 说明 | 使用场景 |
+|------|------|----------|
+| **同步** | 立即执行所有订阅者 | 战斗内事件（伤害、死亡） |
+| **延迟帧末** | 收集后在帧末统一分发 | 跨系统解耦（UI 刷新） |
+| **持续流** | 订阅者持续接收最新值 | 状态同步（HP 变化） |
+
+### 1.3 作用域
+
+- **全局总线**：`GlobalEventBus`，跨场景存活，用于存档/战役级事件
+- **场景总线**：`SceneEventBus`，跟随场景生命周期，用于战斗内事件
+
+### 1.4 全局事件清单
+
+| 事件 | 字段 | 触发时机 |
+|------|------|----------|
+| `BattleStartedEvent` | MissionId, Seed, SquadCount | 战斗初始化完成 |
+| `BattleEndedEvent` | BattleResult | 胜负判定后 |
+| `UnitSpawnedEvent` | EntityId, FactionId, Position | 单位进入战场 |
+| `UnitDiedEvent` | EntityId, KillerId, Position | HP ≤ 0 |
+| `DamageDealtEvent` | DamageEvent（完整数据） | 伤害结算完成 |
+| `CommandIssuedEvent` | Command, Timestamp | 指令入队/执行 |
+| `CommandCompletedEvent` | CommandId, CompletionReason | 指令完成/取消/打断 |
+| `SquadSelectedEvent` | SquadId[] | 选中集合变化 |
+| `SquadEliminatedEvent` | SquadId, FactionId | 小队全灭 |
+| `MissionObjectiveUpdatedEvent` | ObjectiveId, Progress, IsComplete | 目标进度变化 |
+| `WaveStartedEvent` | WaveIndex, SpawnCount | 新波次开始 |
+| `ResourceChangedEvent` | ResourceType, OldAmount, NewAmount | 资源变动 |
+
+## 2. 对象池（ObjectPool）
+
+### 2.1 核心接口
+
+```
+IObjectPool<T> {
+    T Acquire();                    // 从池中取出
+    void Release(T item);           // 归还到池中
+    int AvailableCount { get; }     // 当前可用数量
+}
+
+IGameObjectPool {
+    GameObject Acquire(string prefabId, Vector3 position, Quaternion rotation);
+    void Release(GameObject instance, float? delaySeconds = null);
+    void Prewarm(string prefabId, int count);
+}
+```
+
+### 2.2 池化策略
+
+| 对象类型 | 预热数 | 最大上限 | 溢出策略 | 回收时机 |
+|----------|--------|---------|----------|----------|
+| 弹道/投射物 | 20 | 100 | 回收最旧 | 命中/超时 |
+| 伤害数字 | 10 | 50 | 丢弃新请求 | 动画结束 |
+| 命令标记 | 5 | 20 | 回收最旧 | 2秒后淡出 |
+| 击中特效 | 10 | 40 | 丢弃新请求 | 粒子结束 |
+| 音效源 | 8 | 32 | 丢弃最远 | 播放结束 |
+
+### 2.3 生命周期
+
+```
+Prewarm → [池中·禁用]
+              ↓ Acquire(position, rotation)
+         [使用中·激活]
+              ↓ Release() / 自动回收
+         [池中·禁用] → 循环
+```
+
+- 归还时自动重置 Transform（位置归零、缩放归一）
+- 归还时调用 `IPoolable.OnRelease()` 让对象自行清理状态
+
+## 3. 依赖注入容器（DI Container）
+
+### 3.1 核心接口
+
+```
+IDIContainer {
+    void Bind<TInterface, TImplementation>(Lifecycle lifecycle);
+    void BindInstance<T>(T instance);          // 绑定已有实例
+    T Resolve<T>();                            // 获取服务
+    void BuildContainer();                     // 冻结，禁止后续注册
+}
+
+enum Lifecycle { Singleton, Transient, Scoped }
+```
+
+### 3.2 注册清单
+
+| 服务接口 | 实现类 | 生命周期 | 所属层 |
+|----------|--------|----------|--------|
+| `IEventBus` | `EventBus` | Singleton | Infrastructure |
+| `IGameObjectPool` | `GameObjectPoolManager` | Singleton | Infrastructure |
+| `ILogger` | `ConsoleLogger` | Singleton | Infrastructure |
+| `IContentCatalog` | `ContentCatalog` | Singleton | Content |
+| `ISaveService` | `JsonSaveService` | Singleton | Meta |
+| `ICameraService` | `RtsCameraController` | Scoped | Battle-Outside |
+| `ISelectionService` | `SelectionService` | Scoped | Battle-Outside |
+| `IBattleSession` | `BattleSession` | Scoped | Battle-Inside |
+| `IMissionFlow` | `MissionFlow` | Transient | Application |
+
+### 3.3 注册阶段
+
+```
+GameBootstrap.Awake()
+  → 创建 DI Container
+    → 注册全局 Singleton 服务
+      → BuildContainer() 冻结
+        → 场景加载时注册 Scoped 服务
+          → 场景卸载时自动清理 Scoped
+```
+
+## 4. 日志系统（Logger） ← 继承
+
+```
+LoggerBase（抽象基类）
+├── ConsoleLogger      // Unity Debug.Log
+├── FileLogger         // 文件输出（调试回放用）
+└── NullLogger         // 静默（测试用）
+```
+
+### 4.1 接口
+
+```
+ILogger {
+    void Log(string tag, string message, LogLevel level = Info);
+    void Warning(string tag, string message);
+    void Error(string tag, string message);
+    void SetMinLevel(LogLevel level);
+}
+
+enum LogLevel { Debug, Info, Warning, Error }
+```
+
+### 4.2 规范
+
+- 每条日志格式：`[HH:mm:ss.fff] [tag] message`
+- 系统标签约定：`[EventBus]` `[Combat]` `[Input]` `[AI]` `[Save]` `[Content]`
+- Release 构建默认 Warning 级别以上
+
+## 5. 定时器系统（Scheduler）
+
+### 5.1 接口
+
+```
+IScheduler {
+    ITimerHandle Schedule(Action callback, float delaySeconds);
+    ITimerHandle ScheduleRepeating(Action callback, float intervalSeconds, int repeatCount = -1);
+    void Cancel(ITimerHandle handle);
+    void CancelAll();
+    void SetPaused(bool paused);
+    void Tick(float deltaTime);        // 由 BattleSession 或 GameLoop 驱动
+}
+
+ITimerHandle {
+    bool IsActive { get; }
+    float RemainingSeconds { get; }
+    void Cancel();
+}
+```
+
+### 5.2 使用场景
+
+| 场景 | 用法 |
+|------|------|
+| 命令标记淡出 | `Schedule(RemoveMarker, 2f)` |
+| 死亡后回收 | `Schedule(ReleaseToPool, 3f)` |
+| AI 感知刷新 | `ScheduleRepeating(UpdatePerception, 0.5f)` |
+| 波次延迟 | `Schedule(SpawnWave, wave.DelaySeconds)` |
+
+## 6. 数学/几何工具库
+
+### 6.1 向量工具
+
+- 领域层统一使用 `System.Numerics.Vector2`
+- 提供 `UnityAdapter` 做 `System.Numerics.Vector2 ↔ UnityEngine.Vector3` 转换
+- 常用扩展：`Rotate(angle)`、`Perpendicular()`、`Lerp(a, b, t)`
+
+### 6.2 编队阵型计算器
+
+```
+FormationCalculator {
+    Vector2[] CalculateFormation(FormationType type, Vector2 center, int count, float spacing);
+}
+
+// Line:     count 个位置一字排开，垂直于面朝方向
+// Column:   count 个位置纵向排列，沿面朝方向
+// Wedge:    V 字形，第一个在最前，后续两侧交替
+// Circle:   均匀分布在半径为 r 的圆上
+// Grid:     sqrt(count) × sqrt(count) 网格
+// Free:     全部返回 center（成员自由移动）
+```
+
+### 6.3 碰撞辅助
+
+```
+CollisionHelper {
+    bool CircleOverlap(Vector2 a, float ra, Vector2 b, float rb);
+    Vector2 ResolveCirclePenetration(Vector2 a, float ra, Vector2 b, float rb);
+    Vector2 ClosestPointOnSegment(Vector2 point, Vector2 segStart, Vector2 segEnd);
+}
+```
+
+### 6.4 距离排序
+
+```
+SpatialQuery {
+    T[] FindNearest<T>(Vector2 origin, int maxCount, Func<T, Vector2> posSelector);
+    T[] FindInRadius<T>(Vector2 center, float radius, Func<T, Vector2> posSelector);
+}
+```
+
+## 7. 场景管理系统（Scene Management）
+
+### 7.1 场景流
+
+```
+Boot Scene           // DI Container 初始化 + 全局服务
+  ↓
+MainMenu Scene       // 主菜单
+  ↓ ↕
+CampaignMap Scene    // 战役地图（任务选择）
+  ↓
+Battle Scene         // 战斗
+  ↓
+Debrief Scene        // 结算
+  ↓
+返回 CampaignMap（胜利）或 MainMenu（退出）
+```
+
+### 7.2 场景切换服务
+
+```
+ISceneTransitionService {
+    Task LoadSceneAsync(string sceneName, LoadSceneMode mode = Single);
+    Task UnloadSceneAsync(string sceneName);
+    void SetTransitionEffect(TransitionType type);    // Fade / Slide / None
+}
+
+enum TransitionType { Fade, Slide, None }
+```
+
+### 7.3 全局服务存活策略
+
+- Boot Scene 创建：DI Container、GlobalEventBus、SaveService、Logger
+- 使用 `DontDestroyOnLoad` 保持跨场景
+- 场景级服务（CameraService、SelectionService）在 Battle Scene 创建，场景卸载时自动清理
+
+---
+
+# 第二部分：Meta（游戏外系统）
+
+---
+
+## 8. 主菜单系统（MainMenu）
+
+### 8.1 功能模块
+
+| 模块 | 说明 |
+|------|------|
+| 开始新游戏 | 创建新存档 → 进入战役地图 |
+| 继续游戏 | 读取最近存档 → 进入战役地图 |
+| 设置 | 打开设置面板 |
+| 退出 | 确认退出对话框 → 退出应用 |
+
+### 8.2 设置面板
+
+| 分类 | 选项 |
+|------|------|
+| **音频** | 主音量 / 音乐 / 音效 / 环境音（各自 0~100 滑条） |
+| **画质** | 分辨率（下拉）/ 画质档位（Low/Med/High/Ultra）/ 特效开关 |
+| **操控** | 键位绑定列表（每项：功能名 + 当前键位 + 重绑按钮） |
+| **游戏** | 游戏速度（0.5x/1x/2x）/ 字幕开关 |
+
+### 8.3 状态判定
+
+- 检查存档槽位 → 有存档则显示"继续游戏"，否则灰显
+- 设置独立存储（`SettingsData`），不随存档槽重置
+
+## 9. 战役地图系统（CampaignMap）
+
+### 9.1 战役图结构
+
+```
+Campaign {
+    CampaignId: string
+    DisplayName: string
+    Nodes: Dictionary<string, MissionNode>
+    StartNodeId: string
+}
+
+MissionNode {
+    NodeId: string
+    MissionDefinitionId: string           // 关联任务定义
+    Position: Vector2                     // 地图上的位置
+    PrerequisiteNodeIds: string[]         // 前置节点（解锁条件）
+    State: Locked / Available / InProgress / Completed / Failed
+    StarRating: int (1~3)                 // 完成评价
+    RewardPreview: RewardPreview          // 奖励预览
+}
+```
+
+### 9.2 节点解锁逻辑
+
+```
+CampaignNodeEvaluator {
+    NodeState EvaluateNode(MissionNode node, CampaignState state) {
+        if (state.CompletedNodeIds.Contains(node.NodeId)) return Completed;
+        if (state.FailedNodeIds.Contains(node.NodeId)) return Failed;
+        bool allPrereqsMet = node.PrerequisiteNodeIds.All(id => state.CompletedNodeIds.Contains(id));
+        return allPrereqsMet ? Available : Locked;
+    }
+}
+```
+
+### 9.3 交互流程
+
+```
+点击 Available 节点
+  → 进入任务准备界面
+    ├── 查看任务描述 / 目标 / 敌方情报
+    ├── 配置出战编队（从花名册中选择）
+    └── 点击"开始任务" → 加载战斗场景
+```
+
+### 9.4 分支路线
+
+- 节点可有多个 PrerequisiteNodeIds → 形成 DAG（有向无环图）
+- 完成某个分支后，另一分支仍可选择（非线性）
+- 关键路径节点标记为 MainPath，支线标记为 SidePath
+
+## 10. 花名册系统（Roster）
+
+### 10.1 数据结构
+
+```
+Roster {
+    OwnedUnits: List<OwnedUnit>
+    MaxRosterSize: int                    // 初始 8，可扩容
+    ActiveDeployment: DeploymentConfig    // 当前出战编队
+}
+
+OwnedUnit {
+    UnitId: string                        // 全局唯一
+    DefinitionId: string                  // 引用 UnitDefinition
+    DisplayName: string                   // 玩家可改名
+    Experience: int
+    Level: int
+    Traits: List<string>                  // TraitId 列表
+    InjuryState: Healthy / Injured / Critical / Dead
+    InjuryRecoveryTurns: int?             // 恢复所需战役回合数
+    KillCount: int
+    MissionsCompleted: int
+    Status: Available / OnMission / Injured / Dead
+}
+
+DeploymentConfig {
+    DeployedUnitIds: List<string>         // 出战单位 ID 列表
+    MaxDeploySize: int                    // 出战上限（如 6）
+}
+```
+
+### 10.2 编队配置交互
+
+```
+花名册界面
+├── 左侧：所有 Available 单位列表（可排序/筛选）
+├── 右侧：出战编队槽位（拖拽放入）
+├── 底部：编队总战力评估（HP 总和 / DPS 总和 / 速度均值）
+└── 操作：拖拽分配、一键填满、一键清空
+```
+
+### 10.3 伤病机制
+
+- 战斗中 HP 归零 → 单位不死，而是进入 `Injured`（轻度）或 `Critical`（重度）
+- `Injured`：属性 -20%，`Critical`：属性 -50%
+- 每个任务结束后，受伤单位恢复 1 级（Critical → Injured → Healthy）
+- `Dead`：仅在 Critical 状态下再次被击倒时发生（可选永久死亡开关）
+
+## 11. 升级与特质系统（Progression）
+
+### 11.1 经验与升级
+
+```
+ProgressionTable {
+    int GetRequiredXP(int level);         // 升级所需经验（递增曲线）
+    StatModifiers GetLevelBonuses(int level);  // 每级属性加成
+    string[] GetUnlockedTraits(int level);     // 该等级解锁的特质
+}
+
+// 经验获取：
+// - 击杀敌方单位：baseXP × (敌方等级 / 己方等级)
+// - 完成任务：固定奖励 XP
+// - 完成支线目标：额外奖励 XP
+```
+
+### 11.2 特质系统
+
+```
+TraitDefinition {
+    TraitId: string
+    DisplayName: string
+    Description: string
+    StatModifiers: StatModifier[]         // 属性修改列表
+    StackMode: None / Stack(max) / Refresh
+    MutuallyExclusiveWith: string[]       // 互斥特质
+    AcquisitionMethod: LevelUp / MissionReward / SpecialEvent
+}
+
+StatModifier {
+    StatName: string                      // "MaxHealth" / "MoveSpeed" / "DamagePerHit"
+    Operation: Add / Multiply             // 加法叠加 / 乘法叠加
+    Value: float
+}
+```
+
+### 11.3 属性修正计算顺序
+
+```
+基础值（来自 UnitDefinition）
+  → 加法修正（Level Bonus + Trait Add）求和
+    → 乘法修正（Trait Multiply）逐个相乘
+      → 最终值 = max(最终值, 最小保底值)
+```
+
+## 12. 进度结算系统（ProgressionSettlement）
+
+### 12.1 结算流程
+
+```
+战斗结束 → BattleResult
+  → ProgressionSettlement.Process(result)
+    ├── 1. 计算经验分配
+    │     ├── 参战单位获得基础 XP
+    │     └── 击杀单位获得额外 XP（按伤害贡献加权）
+    ├── 2. 处理升级
+    │     └── 遍历获得 XP 的单位，检查是否满足升级条件
+    ├── 3. 处理伤亡
+    │     ├── HP 归零的单位 → Injured / Critical / Dead
+    │     └── 更新花名册状态
+    ├── 4. 推进战役节点
+    │     ├── 标记当前节点 Completed（胜利）或 Failed（失败）
+    │     └── 重新评估所有节点解锁状态
+    ├── 5. 发放奖励
+    │     └── 新单位 / 新特质 / 花名册扩容
+    └── 6. 生成结算报告（SettlementReport）
+          └── 传递给 DebriefScreen 展示
+```
+
+### 12.2 结算报告
+
+```
+SettlementReport {
+    MissionOutcome: Victory / Defeat
+    UnitsDeployed: int
+    UnitsLost: int
+    TotalKills: int
+    TotalDamageDealt: int
+    BattleDurationSeconds: float
+    XPBreakdown: Dictionary<string, int>     // UnitId → 获得经验
+    LevelUps: List<(string UnitId, int NewLevel)>
+    NewTraits: List<(string UnitId, string TraitId)>
+    Casualties: List<(string UnitId, InjuryState)>
+    StarRating: int (1~3)                    // 基于损失比例
+    Rewards: List<RewardItem>
+}
+```
+
+## 13. 存档系统（Save/Load）
+
+### 13.1 存档结构
+
+```
+SaveData {
+    Version: int                          // 格式版本号（用于迁移）
+    Timestamp: DateTime
+    SlotIndex: int                        // 存档槽位
+    CampaignState: CampaignState          // 战役进度
+    RosterState: Roster                   // 花名册
+    ProgressionState: ProgressionState    // 所有单位的经验/等级/特质
+    SettingsData: SettingsData            // 游戏设置
+    ActiveBattleSnapshot: BattleSnapshot? // 战斗中存档（可选）
+}
+
+BattleSnapshot {
+    MissionDefinitionId: string
+    ElapsedTimeSeconds: float
+    Seed: int
+    SquadSnapshots: List<SquadSnapshot>   // 每个 Squad 的完整状态
+    WaveState: WaveState                  // 当前波次进度
+    ObjectiveStates: List<ObjectiveState> // 各目标当前进度
+}
+
+SquadSnapshot {
+    SquadId: int
+    FactionId: FactionId
+    Position: Vector2
+    UnitSnapshots: List<UnitSnapshot>     // 每个 Unit 的 HP/状态效果/冷却
+}
+```
+
+### 13.2 存档槽管理
+
+```
+ISaveService {
+    SaveData[] GetAllSlots();              // 获取所有槽位摘要
+    void SaveToSlot(int slotIndex, SaveData data);
+    SaveData LoadFromSlot(int slotIndex);
+    void DeleteSlot(int slotIndex);
+    bool HasSlotData(int slotIndex);
+    SaveData CreateAutoSave(SaveData data);  // 自动存档（专用槽位）
+}
+```
+
+### 13.3 版本迁移
+
+```
+IVersionedSerializer {
+    int CurrentVersion { get; }
+    SaveData Deserialize(string json);     // 自动检测版本并迁移
+    string Serialize(SaveData data);
+}
+
+// 迁移链：v1 → v2 → v3 → ... → CurrentVersion
+// 每个版本迁移器：IMigration { int FromVersion; int ToVersion; SaveData Migrate(SaveData old); }
+```
+
+### 13.4 快照安全
+
+- 存档时对 BattleSession 做**深拷贝**生成 BattleSnapshot
+- 避免存档过程中游戏状态变化污染存档数据
+- 加载时从 BattleSnapshot 重建 BattleSession
+
+## 14. 设置系统（Settings）
+
+### 14.1 数据结构
+
+```
+SettingsData {
+    AudioSettings: AudioSettings
+    GraphicsSettings: GraphicsSettings
+    InputBindings: InputBindings
+    GameSettings: GameSettings
+}
+
+AudioSettings {
+    MasterVolume: float (0~1)
+    MusicVolume: float
+    SFXVolume: float
+    AmbientVolume: float
+}
+
+GraphicsSettings {
+    Resolution: Resolution
+    QualityLevel: Low / Medium / High / Ultra
+    VSync: bool
+    PostProcessing: bool
+}
+
+InputBindings {
+    Bindings: Dictionary<string, string>  // Action → Key/Binding
+    // 默认绑定可在 Content 层定义
+}
+
+GameSettings {
+    GameSpeed: float (0.5 / 1.0 / 2.0)
+    ShowSubtitles: bool
+    CameraScrollSpeed: float
+    CameraZoomSpeed: float
+}
+```
+
+### 14.2 存储策略
+
+- 设置存储在 `Application.persistentDataPath/settings.json`
+- **独立于存档槽**，不随存档删除/重置
+- 启动时加载，修改后即时应用 + 自动保存
+
+---
+
+# 第三部分：Controls（战场操控系统）
+
+---
+
+## 15. 摄像机系统（Camera） ← 继承
+
+```
+CameraControllerBase（抽象基类）
+├── RtsCameraController      // 标准 RTS 俯视
+└── FollowCameraController   // 第三人称跟随（未来）
+```
+
+### 15.1 CameraControllerBase
+
+```
+abstract class CameraControllerBase : MonoBehaviour {
+    // 子类实现
+    abstract void HandlePan(Vector2 input);
+    abstract void HandleZoom(float scrollDelta);
+    abstract void HandleRotate(Vector2 dragDelta);
+
+    // 基类提供
+    void SmoothFollow(Vector3 target, float duration);
+    void SetBounds(Rect worldBounds);          // 限制摄像机移动范围
+    void SetZoomLimits(float min, float max);
+}
+```
+
+### 15.2 RtsCameraController
+
+| 功能 | 输入 | 参数 | 说明 |
+|------|------|------|------|
+| 平移 | WASD / 屏幕边缘 | ScrollSpeed, EdgeScrollThreshold | 水平移动，可选加速（长按加速） |
+| 缩放 | 滚轮 | MinHeight, MaxHeight, ZoomSpeed | 正交/透视高度调整 |
+| 旋转 | 中键拖拽 | RotationSpeed, MinAngle, MaxAngle | 绕焦点水平旋转，可选垂直限制 |
+| 聚焦 | 双击/空格 | FocusDuration, FocusZoomLevel | SmoothDamp 平滑过渡 |
+| 跟随 | F 键 | FollowOffset, FollowSmoothTime | 锁定跟随选中单位中心 |
+| 书签 | Ctrl+1~9 / 1~9 | — | 保存/恢复 position + rotation |
+| 框选联动 | — | — | 框选后自动居中到选中单位 |
+
+### 15.3 服务接口
+
+```
+ICameraService {
+    Vector3 ScreenToWorldPoint(Vector2 screenPos);
+    Vector2 WorldToScreenPoint(Vector3 worldPos);
+    void FocusOn(Vector3 worldPos, float duration = 0.5f);
+    void FollowEntity(EntityId? entityId);
+    bool IsVisible(Vector3 worldPos);
+    Rect GetVisibleWorldRect();              // 当前可见的世界范围
+}
+```
+
+## 16. 输入系统（Input System）
+
+### 16.1 管线架构
+
+```
+硬件 → Unity InputSystem → RawInputEvent
+  → InputInterpreter（语义解析层）
+    → 高层 Intent 事件
+      → 分发到对应消费者
+```
+
+### 16.2 InputInterpreter
+
+```
+class InputInterpreter {
+    // 每帧在 Update 中调用
+    void ProcessFrame() {
+        // 1. 读取原始输入状态
+        // 2. 识别手势（单击/双击/拖拽/长按）
+        // 3. 识别组合键（Shift/Ctrl/Alt 修饰）
+        // 4. 产出 Intent 事件
+    }
+}
+
+// 手势识别状态机
+InputGestureDetector {
+    // 左键按下 → 等待
+    //   → 移动距离 < 阈值 + 释放 = 单击
+    //   → 移动距离 < 阈值 + 短时间内再次单击 = 双击
+    //   → 移动距离 > 阈值 = 拖拽（框选）
+    //   → 持续按下 > 长按阈值 = 长按
+}
+```
+
+### 16.3 输入事件清单
+
+| Intent | 触发条件 | 消费方 | 优先级 |
+|--------|----------|--------|--------|
+| `SquadSelectIntent(ScreenPos)` | 左键单击 | SelectionService | — |
+| `BoxSelectIntent(Rect)` | 左键拖拽释放 | SelectionService | — |
+| `CommandIntent(ScreenPos, CommandType)` | 右键点击 | CommandFactory | — |
+| `QueueModifier(bool)` | Shift 按住/释放 | CommandFactory | — |
+| `MultiSelectModifier(bool)` | Ctrl 按住/释放 | SelectionService | — |
+| `CameraPanInput(Vector2)` | WASD/屏幕边缘 | CameraController | 低 |
+| `CameraZoomInput(float)` | 滚轮 | CameraController | 低 |
+| `CameraRotateInput(Vector2)` | 中键拖拽 | CameraController | 低 |
+| `FocusSelectedInput()` | 空格/双击 | CameraController | — |
+| `ToggleFollowInput()` | F 键 | CameraController | — |
+| `PauseInput()` | P / Esc | GameFlow | 最高 |
+| `AbilityHotkey(int slot)` | Q/W/E/R | AbilitySystem | — |
+| `FormationHotkey(FormationType)` | F1~F4 | CommandFactory | — |
+| `ControlGroupBind(int group)` | Ctrl+1~9 | ControlGroupService | — |
+| `ControlGroupRecall(int group)` | 1~9 | SelectionService | — |
+| `SpeedChangeInput(float)` | +/- | GameFlow | — |
+
+### 16.4 编队快捷键
+
+```
+ControlGroupService {
+    void BindGroup(int groupIndex, EntityId[] squadIds);
+    EntityId[] RecallGroup(int groupIndex);
+    EntityId[][] GetAllGroups();             // 供 HUD 显示
+}
+
+// 存储：int[10] 数组，每槽存 SquadId 列表
+// Ctrl+数字 = 绑定当前选中
+// 数字 = 选中该编队
+// 双击数字 = 选中 + 摄像机聚焦
+```
+
+## 17. 选中系统（Selection System）
+
+### 17.1 核心服务
+
+```
+ISelectionService {
+    IReadOnlyList<int> SelectedSquadIds { get; }
+    void SelectSingle(int squadId, SelectMode mode);
+    void SelectMultiple(int[] squadIds, SelectMode mode);
+    void SelectInRect(Rect screenRect, SelectMode mode);
+    void ClearSelection();
+    event Action<SelectionChangedEventArgs> SelectionChanged;
+}
+
+enum SelectMode { Replace, Add, Toggle }
+```
+
+### 17.2 选中规则
+
+- 只能选中己方（`FactionId.Player`）单位
+- 只有 `SelectionComponent.IsSelectable == true` 的实体可被选
+- 重叠时按 `SelectionComponent.SelectionPriority` 排序取最高
+- 死亡单位自动从选中集合移除
+
+### 17.3 选中反馈
+
+- 选中变化 → `SquadSelectedEvent`
+- 表现层：选中单位底部显示选择圈 + 射程圈（如果只有一个选中）
+- HUD：更新选中面板信息
+
+## 18. 战斗 HUD（BattleHUD）
+
+### 18.1 MVVM 架构
+
+```
+GameWorld (Model)
+  → EventBus 事件
+    → HUDViewModel（数据转换 + 格式化）
+      → HUDView（UI 渲染，自动绑定 ViewModel 属性）
+
+用户点击 UI 按钮
+  → HUDView 回调
+    → HUDViewModel 处理
+      → 调用对应 Service（CommandFactory / AbilitySystem / CameraService）
+```
+
+### 18.2 HUD 模块
+
+| 模块 | 数据源 | 功能 |
+|------|--------|------|
+| **选中面板** | SelectionService + 实体组件 | 头像、名称、HP 条、武器、状态效果图标 |
+| **小地图** | 所有实体 Position + FactionId | 鸟瞰战场，友绿敌红，点击跳转 |
+| **指令面板** | 选中单位的可用指令 | 移动/攻击/停止/技能图标按钮 |
+| **编队栏** | ControlGroupService | 10 个编队槽，显示缩略图 |
+| **任务目标** | MissionRuntime | 主/支线目标列表 + 进度 |
+| **资源栏** | ResourceSystem（可选） | 当前资源量 |
+| **暂停菜单** | GameFlow | 暂停/恢复/设置/返回主菜单 |
+| **游戏速度** | GameFlow | 0.5x / 1x / 2x 切换 |
+| **通知条** | EventBus | 重要事件滚动通知（"目标完成"/"援军到达"） |
+
+### 18.3 选中面板细节
+
+```
+SelectionPanelViewModel {
+    string DisplayName
+    float HealthPercent (0~1)
+    string WeaponName
+    float WeaponRange
+    List<StatusEffectIcon> ActiveEffects  // 图标 + 剩余时间
+    string ArmorType
+    float MoveSpeed
+}
+
+// 多选时显示：选中数量 + 第一个单位的详细信息
+// 不同种类单位混合选中时：显示所有种类的缩略图列表
+```
+
+## 19. 结算界面（DebriefScreen）
+
+### 19.1 数据绑定
+
+```
+DebriefViewModel {
+    SettlementReport Report                 // 来自 ProgressionSettlement
+
+    // 展示用属性
+    string OutcomeText                      // "胜利" / "失败"
+    string DurationText                     // "用时: 3分24秒"
+    int KillCount
+    int LossCount
+    int StarRating (1~3)
+    List<XPBreakdownEntry> XPBreakdown      // 单位名 + 获得经验
+    List<LevelUpEntry> LevelUps             // 单位名 + 新等级
+    List<CasualtyEntry> Casualties          // 单位名 + 状态
+    List<RewardEntry> Rewards               // 奖励描述列表
+}
+```
+
+### 19.2 交互
+
+| 按钮 | 行为 |
+|------|------|
+| 继续 | 保存进度 → 返回战役地图 |
+| 重试 | 重新加载当前任务（消耗一次重试机会？可选） |
+| 返回主菜单 | 保存进度 → 返回主菜单 |
+
+## 20. 音频系统（Audio） ← 继承
+
+```
+AudioChannelBase（抽象基类）
+├── MusicChannel         // 背景音乐
+├── SFXChannel           // 音效
+└── AmbientChannel       // 环境音
+```
+
+### 20.1 AudioChannelBase
+
+```
+abstract class AudioChannelBase {
+    float Volume { get; set; }
+    bool IsMuted { get; set; }
+    abstract void Play(AudioClip clip, AudioParams? params = null);
+    abstract void Stop(float fadeOutSeconds = 0);
+}
+
+AudioParams {
+    float VolumeScale = 1f
+    float Pitch = 1f
+    bool IsLooping = false
+    Vector3? WorldPosition = null           // null = 2D, 非null = 3D
+    float MaxDistance = 50f
+}
+```
+
+### 20.2 音频管理器
+
+```
+IAudioService {
+    void PlaySFX(string clipId, Vector3? position = null);
+    void PlayMusic(string trackId, float crossfadeSeconds = 1f);
+    void PlayAmbient(string clipId);
+    void StopMusic(float fadeOutSeconds = 2f);
+    void SetChannelVolume(AudioChannel channel, float volume);
+    void MuteChannel(AudioChannel channel, bool mute);
+}
+
+enum AudioChannel { Master, Music, SFX, Ambient }
+```
+
+### 20.3 音频事件表
+
+| 事件 | 通道 | 3D | 触发时机 |
+|------|------|----|----------|
+| rifle_fire | SFX | ✓ | 步枪单位攻击 |
+| claw_strike | SFX | ✓ | 近战单位攻击 |
+| explosion | SFX | ✓ | 爆炸武器命中 |
+| unit_death | SFX | ✓ | 单位死亡 |
+| footsteps | SFX | ✓ | 单位移动（循环） |
+| command_confirm | SFX | ✗ | 右键发出指令 |
+| mission_victory | Music | ✗ | 战斗胜利 |
+| mission_defeat | Music | ✗ | 战斗失败 |
+| battle_bgm | Music | ✗ | 战斗中循环 |
+| menu_bgm | Music | ✗ | 主菜单循环 |
+
+### 20.4 空间音频
+
+- 3D 音效：按声源与摄像机距离线性衰减
+- 同屏音效上限：SFX 通道最多 16 个同时播放
+- 溢出策略：新音效到达时，如果已满，丢弃距离最远或优先级最低的
+
+---
+
+# 第四部分：Combat（战斗模拟系统）
+
+---
+
+## 21. 实体组合系统（Entity Composition）
+
+### 21.1 设计哲学
+
+```
+实体 = ID + 组件列表        （轻量，不用 DOTS）
+组件 = 纯数据 class          （实现 IComponent 标记接口）
+系统 = 查询 + 逻辑 class    （在 Tick 中遍历相关实体）
+```
+
+### 21.2 实体管理
+
+```
+EntityId {
+    int Value                               // 全局唯一递增
+    EntityType Type                         // Unit / Squad / Projectile / Effect
+}
+
+IEntityRegistry {
+    Entity Create(EntityBlueprint blueprint, Vector2 position);
+    void Destroy(EntityId id);
+    Entity Get(EntityId id);
+    bool TryGet(EntityId id, out Entity entity);
+    IEnumerable<Entity> Query(params Type[] componentTypes);   // 查询拥有指定组件的实体
+    IEnumerable<Entity> QueryInRadius(Vector2 center, float radius, params Type[] componentTypes);
+    int ActiveEntityCount { get; }
+}
+```
+
+### 21.3 组件系统
+
+```
+IComponent { }                              // 标记接口
+
+Entity {
+    EntityId Id { get; }
+    T GetComponent<T>() where T : IComponent;
+    bool TryGetComponent<T>(out T component) where T : IComponent;
+    bool HasComponent<T>() where T : IComponent;
+    void AddComponent<T>(T component) where T : IComponent;
+    void RemoveComponent<T>() where T : IComponent;
+}
+```
+
+### 21.4 实体蓝图（Blueprint）
+
+```
+EntityBlueprint {
+    string BlueprintId                      // "unit.infantry" / "unit.zombie"
+    List<IComponent> DefaultComponents      // 默认组件列表（含初始值）
+}
+
+// 创建实体时：
+// 1. 按 BlueprintId 查找蓝图
+// 2. 深拷贝所有默认组件
+// 3. 用运行时参数覆盖（Position, FactionId 等）
+// 4. 注册到 EntityRegistry
+```
+
+### 21.5 完整组件清单
+
+#### 身份类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `IdentityComponent` | DisplayName, FactionId, EntityTag(Player/Enemy/Neutral/Building) | 基础身份 |
+| `SquadMemberComponent` | SquadId, SlotIndex | 小队归属 |
+| `SquadRosterComponent` | MemberEntityIds[], FormationType, FormationSpacing | 小队成员管理 |
+
+#### 战斗属性类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `HealthComponent` | CurrentHP, MaxHP, IsInvulnerable, RegenRate, RegenDelay | 生命值+回复 |
+| `ArmorComponent` | ArmorType(Light/Medium/Heavy/Fortified/Unarmored), ArmorValue | 护甲 |
+| `WeaponComponent` | WeaponDef, CooldownRemaining, IsReloading | 武器挂载 |
+| `DamageSourceComponent` | DamagePerHit, DamageType, SplashRadius, SplashFalloff, PiercingCount | 伤害源 |
+| `StatusEffectContainer` | ActiveEffects: List<ActiveStatusEffect> | 状态效果承载 |
+
+#### 移动类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `PositionComponent` | Position(Vector2), Rotation(float), PreviousPosition | 位置+朝向 |
+| `MovementComponent` | MoveSpeed, Acceleration, Deceleration, TurnSpeed, IsMoving | 移动能力 |
+| `PathfindingComponent` | CurrentPath: Vector2[], WaypointIndex, RepathInterval, RepathTimer | 寻路 |
+| `CollisionComponent` | CollisionRadius, IsStatic, CollisionLayer | 碰撞体 |
+
+#### 指令类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `CommandQueueComponent` | Queue: Queue<Command>, MaxQueueSize(8) | 指令队列 |
+| `CurrentOrderComponent` | ActiveCommand: Command?, OrderState(Idle/Executing/Completed) | 当前指令 |
+
+#### AI 类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `AIBehaviorComponent` | BehaviorTreeId, AggroRange, LeashRadius, UpdateInterval | AI 配置 |
+| `PerceptionComponent` | VisibleEntityIds[], LastKnownPositions: Dict<EntityId,Vector2>, LastPerceptionTime | 感知 |
+| `TargetingComponent` | CurrentTargetId?, TargetPriority, AutoAcquire, ForcedTargetId? | 目标选择 |
+
+#### 表现类
+| 组件 | 字段 | 说明 |
+|------|------|------|
+| `RenderComponent` | PrefabId, VisualState(Idle/Moving/Attacking/Dying/Dead), AnimationSpeed | 渲染 |
+| `SelectionComponent` | IsSelectable, IsSelected, SelectionPriority, SelectionRadius | 可选中 |
+| `HealthBarComponent` | ShowHealthBar, BarWorldOffset, BarScale | 血条 |
+| `ProjectileComponent` | SourceEntityId, TargetEntityId, Speed, Damage, DamageType, SplashRadius | 投射物数据 |
+
+### 21.6 小队（Squad）
+
+```
+// Squad 本身也是 Entity
+SquadEntity = Entity {
+    IdentityComponent { FactionId, EntityTag = Squad }
+    PositionComponent { Position = 成员中心点 }
+    SquadRosterComponent { MemberEntityIds[], FormationType, Spacing }
+    CommandQueueComponent { Queue }
+    CurrentOrderComponent { ActiveCommand }
+    SelectionComponent { IsSelectable = true }
+}
+
+// Squad 行为规则：
+// 1. 指令发给 Squad → Squad 分发给成员
+// 2. Squad 位置 = 成员质心
+// 3. 移动时：FormationCalculator 计算偏移 → 每个成员独立移动
+// 4. 攻击时：Squad 指定目标 Squad → 成员各自选最近敌方 Unit
+// 5. Squad 全灭（所有成员死亡）→ 自动销毁 SquadEntity
+```
+
+### 21.7 系统基类（GameSystem）
+
+```
+abstract class GameSystem {
+    abstract void Initialize(IEntityRegistry registry, IEventBus eventBus);
+    abstract void Tick(float deltaTime);
+    virtual void OnEntityCreated(Entity entity) { }
+    virtual void OnEntityDestroyed(Entity entity) { }
+    virtual void Dispose() { }
+}
+
+// 系统执行顺序（每帧）：
+// 1. InputSystem（已在 Update 中处理）
+// 2. CommandSystem（处理指令队列）
+// 3. AISystem（AI 决策 → 发出指令）
+// 4. MovementSystem（移动 + 寻路）
+// 5. CombatSystem（攻击判定 + 伤害计算）
+// 6. StatusEffectSystem（状态效果 Tick）
+// 7. CleanupSystem（死亡处理 + 实体回收）
+// 8. MissionSystem（目标评估）
+// 9. PresentationSync（同步到 Unity 表现层）
+```
+
+## 22. 指令系统（Command System）
+
+### 22.1 指令结构
+
+```
+Command {
+    CommandType: CommandType
+    SourceEntityId: int                     // Squad ID
+    TargetEntityId: int?                    // 目标实体
+    Destination: Vector2?                   // 目标坐标
+    AbilityId: string?                      // 技能 ID
+    FormationType: FormationType?           // 阵型
+    Queue: bool                             // Shift 追加
+    Priority: CommandPriority               // Normal / Urgent
+    Timestamp: float                        // 创建时间
+}
+
+enum CommandType {
+    Move, AttackMove, Attack, Stop,
+    HoldPosition, Guard, Patrol,
+    UseAbility, SetFormation, Retreat
+}
+
+enum CommandPriority { Normal, Urgent }
+```
+
+### 22.2 CommandFactory
+
+```
+class CommandFactory {
+    // 将原始输入 Intent 转化为 Command
+    Command? CreateFromInput(InputIntent intent, ISelectionService selection, ICameraService camera) {
+        // 右键点击地面 → Move（对每个选中 Squad）
+        // 右键点击敌方 → Attack
+        // Shift+右键 → Queue = true
+        // 快捷键 → 对应指令类型
+    }
+}
+```
+
+### 22.3 CommandValidator
+
+```
+class CommandValidator {
+    ValidationResult Validate(Command command, IEntityRegistry registry) {
+        // 1. SourceEntityId 存在且存活
+        // 2. 如果 TargetEntityId 存在，目标存活
+        // 3. 对于 Attack：目标必须是敌方
+        // 4. 对于 Guard：目标必须是友方
+        // 5. 对于 UseAbility：技能不在冷却中
+        // 6. 队列未满（Queue 模式时）
+    }
+}
+
+ValidationResult {
+    bool IsValid
+    string? FailureReason
+}
+```
+
+### 22.4 CommandExecutor
+
+```
+class CommandExecutor {
+    void Execute(Command command, IEntityRegistry registry) {
+        // 1. Urgent 指令：立即打断当前，清空队列
+        // 2. Queue = true：追加到队列
+        // 3. Queue = false：替换当前，清空队列
+        // 4. 调用 ApplyToEntity 更新组件状态
+    }
+
+    void ApplyToEntity(Command command, Entity squadEntity) {
+        // Move:    → CurrentOrderComponent = Executing, MovementComponent 设置目标
+        // Attack:  → CurrentOrderComponent = Executing, TargetingComponent 设置目标
+        // Stop:    → CurrentOrderComponent = Idle, MovementComponent.IsMoving = false
+        // HoldPos: → MovementComponent.MoveSpeed = 0（临时）, TargetingComponent.AutoAcquire = true
+        // Guard:   → 每帧跟随目标位置
+        // Patrol:  → 生成多个 Move 子指令入队
+        // Retreat: → 计算基地方向 → Move
+    }
+}
+```
+
+### 22.5 指令完成条件
+
+| 指令 | 完成条件 |
+|------|----------|
+| Move | 到达目标点（距离 < 0.5） |
+| AttackMove | 到达目标点 |
+| Attack | 目标死亡 |
+| Stop | 立即完成 |
+| HoldPosition | 永不完成（持续状态，直到新指令） |
+| Guard | 被守护目标死亡 |
+| Patrol | 永不完成（循环模式）/ 走完一遍（单次模式） |
+| UseAbility | 效果应用完成 |
+| SetFormation | 阵型切换立即完成 |
+| Retreat | 到达撤退点 |
+
+## 23. 战斗系统（Combat System）
+
+### 23.1 武器定义
+
+```
+WeaponDefinition {
+    Id: string
+    DisplayName: string
+    WeaponType: Melee / Ranged / Siege / Support
+    DamagePerHit: int
+    DamageType: Physical / Magical / Explosive / True
+    AttackInterval: float                   // 攻击间隔（秒）
+    Range: float                            // 攻击射程
+    ProjectileSpeed: float                  // 弹道速度（0 = 即时命中）
+    SplashRadius: float                     // 溅射半径（0 = 单体）
+    SplashFalloff: float                    // 溅射衰减（1.0 = 不衰减）
+    PiercingCount: int                      // 穿透数（0 = 不穿透）
+    ProjectilePrefabId: string
+    MuzzleEffectId: string
+    HitEffectId: string
+}
+```
+
+### 23.2 伤害计算公式
+
+```
+float CalculateDamage(WeaponDefinition weapon, ArmorComponent armor, RNG rng) {
+    // Step 1: 基础伤害
+    float baseDamage = weapon.DamagePerHit;
+
+    // Step 2: 护甲克制
+    float armorMultiplier = DamageTable.GetMultiplier(weapon.DamageType, armor.ArmorType);
+    float afterArmor = baseDamage * armorMultiplier;
+
+    // Step 3: 护甲值减免（可选，取决于设计偏好）
+    // 方案 A：固定减免 → finalDamage = max(1, afterArmor - armor.ArmorValue)
+    // 方案 B：百分比减免 → finalDamage = afterArmor * (1 - armor.ArmorValue / (armor.ArmorValue + 100))
+    float afterReduction = ApplyArmorReduction(afterArmor, armor.ArmorValue);
+
+    // Step 4: 暴击（可选）
+    if (rng.NextFloat() < critChance)
+        afterReduction *= critMultiplier;
+
+    // Step 5: 最小伤害保底
+    return max(1, afterReduction);
+}
+```
+
+### 23.3 溅射伤害
+
+```
+void ApplySplashDamage(DamageEvent primaryEvent, IEntityRegistry registry) {
+    if (weapon.SplashRadius <= 0) return;
+
+    var nearby = registry.QueryInRadius(
+        primaryEvent.HitPosition, weapon.SplashRadius,
+        typeof(HealthComponent), typeof(FactionComponent));
+
+    foreach (var entity in nearby) {
+        if (entity.Id == primaryEvent.TargetEntityId) continue;  // 主目标已处理
+        float distance = Vector2.Distance(entity.Position, primaryEvent.HitPosition);
+        float falloff = 1f - (distance / weapon.SplashRadius) * weapon.SplashFalloff;
+        float splashDamage = primaryEvent.FinalDamage * max(0, falloff);
+        ApplyDamageToEntity(entity, splashDamage, ...);
+    }
+}
+```
+
+### 23.4 攻击流程
+
+```
+CombatSystem.Tick(deltaTime) {
+    foreach (entity with WeaponComponent + TargetingComponent) {
+        // 1. 检查冷却
+        if (weapon.CooldownRemaining > 0) {
+            weapon.CooldownRemaining -= deltaTime;
+            continue;
+        }
+
+        // 2. 获取目标
+        var target = targeting.CurrentTargetId;
+        if (target == null) {
+            if (targeting.AutoAcquire) target = FindNearestEnemy(entity);
+            else continue;
+        }
+
+        // 3. 检查距离
+        float distance = Vector2.Distance(entity.Position, target.Position);
+        if (distance > weapon.Range) continue;  // 移动系统会靠近
+
+        // 4. 执行攻击
+        var damageEvent = CalculateAndApplyDamage(entity, target);
+        eventBus.Publish(new DamageDealtEvent(damageEvent));
+
+        // 5. 生成投射物（如果有）
+        if (weapon.ProjectileSpeed > 0)
+            SpawnProjectile(entity, target, weapon);
+
+        // 6. 重置冷却
+        weapon.CooldownRemaining = weapon.AttackInterval;
+    }
+}
+```
+
+### 23.5 状态效果系统
+
+```
+ActiveStatusEffect {
+    string EffectId
+    float RemainingDuration
+    float TickTimer
+    float TickInterval
+    StatModifier[] Modifiers
+    EffectType Type                         // Buff / Debuff / DoT / HoT / Control
+}
+
+StatusEffectSystem.Tick(deltaTime) {
+    foreach (entity with StatusEffectContainer) {
+        foreach (effect in container.ActiveEffects) {
+            // 更新持续时间
+            effect.RemainingDuration -= deltaTime;
+
+            // Tick 效果
+            effect.TickTimer -= deltaTime;
+            if (effect.TickTimer <= 0) {
+                ApplyTickEffect(entity, effect);
+                effect.TickTimer = effect.TickInterval;
+            }
+
+            // 移除过期效果
+            if (effect.RemainingDuration <= 0) {
+                effect.OnRemove(entity);
+                container.Remove(effect);
+            }
+        }
+
+        // 重新计算属性修正
+        RecalculateStats(entity);
+    }
+}
+
+// 叠加规则：
+// None:     新效果替换旧效果
+// Stack(n): 最多叠 n 层，每层独立计算
+// Refresh:  刷新持续时间，不叠加
+```
+
+## 24. 移动与寻路系统（Movement & Pathfinding）
+
+### 24.1 移动系统
+
+```
+MovementSystem.Tick(deltaTime) {
+    foreach (entity with MovementComponent + PositionComponent) {
+        if (!movement.IsMoving) continue;
+
+        // 1. 计算方向
+        Vector2 direction = (targetPosition - position.Position);
+        float distance = direction.Length();
+
+        // 2. 到达判定
+        if (distance < ArrivalThreshold) {
+            position.Position = targetPosition;
+            movement.IsMoving = false;
+            continue;
+        }
+
+        // 3. 加速度模型
+        direction = direction.Normalized();
+        float currentSpeed = movement.CurrentSpeed;
+        float targetSpeed = movement.MoveSpeed;
+
+        if (currentSpeed < targetSpeed)
+            currentSpeed = min(currentSpeed + movement.Acceleration * deltaTime, targetSpeed);
+
+        // 4. 转向（可选）
+        float targetAngle = atan2(direction.Y, direction.X);
+        position.Rotation = LerpAngle(position.Rotation, targetAngle, movement.TurnSpeed * deltaTime);
+
+        // 5. 移动
+        float step = currentSpeed * deltaTime;
+        if (step >= distance) {
+            position.Position = targetPosition;
+            movement.IsMoving = false;
+        } else {
+            position.Position += direction * step;
+        }
+    }
+}
+```
+
+### 24.2 碰撞分离
+
+```
+CollisionSystem.Tick() {
+    // 实体间碰撞
+    for (int i = 0; i < entities.Count; i++) {
+        for (int j = i + 1; j < entities.Count; j++) {
+            float minDist = collision[i].Radius + collision[j].Radius;
+            Vector2 offset = pos[j] - pos[i];
+            float dist = offset.Length();
+            if (dist >= minDist || dist < 0.0001f) continue;
+
+            Vector2 dir = offset.Normalized();
+            float penetration = minDist - dist;
+            // 按移动状态分配推开比例
+            float ratioA = movement[i].IsMoving ? 0.3f : 0.7f;
+            float ratioB = 1f - ratioA;
+            pos[i] -= dir * (penetration * ratioA);
+            pos[j] += dir * (penetration * ratioB);
+        }
+    }
+
+    // 障碍物碰撞（通过 Unity NavMesh 或 ObstacleVolume）
+    foreach (entity with CollisionComponent) {
+        ResolveObstacleOverlap(entity);
+    }
+}
+```
+
+### 24.3 编队移动
+
+```
+FormationMovementSystem {
+    void OnCommandExecuted(MoveCommand cmd, Entity squadEntity) {
+        var roster = squadEntity.GetComponent<SquadRosterComponent>();
+        var positions = FormationCalculator.CalculateFormation(
+            roster.FormationType,
+            cmd.Destination,
+            roster.MemberEntityIds.Count,
+            roster.FormationSpacing
+        );
+
+        for (int i = 0; i < roster.MemberEntityIds.Count; i++) {
+            var member = registry.Get(roster.MemberEntityIds[i]);
+            member.GetComponent<MovementComponent>().SetDestination(positions[i]);
+        }
+    }
+}
+```
+
+### 24.4 寻路集成
+
+```
+PathfindingSystem.Tick(deltaTime) {
+    foreach (entity with PathfindingComponent) {
+        pathfinding.RepathTimer -= deltaTime;
+        if (pathfinding.RepathTimer > 0) continue;
+
+        pathfinding.RepathTimer = pathfinding.RepathInterval;
+
+        // 请求 NavMesh 路径
+        var path = NavMeshAdapter.CalculatePath(entity.Position, entity.Destination);
+        if (path != null) {
+            pathfinding.CurrentPath = path;
+            pathfinding.WaypointIndex = 0;
+        }
+    }
+}
+
+// MovementSystem 消费路径：
+// 如果有 PathfindingComponent.CurrentPath：
+//   移动到当前 WaypointIndex 对应的路径点
+//   到达后 WaypointIndex++
+//   全部走完 → 到达目的地
+```
+
+## 25. AI 系统
+
+### 25.1 行为树框架
+
+```
+// 节点基类
+abstract class BehaviorNode {
+    enum Status { Success, Failure, Running }
+    abstract Status Tick(AIBlackboard blackboard, float deltaTime);
+    virtual void OnEnter(AIBlackboard bb) { }
+    virtual void OnExit(AIBlackboard bb) { }
+}
+
+// 复合节点
+class Selector : BehaviorNode {            // 选择第一个成功的子
+    List<BehaviorNode> Children;
+    Status Tick(bb, dt) {
+        foreach (child in Children)
+            if (child.Tick(bb, dt) != Failure) return Running/Success;
+        return Failure;
+    }
+}
+
+class Sequence : BehaviorNode {            // 按顺序执行，任一失败则失败
+    List<BehaviorNode> Children;
+    Status Tick(bb, dt) {
+        foreach (child in Children)
+            if (child.Tick(bb, dt) != Success) return Running/Failure;
+        return Success;
+    }
+}
+
+// 装饰节点
+class Repeat : BehaviorNode {              // 重复执行子节点
+    BehaviorNode Child;
+    int RepeatCount;                       // -1 = 无限
+}
+
+class Inverter : BehaviorNode {            // 反转子节点结果
+    BehaviorNode Child;
+}
+
+// 叶节点
+class Condition : BehaviorNode {           // 条件判断
+    Func<AIBlackboard, bool> Predicate;
+}
+
+class Action : BehaviorNode {              // 执行动作
+    Func<AIBlackboard, float, Status> Execute;
+}
+```
+
+### 25.2 AI 黑板（Blackboard）
+
+```
+AIBlackboard {
+    EntityId SelfId
+    EntityId? CurrentTargetId
+    Vector2 SelfPosition
+    Vector2? LastKnownEnemyPosition
+    float TimeSinceLastDamage
+    float TimeSinceLastAttack
+    int NearbyAllyCount
+    int NearbyEnemyCount
+    float HealthPercent
+    bool IsUnderAttack
+    SquadRosterComponent SquadInfo
+}
+```
+
+### 25.3 典型敌方行为树
+
+```
+Selector
+├── Sequence [低血量撤退]
+│   ├── Condition: HealthPercent < 0.2
+│   └── Action: Retreat
+├── Sequence [被攻击反击]
+│   ├── Condition: IsUnderAttack && TimeSinceLastDamage < 3s
+│   └── Action: AttackDamageSource
+├── Sequence [发现范围内敌人]
+│   ├── Condition: NearbyEnemyCount > 0
+│   ├── Sequence
+│   │   ├── Condition: Distance > WeaponRange
+│   │   └── Action: MoveTowardTarget
+│   └── Action: AttackCurrentTarget
+└── Action: Idle / Wander
+```
+
+### 25.4 AI 更新策略
+
+```
+AISystem.Tick(deltaTime) {
+    foreach (entity with AIBehaviorComponent) {
+        // 按 UpdateInterval 控制更新频率（不必每帧）
+        behavior.UpdateTimer -= deltaTime;
+        if (behavior.UpdateTimer > 0) continue;
+        behavior.UpdateTimer = behavior.UpdateInterval;
+
+        // 1. 更新感知
+        UpdatePerception(entity);
+
+        // 2. 填充黑板
+        PopulateBlackboard(entity, blackboard);
+
+        // 3. 执行行为树
+        var status = behaviorTree.Tick(blackboard, deltaTime);
+
+        // 4. 行为树产出 → 生成指令
+        if (blackboard.DesiredCommand != null)
+            commandExecutor.Execute(blackboard.DesiredCommand, registry);
+    }
+}
+```
+
+## 26. 任务系统（Mission System）
+
+### 26.1 任务定义
+
+```
+MissionDefinition {
+    Id: string
+    DisplayName: string
+    Description: string
+    MapId: string                           // 场景名称
+    Objectives: MissionObjectiveDefinition[]
+    VictoryCondition: AllObjectives / AnyObjective / Custom
+    DefeatCondition: AllUnitsDead / TimeOut / TimeLimitExceeded
+    StartingSquads: SquadSpawnDefinition[]   // 玩家初始部队
+    EnemyWaves: WaveDefinition[]
+    TimeLimitSeconds: float?                // null = 无限时
+    AmbientMusicTrackId: string
+}
+```
+
+### 26.2 任务目标
+
+```
+MissionObjectiveDefinition {
+    Id: string
+    Description: string
+    ObjectiveType: Eliminate / Survive / Escort / Capture / Collect / ReachArea
+    TargetEntityId: string?                 // 特定目标实体
+    TargetArea: Rect?                       // 目标区域
+    RequiredCount: int?                     // 需要达成数量
+    IsOptional: bool                        // 支线
+    TimeLimit: float?                       // 目标限时
+}
+
+// 目标评估器（每种类型一个）
+IEvaluator {
+    ObjectiveProgress Evaluate(MissionObjectiveDefinition def, IEntityRegistry registry);
+}
+
+// Eliminate: 检查目标实体/阵营是否全灭
+// Survive:   检查玩家是否存活到指定时间
+// Escort:    检查护送目标是否到达终点
+// Capture:   检查玩家单位是否在目标区域内停留足够时间
+// Collect:   检查收集物数量
+// ReachArea: 检查指定单位是否进入目标区域
+```
+
+### 26.3 任务运行时
+
+```
+MissionRuntime.Tick(deltaTime) {
+    _elapsedTime += deltaTime;
+
+    // 1. 评估所有目标
+    foreach (objective in _objectives) {
+        var progress = _evaluators[objective.Type].Evaluate(objective, _registry);
+        if (progress != objective.LastProgress) {
+            objective.LastProgress = progress;
+            _eventBus.Publish(new MissionObjectiveUpdatedEvent(objective.Id, progress));
+        }
+    }
+
+    // 2. 检查胜负条件
+    var outcome = EvaluateOutcome();
+    if (outcome != MissionOutcome.InProgress) {
+        _eventBus.Publish(new BattleEndedEvent(BuildResult()));
+    }
+}
+
+MissionOutcome EvaluateOutcome() {
+    // 胜利检查
+    bool victory = VictoryCondition switch {
+        AllObjectives => _objectives.Where(o => !o.IsOptional).All(o => o.IsCompleted),
+        AnyObjective => _objectives.Any(o => o.IsCompleted),
+    };
+    if (victory) return Victory;
+
+    // 失败检查
+    bool defeat = DefeatCondition switch {
+        AllUnitsDead => PlayerFactionLivingCount == 0,
+        TimeOut => _elapsedTime > TimeLimitSeconds,
+    };
+    if (defeat) return Defeat;
+
+    return InProgress;
+}
+```
+
+### 26.4 波次系统
+
+```
+WaveDefinition {
+    WaveIndex: int
+    SpawnList: SpawnEntry[]                 // 要生成的单位
+    SpawnPoints: Vector2[]                  // 生成位置
+    DelayAfterPrevious: float               // 上一波结束后的延迟
+    TriggerCondition: Time / PreviousCleared / Event
+    TriggerValue: float?                    // Time 模式下的触发秒数
+    DifficultyScale: float                  // HP/数量缩放（1.0 = 不变）
+    AnnouncementText: string                // 波次提示文字
+}
+
+WaveSystem.Tick(deltaTime) {
+    if (_currentWaveIndex >= _waves.Count) return;
+
+    _waveTimer += deltaTime;
+    var wave = _waves[_currentWaveIndex];
+
+    bool shouldSpawn = wave.TriggerCondition switch {
+        Time => _waveTimer >= wave.TriggerValue,
+        PreviousCleared => AllPreviousWaveEnemiesDead(),
+        Event => _triggerEventReceived,
+    };
+
+    if (shouldSpawn) {
+        SpawnWave(wave);
+        _currentWaveIndex++;
+        _waveTimer = 0;
+        _eventBus.Publish(new WaveStartedEvent(wave.WaveIndex, wave.SpawnList.Length));
+    }
+}
+```
+
+## 27. 技能系统（Ability System）
+
+### 27.1 技能定义
+
+```
+AbilityDefinition {
+    Id: string
+    DisplayName: string
+    Description: string
+    AbilityType: Active / Passive / Toggle
+    CooldownSeconds: float
+    Range: float?                           // 施法距离
+    TargetType: None / SingleTarget / Area / Self / Direction
+    EffectRadius: float?
+    Effects: AbilityEffectDefinition[]
+    IconId: string
+    HotkeySlot: int?                        // Q=0, W=1, E=2, R=3
+    RequiresTarget: bool
+    CastTime: float                         // 施法前摇（0 = 瞬发）
+    ChannelDuration: float?                 // 引导时间（null = 不引导）
+}
+```
+
+### 27.2 效果类型
+
+```
+AbilityEffectDefinition {
+    EffectType: string                      // "damage" / "heal" / "buff" / "spawn" / "teleport" / "projectile"
+    Parameters: Dictionary<string, float>   // 效果参数
+}
+
+// DamageEffect:   { "amount": 50, "radius": 3, "damageType": "Magical" }
+// HealEffect:     { "amount": 30, "radius": 4 }
+// BuffEffect:     { "statusEffectId": "speed_boost", "duration": 5 }
+// SpawnEffect:    { "unitBlueprintId": "summon.skeleton", "count": 3, "lifetime": 30 }
+// TeleportEffect: { "maxRange": 10 }
+// ProjectileEffect: { "projectileId": "fireball", "speed": 15, "damage": 40 }
+```
+
+### 27.3 技能使用流程
+
+```
+AbilitySystem {
+    void TryUseAbility(EntityId sourceId, string abilityId, Vector2? targetPos, EntityId? targetEntity) {
+        var ability = _catalog.Abilities[abilityId];
+        var cooldown = _cooldowns.GetRemaining(sourceId, abilityId);
+
+        // 1. 检查冷却
+        if (cooldown > 0) return;
+
+        // 2. 检查条件
+        if (!ValidateConditions(sourceId, ability)) return;
+
+        // 3. 检查距离
+        if (ability.Range.HasValue) {
+            float dist = Distance(sourceId.Position, targetPos ?? targetEntity.Position);
+            if (dist > ability.Range.Value) return;
+        }
+
+        // 4. 施法前摇
+        if (ability.CastTime > 0) {
+            _pendingCasts.Add(new PendingCast(sourceId, ability, targetPos, targetEntity, ability.CastTime));
+            return;
+        }
+
+        // 5. 应用效果
+        ApplyEffects(sourceId, ability, targetPos, targetEntity);
+
+        // 6. 进入冷却
+        _cooldowns.SetCooldown(sourceId, abilityId, ability.CooldownSeconds);
+    }
+}
+```
+
+## 28. 视觉特效系统（VFX）
+
+### 28.1 投射物
+
+```
+ProjectileView : MonoBehaviour {
+    void Launch(Vector3 start, Vector3 end, float speed, Color color) {
+        _start = start;
+        _end = end;
+        _speed = speed;
+        _progress = 0;
+        _totalDistance = Vector3.Distance(start, end);
+    }
+
+    void Update() {
+        _progress += _speed * Time.deltaTime;
+        float t = _progress / _totalDistance;
+        transform.position = Vector3.Lerp(_start, _end, t);
+        // 抛物线：额外加 Y 偏移 = sin(t * PI) * arcHeight
+        if (t >= 1f) { OnArrival(); }
+    }
+}
+
+// 对象池回收：命中后 Release → 禁用 → 等待下次 Acquire
+```
+
+### 28.2 特效事件消费
+
+```
+VFXSystem {
+    // 监听 DamageDealtEvent
+    void OnDamageDealt(DamageDealtEvent evt) {
+        // 生成命中特效
+        _pool.Acquire(evt.HitEffectId, evt.HitPosition);
+        // 生成伤害数字
+        _pool.Acquire("damage_number", evt.HitPosition + up);
+        // 设置伤害数字文本 = evt.FinalDamage
+    }
+
+    // 监听 UnitDiedEvent
+    void OnUnitDied(UnitDiedEvent evt) {
+        // 播放死亡特效
+        _pool.Acquire("death_effect", evt.Position);
+        // 延迟回收尸体
+        _scheduler.Schedule(() => _pool.Release(corpse), 3f);
+    }
+
+    // 监听 CommandIssuedEvent
+    void OnCommand(CommandIssuedEvent evt) {
+        // 移动指令：生成绿色标记
+        // 攻击指令：生成红色标记
+        var marker = _pool.Acquire(markerPrefabId, evt.Destination);
+        _scheduler.Schedule(() => _pool.Release(marker), 2f);
+    }
+}
+```
+
+### 28.3 单位表现同步
+
+```
+PresentationSyncSystem.Tick() {
+    foreach (entity with RenderComponent + PositionComponent) {
+        var view = _viewRegistry.GetView(entity.Id);
+        if (view == null) continue;
+
+        // 位置同步
+        view.transform.position = ToUnityVector3(position.Position);
+        view.transform.rotation = Quaternion.Euler(0, position.Rotation, 0);
+
+        // 状态同步
+        var newState = DetermineVisualState(entity);
+        if (newState != render.VisualState) {
+            render.VisualState = newState;
+            view.PlayAnimation(newState);
+        }
+
+        // 血条同步
+        var health = entity.GetComponent<HealthComponent>();
+        if (healthBar != null)
+            healthBar.SetHealthPercent((float)health.CurrentHP / health.MaxHP);
+
+        // 选中状态
+        var selection = entity.GetComponent<SelectionComponent>();
+        view.SetSelectionIndicator(selection.IsSelected);
+    }
+}
+```
+
+---
+
+# 第五部分：Content（内容数据层）
+
+---
+
+## 29. 数据管线
+
+```
+ScriptableObject（编辑期）            →    运行时纯 C# 数据
+─────────────────────                      ─────────────────
+UnitDefinitionAsset                   →    UnitDefinition
+WeaponDefinitionAsset                 →    WeaponDefinition
+MissionDefinitionAsset                →    MissionDefinition
+AbilityDefinitionAsset                →    AbilityDefinition
+TraitDefinitionAsset                  →    TraitDefinition
+ContentCatalogAsset                   →    ContentCatalog
+```
+
+## 30. 内容目录
+
+```
+ContentCatalog {
+    Units:      Dictionary<string, UnitDefinition>
+    Weapons:    Dictionary<string, WeaponDefinition>
+    Missions:   Dictionary<string, MissionDefinition>
+    Abilities:  Dictionary<string, AbilityDefinition>
+    Traits:     Dictionary<string, TraitDefinition>
+    AudioClips: Dictionary<string, AudioClip>
+    Prefabs:    Dictionary<string, GameObject>
+}
+```
+
+## 31. 内容校验
+
+```
+ContentValidator {
+    ValidationResult Validate(ContentCatalog catalog) {
+        var errors = new List<string>();
+
+        // 引用完整性
+        foreach (unit in catalog.Units.Values) {
+            if (!catalog.Weapons.ContainsKey(unit.WeaponId))
+                errors.Add($"Unit '{unit.Id}' references missing weapon '{unit.WeaponId}'");
+        }
+        foreach (mission in catalog.Missions.Values) {
+            foreach (var squad in mission.StartingSquads) {
+                if (!catalog.Units.ContainsKey(squad.UnitDefinitionId))
+                    errors.Add($"Mission '{mission.Id}' references missing unit '{squad.UnitDefinitionId}'");
+            }
+        }
+
+        // 数值合理性
+        foreach (unit in catalog.Units.Values) {
+            if (unit.MaxHealth <= 0) errors.Add($"Unit '{unit.Id}' has MaxHealth <= 0");
+            if (unit.MoveSpeed < 0) errors.Add($"Unit '{unit.Id}' has negative MoveSpeed");
+        }
+        foreach (weapon in catalog.Weapons.Values) {
+            if (weapon.DamagePerHit <= 0) errors.Add($"Weapon '{weapon.Id}' has DamagePerHit <= 0");
+            if (weapon.Range <= 0) errors.Add($"Weapon '{weapon.Id}' has Range <= 0");
+            if (weapon.AttackInterval <= 0) errors.Add($"Weapon '{weapon.Id}' has AttackInterval <= 0");
+        }
+
+        return new ValidationResult(errors);
+    }
+}
+```
+
+## 32. 数据驱动原则
+
+- 所有数值来自 ContentCatalog，不硬编码在逻辑中
+- 支持运行时热更新（修改 SO → 重建 Catalog → 通知相关系统刷新）
+- 默认值在 Blueprint 中定义，运行时修改不污染原始数据
+
+---
+
+# 第六部分：系统间通信总览
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                         Meta                                   │
+│                                                               │
+│  MainMenu ─→ "NewGame" ─→ SaveService.CreateNew()             │
+│       │                                                       │
+│       └──→ "Continue" ─→ SaveService.Load() ─→ CampaignMap   │
+│                                                       │       │
+│  CampaignMap ─→ SelectNode ─→ ConfigureRoster ─→ StartMission│
+│       ↑                                               │       │
+│       └──── SaveService.Save() ← SettlementResult ←───┘       │
+├───────────────────────────────────────────────────────────────┤
+│                       Controls                                 │
+│                                                               │
+│  InputSystem ─→ CameraController (直接消费)                    │
+│  InputSystem ─→ SelectionService ─→ SquadSelectedEvent        │
+│  InputSystem ─→ CommandFactory ──┐                            │
+│                                   ↓                            │
+├───────────────────────────────────────────────────────────────┤
+│                        Combat                                  │
+│                                                               │
+│  CommandFactory → CommandValidator → CommandExecutor           │
+│                                          ↓                     │
+│                                    EntityComponents 变更       │
+│                                          ↑                     │
+│  CombatSystem → DamageDealtEvent ────────┘                     │
+│       ↓                                                        │
+│  StatusEffectSystem → 属性修正                                 │
+│       ↓                                                        │
+│  CleanupSystem → UnitDiedEvent → SquadEliminatedEvent          │
+│       ↓                                                        │
+│  MissionSystem → 胜负判定 → BattleEndedEvent                   │
+│       ↓                                                        │
+│  BattleResult → ProgressionSettlement → DebriefScreen          │
+│                                                                │
+│  AISystem → Perception → BehaviorTree → CommandExecutor        │
+│                                                                │
+│  EventBus 贯穿全部，各系统通过事件解耦                           │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# 第七部分：程序集划分
+
+| 程序集 | 目录 | 职责 | 依赖 |
+|--------|------|------|------|
+| `Warzone.Foundation` | Foundation/ | EventBus, ObjectPool, Logger, Scheduler, Math | 无 |
+| `Warzone.Content` | Content/ | 数据定义, ContentCatalog, Validator | Foundation |
+| `Warzone.Combat.Core` | Combat/Entity, Combat/Command | Entity/Component/System, EntityRegistry, 指令系统 | Foundation, Content |
+| `Warzone.Combat.Logic` | Combat/Combat, Combat/Movement, Combat/Ability | 伤害计算, 移动寻路, 技能, 状态效果 | Combat.Core, Content |
+| `Warzone.Combat.AI` | Combat/AI | BehaviorTree, PerceptionSystem, AISystem | Combat.Core, Combat.Logic |
+| `Warzone.Combat.Mission` | Combat/Mission | 任务目标, 波次系统, 胜负判定 | Combat.Core, Content |
+| `Warzone.Combat.VFX` | Combat/VFX | 投射物, 特效, 伤害数字 | Foundation, Combat.Core |
+| `Warzone.Meta` | Meta/ | Campaign, Roster, Progression, Save, Menu, Settings | Foundation, Content |
+| `Warzone.Controls` | Controls/ | Camera, Input, Selection, HUD, Audio | Foundation, Combat.Core |
+| `Warzone.Application` | Adapters/ | GameFlow, MissionFlow, DI 组合, SceneManagement | 所有上述 |
+| `Warzone.Adapters` | Adapters/ | NavMesh, Rendering, Physics, Unity 引擎桥接 | 所有上述 |
+| `Warzone.Tests` | Tests/ | 单元测试 + 集成测试 | Combat.Logic, Meta, Controls |
+
+---
+
+# 第八部分：实现路线图
+
+> 按 Foundation → Combat → Controls → Meta 顺序推进
+
+| 阶段 | 内容 | 依赖 | 产出 |
+|------|------|------|------|
+| **Phase 1** | Foundation（EventBus + ObjectPool + DI + Logger） | 无 | 基础设施就绪 |
+| **Phase 2** | Framework（Entity + Component + System + Registry）| Phase 1 | 组合框架可用 |
+| **Phase 3** | 基础组件 + CombatSystem + MovementSystem | Phase 2 | 纯逻辑战斗可运行 |
+| **Phase 4** | CommandSystem（Factory + Validator + Executor + Queue） | Phase 3 | 指令系统完整 |
+| **Phase 5** | InputSystem + SelectionService + CameraSystem | Phase 4 | 玩家操控完整 |
+| **Phase 6** | 拆分 Bootstrap + VFX + Audio + PresentationSync | Phase 5 | 战斗场景完整 |
+| **Phase 7** | BattleHUD（MVVM）+ DebriefScreen | Phase 6 | 战斗 UI 完整 |
+| **Phase 8** | MissionSystem + WaveSystem | Phase 7 | 多关卡支持 |
+| **Phase 9** | AI（BehaviorTree + Perception） | Phase 8 | 敌方智能 |
+| **Phase 10** | CampaignMap + Roster + Progression + Settlement | Phase 9 | Meta 循环 |
+| **Phase 11** | SaveSystem + Settings + MainMenu | Phase 10 | 完整游戏 |
+| **Phase 12** | AbilitySystem + StatusEffectSystem | Phase 11 | 战斗深度 |
+| **Phase 13** | 打磨：平衡调整 + 特效 + 音效 + Bug 修复 | Phase 12 | 发布就绪 |
