@@ -48,9 +48,9 @@ namespace Warzone.Adapters
             List<BattleSquadState> squads = new List<BattleSquadState>
             {
                 CreateSingleUnitSquad(1, FactionId.Player, "unit.player.infantry", -14f, -3.5f, 22),
-                CreateSingleUnitSquad(2, FactionId.Player, "unit.player.infantry", -12f, 0f, 22),
+                CreateSingleUnitSquad(2, FactionId.Player, "unit.player.support", -12f, 0f, 26),
                 CreateSingleUnitSquad(3, FactionId.Player, "unit.player.infantry", -14f, 3.5f, 22),
-                CreateSingleUnitSquad(4, FactionId.Player, "unit.player.infantry", -16f, 0f, 22)
+                CreateSingleUnitSquad(4, FactionId.Player, "unit.player.support", -16f, 0f, 26)
             };
 
             return new BattleSession(
