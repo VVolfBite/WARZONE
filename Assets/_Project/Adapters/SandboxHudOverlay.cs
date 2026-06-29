@@ -62,7 +62,7 @@ namespace Warzone.Adapters
         {
             GUILayout.BeginArea(new Rect(Screen.width - 210f, Screen.height - 210f, 190f, 190f), GUI.skin.box);
             GUILayout.Label("Minimap");
-            GUILayout.Label("Battle view");
+            GUILayout.Label("Tactical view");
             GUILayout.EndArea();
         }
 
