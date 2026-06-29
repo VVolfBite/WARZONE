@@ -1,0 +1,781 @@
+# WARZONE POC-3 任务书：现代战争 · 深度体验 · 游戏外壳
+
+> **目标**：在 POC-2 骨架上重构为现代战争主题，叠加战术深度（多兵种/阵型/地形/音效/AI）和游戏外壳（菜单/设置/存档），形成可独立发布的完整 Demo。
+> **定位**：给朋友玩的一关完整现代战争 RTS Demo。
+> **视觉风格**：Low-Poly 风格（非简单几何体），使用开源 Low-Poly 模型包。
+
+---
+
+## 0. 代码规范与工程约束
+
+> 本节为强制约束，POC-3 所有新增/修改代码必须遵守。POC-2 遗留代码在重构时一并修正。
+
+### 0.1 当前代码问题清单（必须修正）
+
+| 编号 | 问题 | 文件 | 修正要求 |
+|------|------|------|---------|
+| **C-01** | **God Class**：`SandboxBattleBootstrap` 821 行，同时负责输入/选中/指令/渲染/HUD/波次/碰撞 | `SandboxBattleBootstrap.cs` | 拆分为独立服务：`InputInterpreter`, `SelectionService`, `CommandDispatcher`, `PresentationSync`, `WaveController`。Bootstrap 只做组装和生命周期。目标 ≤200 行 |
+| **C-02** | **重复查找逻辑**：`CombatResolver` 的 `GetAttackRange/GetAttackInterval/GetMoveSpeed/GetAggroRange/GetCollisionRadius` 每个方法都重复 `FirstOrDefault(unit => unit.IsAlive)` | `CombatResolver.cs` | 提取 `GetFirstAliveUnit(BattleSquadState)` 私有方法，所有 Get* 方法复用 |
+| **C-03** | **热路径 GC 分配**：Tick 循环中大量使用 LINQ (`.Where()`, `.FirstOrDefault()`) 和 `new List<DamageEvent>()` | `BattleSession.cs`, `CombatResolver.cs` | Tick 内使用 `for` 循环替代 LINQ；使用预分配的 `_buffer` 列表而非每次 `new` |
+| **C-04** | **无 DI 容器**：服务用 `new` 创建（`new GameFlow()`, `new ProgressionService()`） | `SandboxMissionStarter.cs` | 接入 DI 容器，所有服务通过容器注册和解析 |
+| **C-05** | **魔法数字**：位置/颜色/缩放等硬编码散落各处 | `SandboxBattleBootstrap.cs` 等 | 提取为常量类或配置数据（`BattleConstants`, `VisualConfig`） |
+| **C-06** | **未使用的 using**：`CombatResolver.cs` 引用了 `using Warzone.Content` 但只用了 `Warzone.Content.Definitions` | `CombatResolver.cs` | 删除冗余 using |
+| **C-07** | **缺少 readonly**：可变字段未标记 `readonly`（如 `SandboxMissionStarter._battleRuntimeHost`） | 多处 | 所有在构造函数/Configure 后不再变更的字段标记 `readonly`（或使用 `[SerializeField]`） |
+| **C-08** | **Adapter 层直接引用 Presentation**：`SandboxBattleBootstrap` 直接 `using Warzone.Presentation.Units` | `SandboxBattleBootstrap.cs` | 通过接口隔离，Adapter 只依赖接口，Presentation 实现接口 |
+
+### 0.2 命名规范
+
+| 类别 | 规范 | 示例 |
+|------|------|------|
+| **命名空间** | PascalCase，层级与目录一致 | `Warzone.Combat`, `Warzone.Adapters` |
+| **类名** | PascalCase | `BattleSession`, `CombatResolver` |
+| **公共方法** | PascalCase | `Tick()`, `ExecuteCommand()` |
+| **私有字段** | 下划线前缀 + camelCase | `_pendingDamageEvents`, `_elapsedTime` |
+| **局部变量** | camelCase | `damageEvents`, `firstAliveUnit` |
+| **参数** | camelCase | `deltaTimeSeconds`, `contentCatalog` |
+| **常量** | PascalCase | `MaxQueueSize`, `DefaultSpacing` |
+| **接口** | I 前缀 + PascalCase | `IBattleRuntimeHost`, `ISelectionService` |
+| **枚举** | PascalCase，成员也 PascalCase | `CommandType { Move, Attack, Stop }` |
+| **事件** | 过去时动词 | `BattleStarted`, `DamageDealt`, `UnitDied` |
+| **程序集** | `Warzone.{目录名}` | `Warzone.Combat`, `Warzone.Controls` |
+
+### 0.3 文件与类约束
+
+| 规则 | 说明 |
+|------|------|
+| **一文件一类** | 每个 `.cs` 文件只包含一个公共类型（小型辅助结构体/枚举除外） |
+| **文件大小上限** | 单文件 ≤400 行。超过必须拆分 |
+| **职责单一** | 一个类只做一件事。判断标准：能否用一句话说清楚它的职责 |
+| **构造注入** | 依赖通过构造函数传入，不 `new` 其他服务。MonoBehaviour 用 `Configure()` 方法注入 |
+| **接口隔离** | 跨层通信必须通过接口。Combat 不直接依赖 Presentation，通过 `IEntityView` 接口 |
+| **纯 C# 领域层** | Combat 程序集不引用 `UnityEngine`（`System.Numerics.Vector2` 替代 `UnityEngine.Vector3`） |
+
+### 0.4 性能约束
+
+| 规则 | 说明 |
+|------|------|
+| **Tick 内禁 LINQ** | `BattleSession.Tick()` 及被调用的 System.Tick 中，用 `for` 循环 + 预分配 buffer |
+| **对象池** | 投射物/伤害数字/命令标记/特效 必须使用 `ObjectPool` |
+| **避免装箱** | 泛型集合使用具体类型，不用 `object` |
+| **字符串拼接** | 热路径用 `StringBuilder`，不用 `+` 和 `$""` |
+
+### 0.5 注释规范
+
+| 规则 | 说明 |
+|------|------|
+| **公共 API** | 必须有 `///` XML 文档注释，说明用途、参数、返回值 |
+| **私有方法** | 方法名自解释即可，不加注释 |
+| **魔法数字** | 必须有命名常量或行内注释说明来源 |
+| **TODO/HACK** | 格式：`// TODO(owner): description` 或 `// HACK: description` |
+| **禁止废话注释** | 不写 `// 增加 i`、`// 返回结果` 这类代码已说明的注释 |
+
+### 0.6 测试约束
+
+| 规则 | 说明 |
+|------|------|
+| **纯逻辑必须有测试** | Combat/AI/Movement 的核心算法必须有 NUnit 测试 |
+| **命名格式** | `{被测方法}_{场景}_{预期结果}`，如 `ResolveAttack_TargetDies_ReturnsKillEvent` |
+| **测试程序集** | `Warzone.Tests.Combat`, `Warzone.Tests.Architecture` |
+| **不测 MonoBehaviour** | 只测纯 C# 逻辑。Unity 行为通过手动验证 |
+
+---
+
+## 1. 世界观与美术风格
+
+### 1.1 背景设定
+
+现代近未来（2030s），玩家指挥一支 PMC（私人军事承包商）特遣队，在废弃工业区执行清剿任务。敌方为盘踞此地的武装民兵组织。
+
+### 1.2 美术风格
+
+**Low-Poly 写实风格**，非简单几何体。
+
+| 要素 | 要求 |
+|------|------|
+| **单位模型** | Low-Poly 人形模型（~500-2000 面），有基本骨骼动画（idle/walk/run/attack/death） |
+| **武器模型** | Low-Poly 枪械（步枪/狙击枪/RPG/手枪），挂点在角色手部 |
+| **载具（可选）** | Low-Poly 悍马/装甲车，作为场景装饰 |
+| **建筑/掩体** | Low-Poly 工业建筑、集装箱、沙袋墙、瞭望塔 |
+| **地形** | 带高度差的 Low-Poly 地形，贴图区分地面类型 |
+| **特效** | Low-Poly 风格枪口火焰、爆炸、烟雾 |
+| **配色** | 军事色系：沙色(玩家)/深灰-红色(敌方)/军绿(环境) |
+
+### 1.3 素材来源
+
+| 来源 | 类型 | 备选 |
+|------|------|------|
+| **Unity Asset Store** | Low-Poly 军事包 | "Low Poly Military Pack" |
+| **Kenney.nl** | 免费 Low-Poly | "Nature Kit", "Military Kit" |
+| **itch.io** | 免费/付费 | Low-Poly Soldiers, Military Vehicles |
+| **Mixamo** | 人形动画 | 免费骨骼动画绑定 |
+| **自建** | Blender Low-Poly | 自定义关键模型 |
+
+> **禁止**使用 Unity 默认几何体（Cube/Capsule/Sphere）作为单位或武器的最终视觉表现。几何体仅可用于碰撞体和占位调试。
+
+---
+
+## 2. 单位设计（现代战争）
+
+### 2.1 阵营
+
+| 阵营 | 代号 | 视觉主题 | 配色 |
+|------|------|---------|------|
+| **玩家** | Task Force Sentinel | 正规 PMC，装备精良 | 沙色/军绿 |
+| **敌方** | Red Hand Militia | 武装民兵，装备参差 | 深灰/暗红 |
+
+### 2.2 单位表
+
+| ID | 名称 | 阵营 | 角色 | HP | 速度 | 武器 | 护甲 | 碰撞 | 仇恨 | 特殊能力 |
+|----|------|------|------|----|------|------|------|------|------|---------|
+| `unit.rifleman` | 步枪兵 | 玩家 | 通用步兵 | 22 | 5.5 | 突击步枪 | 轻甲(2) | 0.5 | 18 | — |
+| `unit.sniper` | 狙击手 | 玩家 | 远程精确 | 12 | 4.5 | 狙击步枪 | 无甲(0) | 0.45 | 25 | 高地射程+20% |
+| `unit.grenadier` | 掷弹兵 | 玩家 | AOE/反甲 | 28 | 4.0 | 榴弹发射器 | 中甲(3) | 0.55 | 15 | 溅射伤害 |
+| `unit.medic` | 医疗兵 | 玩家 | 支援 | 16 | 5.5 | 冲锋枪 | 轻甲(2) | 0.5 | 15 | 治疗光环(半径5内友方+1HP/秒) |
+| `unit.militia` | 民兵 | 敌方 | 炮灰 | 10 | 3.0 | AK步枪 | 无甲(0) | 0.5 | 14 | — |
+| `unit.rpg` | RPG兵 | 敌方 | 反甲 | 14 | 2.5 | RPG-7 | 无甲(0) | 0.5 | 16 | 溅射+高伤害 |
+| `unit.technical` | 武装皮卡 | 敌方 | 快速机动 | 35 | 8.0 | 车载机枪 | 中甲(4) | 1.2 | 20 | 高速+车载武器 |
+| `unit.warlord` | 军阀 | 敌方 | Boss | 150 | 3.0 | 交替：重机枪/火箭弹 | 重甲(8) | 0.8 | 30 | 多阶段Boss |
+
+### 2.3 武器表
+
+| ID | 名称 | 类型 | 伤害 | 伤害类型 | 射程 | 间隔 | 弹速 | 溅射 | 特殊 |
+|----|------|------|------|---------|------|------|------|------|------|
+| `weapon.assault_rifle` | 突击步枪 | Ranged | 10 | Kinetic | 14 | 0.4s | 35 | — | 连发(3发burst) |
+| `weapon.sniper_rifle` | 狙击步枪 | Ranged | 35 | Kinetic | 30 | 2.0s | 60 | — | 高地+20%射程 |
+| `weapon.grenade_launcher` | 榴弹发射器 | Ranged | 15 | Explosive | 12 | 1.8s | 18(抛物线) | 半径3.0 | — |
+| `weapon.smg` | 冲锋枪 | Ranged | 6 | Kinetic | 8 | 0.25s | 30 | — | 高射速 |
+| `weapon.ak_rifle` | AK步枪 | Ranged | 8 | Kinetic | 12 | 0.6s | 28 | — | — |
+| `weapon.rpg7` | RPG-7 | Ranged | 25 | Explosive | 16 | 3.0s | 12 | 半径2.5 | — |
+| `weapon.vehicle_mg` | 车载机枪 | Ranged | 8 | Kinetic | 18 | 0.3s | 40 | — | 高射速 |
+| `weapon.heavy_mg` | 重机枪 | Ranged | 12 | Kinetic | 20 | 0.5s | 35 | — | Boss 阶段1 |
+| `weapon.rocket_barrage` | 火箭弹幕 | Ranged | 20 | Explosive | 14 | 4.0s | 15 | 半径4.0 | Boss 阶段2 |
+
+### 2.4 伤害克制表
+
+| 攻击类型 | 无甲 | 轻甲 | 中甲 | 重甲 |
+|---------|------|------|------|------|
+| **Kinetic** | 1.0x | 0.85x | 0.6x | 0.35x |
+| **Explosive** | 1.0x | 1.1x | 1.4x | 1.6x |
+
+> 核心策略：步枪打轻甲/无甲好用，重甲必须用爆炸物或狙击（狙击无视部分护甲）。
+
+### 2.5 狙击手特殊规则
+
+狙击枪对重甲伤害额外 +50%（穿透效果），即实际克制系数：
+- Kinetic vs Heavy × 0.35 → 狙击手特殊修正 × 1.5 → 实际 **0.525x**（仍非最优，但可用）
+
+---
+
+## 3. AI 行为树系统
+
+### 3.1 行为树框架
+
+```
+BTNode (abstract)
+├── BTComposite
+│   ├── BTSelector     子节点有一个成功就返回 Success
+│   └── BTSequence     子节点全部成功才返回 Success
+├── BTDecorator
+│   ├── BTInverter     反转结果
+│   ├── BTCooldown     冷却时间内返回 Failure
+│   └── BTCondition    条件检查
+└── BTAction
+    ├── BTMoveTo       移动到目标
+    ├── BTAttack       攻击目标
+    ├── BTFlee         逃离目标（医疗兵专用）
+    ├── BTWait         等待 N 秒
+    └── BTEmitEvent    发布事件（治疗/呼叫支援等）
+```
+
+### 3.2 各单位行为树
+
+**民兵（炮灰，直线冲）**
+```
+Selector
+├── Sequence [射程内]
+│   ├── Condition: NearestEnemyInRange
+│   └── Action: Attack
+├── Sequence [看见敌人]
+│   ├── Condition: NearestEnemyInAggroRange
+│   └── Action: MoveToward(NearestEnemy)
+└── Action: Idle
+```
+
+**RPG 兵（远程溅射，保持距离）**
+```
+Selector
+├── Sequence [太近了 → 后退]
+│   ├── Condition: NearestEnemyDistance < 5
+│   └── Action: MoveAway(NearestEnemy, desiredDistance=10)
+├── Sequence [射程内 → 发射]
+│   ├── Condition: NearestEnemyInRange
+│   └── Action: Attack (优先攻击密集目标)
+├── Sequence [看见 → 接近到射程]
+│   └── Action: MoveToward(NearestEnemy)
+└── Action: Idle
+```
+
+**武装皮卡（高速绕侧）**
+```
+Selector
+├── Sequence [射程内且未受伤严重]
+│   ├── Condition: NearestEnemyInRange && Health > 40%
+│   └── Action: Attack (扫射)
+├── Sequence [受伤严重 → 脱离]
+│   ├── Condition: Health < 40%
+│   └── Action: Flee(NearestEnemy)
+├── Sequence [利用速度绕侧翼]
+│   ├── Condition: CanFlank
+│   └── Action: MoveToFlankPosition
+└── Action: MoveToward(NearestEnemy)
+```
+
+**军阀 Boss（多阶段）**
+```
+Selector
+├── Sequence [血量<25% → 狂暴]
+│   ├── Condition: Health < 25%
+│   ├── Action: SetSpeedMultiplier(1.5)
+│   └── Action: Attack(rocket_barrage, cooldown × 0.5)
+├── Sequence [血量<50% → 火箭弹幕模式]
+│   ├── Condition: Health < 50%
+│   └── Action: Attack(rocket_barrage)
+├── Sequence [默认 → 重机枪扫射]
+│   ├── Condition: NearestEnemyInRange
+│   └── Action: Attack(heavy_mg)
+└── Action: MoveToward(NearestEnemy)
+```
+
+**医疗兵（跟随 + 治疗）**
+```
+Selector
+├── Sequence [周围友方受伤]
+│   ├── Condition: NearbyAllyBelowHealth(70%)
+│   └── Action: Heal(NearestInjuredAlly)
+├── Sequence [自己被攻击 → 逃跑]
+│   ├── Condition: IsBeingAttacked
+│   └── Action: Flee(NearestEnemy)
+└── Action: FollowFormation
+```
+
+---
+
+## 4. 地形系统
+
+### 4.1 地形类型
+
+| 地形 | 移速修正 | 远程修正 | 射程修正 | 视觉 |
+|------|---------|---------|---------|------|
+| 柏油路 | 1.15x | 1.0x | 1.0x | 深灰 |
+| 沙地 | 1.0x | 1.0x | 1.0x | 沙黄 |
+| 高地 | 1.0x | 1.0x | 狙击+20% | 浅棕 |
+| 泥泞 | 0.75x | -10%命中 | 1.0x | 深棕 |
+| 掩体(沙袋) | 1.0x | 遮挡远程 | — | 军绿 |
+| 建筑(室内) | 1.0x | 全遮挡 | — | 灰色 |
+
+### 4.2 地图布局（80m × 60m）
+
+```
+    北
+ ┌──────────────────────────────────────┐
+ │  [废弃工厂]        [瞭望塔/高地]     │
+ │   建筑掩体          狙击优势位        │
+ │                        [沙袋阵地]    │
+ │  [集装箱堆]    柏油路 ──────────      │── 敌方生成区
+ │   掩体迷宫    ═══════                 │
+ │              [中央广场]               │
+ │               控制点                  │
+ │  [泥泞区]         [油罐/爆炸物]      │
+ │   减速地带          可摧毁掩体        │
+ │         [沙袋墙]                      │
+ │  柏油路 ──────────    [掩体群]        │── 玩家生成区
+ │  ═══════             [医疗帐篷]      │
+ │         [装甲残骸/高地]               │
+ │          狙击优势位                    │
+ └──────────────────────────────────────┘
+    南
+```
+
+### 4.3 可摧毁掩体（可选）
+
+| 对象 | HP | 被毁效果 |
+|------|----|---------|
+| 沙袋墙 | 50 | 碎裂 → 不再遮挡 |
+| 油罐 | 20 | 爆炸 → 半径4内造成15 Explosive伤害 |
+| 木箱 | 15 | 碎裂 → 不再遮挡 |
+
+---
+
+## 5. 波次设计（4 波 + Boss）
+
+| 波次 | 敌人组成 | 生成位置 | 触发条件 | 战术要点 |
+|------|---------|---------|---------|---------|
+| Wave 1 | 6 民兵 | 北侧 | 战斗开始 | 热身，熟悉操控 |
+| Wave 2 | 4 民兵 + 2 RPG兵 + 1 皮卡 | 北侧+东北 | Wave 1 清完 5s | RPG 需要榴弹兵克制，皮卡需要集火 |
+| Wave 3 | 6 民兵 + 3 RPG兵 + 2 皮卡 | 北+东北+西北 | Wave 2 清完 5s | 三面来敌，需要分兵+阵型 |
+| Wave 4 | 8 民兵 + 4 RPG兵 + 3 皮卡 + 1 军阀 | 四方向 | Wave 3 清完 8s | Boss 战，全兵种配合 |
+
+---
+
+## 6. 阵型系统
+
+| 阵型 | 快捷键 | 布局 | 交战面 | 适用 |
+|------|--------|------|--------|------|
+| Grid | 默认 | √n × √n 网格 | 中 | 通用 |
+| Line | F1 | 一字排开 | 最大 | 正面交火，最大化火力 |
+| Column | F2 | 纵向排列 | 最小 | 行军/通过窄路 |
+| Wedge | F3 | V 字前突 | 中 | 突击/推进 |
+| Circle | F4 | 环形 | 全向 | 被包围/保护医疗兵 |
+
+间距 2.0m（现代战争需要更大间距避免溅射）。
+
+---
+
+## 7. 音效清单
+
+| ID | 通道 | 3D | 触发 |
+|----|------|----|------|
+| `sfx.assault_rifle` | SFX | ✓ | 突击步枪射击（连发） |
+| `sfx.sniper_shot` | SFX | ✓ | 狙击枪射击 |
+| `sfx.grenade_launch` | SFX | ✓ | 榴弹发射 |
+| `sfx.grenade_explode` | SFX | ✓ | 榴弹/RPG 爆炸 |
+| `sfx.smg_fire` | SFX | ✓ | 冲锋枪射击 |
+| `sfx.ak_fire` | SFX | ✓ | AK 步枪射击 |
+| `sfx.rpg_launch` | SFX | ✓ | RPG 发射 |
+| `sfx.vehicle_mg` | SFX | ✓ | 车载机枪 |
+| `sfx.heavy_mg` | SFX | ✓ | 重机枪 |
+| `sfx.rocket_impact` | SFX | ✓ | 火箭弹命中 |
+| `sfx.bullet_hit` | SFX | ✓ | 子弹命中 |
+| `sfx.death_male` | SFX | ✓ | 人员阵亡 |
+| `sfx.vehicle_destroy` | SFX | ✓ | 载具摧毁 |
+| `sfx.command_confirm` | SFX | ✗ | 指令确认（无线电音效） |
+| `sfx.command_cancel` | SFX | ✗ | 指令取消 |
+| `sfx.wave_alert` | SFX | ✗ | 波次警报 |
+| `sfx.healing` | SFX | ✓ | 医疗兵治疗 |
+| `sfx.victory` | SFX | ✗ | 胜利 |
+| `sfx.defeat` | SFX | ✗ | 失败 |
+| `music.battle_theme` | Music | ✗ | 战斗 BGM |
+| `music.menu_theme` | Music | ✗ | 菜单 BGM |
+| `ambient.industrial` | Ambient | ✗ | 工业环境音 |
+
+---
+
+## 8. 指令系统扩展
+
+### 8.1 CommandType
+
+```
+CommandType (enum)
+├── None = 0
+├── Move = 1          移动到目标点
+├── Attack = 2        攻击目标
+├── Stop = 3          停止一切
+├── Patrol = 4        巡逻（两点往复）
+├── HoldPosition = 5  原地驻守（不自动追击）
+├── Retreat = 6       撤退到集结点
+└── UseAbility = 7    使用特殊能力
+```
+
+### 8.2 指令完成条件
+
+| 指令 | 完成条件 | 中断条件 |
+|------|---------|---------|
+| Move | 到达目标点(±0.5m) | 新指令 |
+| Attack | 目标死亡 | 目标超出2倍射程 |
+| Stop | 立即 | — |
+| Patrol | 永不完成 | 新指令 |
+| HoldPosition | 永不完成 | 新指令 |
+| Retreat | 到达集结点 | 新指令 |
+| UseAbility | 执行完毕 | 被打断 |
+
+---
+
+## 9. HUD 模块
+
+### 9.1 选中面板（左下 300×200）
+
+```
+┌──────────────────────────┐
+│ [头像]  Rifleman #3       │
+│ ████████░░  HP 18/22     │
+│ Weapon: Assault Rifle     │
+│ Range: 14m | Armor: Light │
+│ Status: —                 │
+│ DPS: 25.0 (10dmg × 0.4s) │
+└──────────────────────────┘
+```
+
+### 9.2 小地图（右下 200×200）
+
+```
+┌──────────────────┐
+│  ·  ·            │  蓝=友方  红=敌方
+│     ·     · ·    │  白框=摄像机视口
+│  ┌──┐            │  点击=跳转
+│  │  │  ·         │  黄=掩体  灰=建筑
+│  └──┘            │
+│         · ·      │
+└──────────────────┘
+```
+
+### 9.3 编队栏（底部居中 600×60）
+
+```
+┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+│ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │
+│ ▓ │ ▓ │ ▓ │ ▓ │   │   │   │   │   │   │
+│ 2u│ 1u│ 1u│ 1u│   │   │   │   │   │   │
+└───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
+```
+
+### 9.4 任务目标（右上 280×120）
+
+```
+┌────────────────────────┐
+│ Operation: Clear Zone   │
+│ ☑ Wave 1/4             │
+│ ☐ Eliminate all hostiles│
+│ ☐ Protect your team     │
+└────────────────────────┘
+```
+
+### 9.5 通知条（顶部居中）
+
+```
+┌──────────────────────────────┐
+│ ⚠ INTEL: Wave 3 approaching  │
+│   RPG teams spotted NE        │
+└──────────────────────────────┘
+```
+
+### 9.6 速度指示器（右上角）
+
+```
+┌────────┐
+│ ▶ 1.0x │  暂停时显示 ⏸ PAUSED
+└────────┘
+```
+
+---
+
+## 10. Meta 层：游戏外壳
+
+### 10.1 主菜单
+
+```
+WARZONE
+  ─── NEW OPERATION
+  ─── SETTINGS
+  ─── CREDITS
+  ─── EXIT
+```
+
+### 10.2 设置面板
+
+```
+Settings
+├── Audio
+│   ├── Master Volume (0~100)
+│   ├── SFX Volume
+│   ├── Music Volume
+│   └── Ambient Volume
+├── Graphics
+│   ├── Quality (Low/Medium/High/Ultra)
+│   ├── Resolution
+│   └── VSync
+├── Controls
+│   └── Key Bindings (POC-3 只展示，不实现重映射)
+└── [Apply] [Cancel]
+```
+
+### 10.3 暂停菜单（Esc）
+
+```
+MISSION PAUSED
+  ─── RESUME
+  ─── RESTART MISSION
+  ─── SETTINGS
+  ─── ABORT MISSION (返回主菜单)
+```
+
+### 10.4 结算面板
+
+```
+┌──────────────────────────────────────┐
+│       OPERATION COMPLETE / FAILED     │
+├──────────────────────────────────────┤
+│ Waves Survived:  4/4                  │
+│ Enemies Killed:  24                   │
+│ Units Lost:      1/5                  │
+│ Time Elapsed:    3:42                 │
+│                                      │
+│ Rating: ★★★★☆ (A)                    │
+│                                      │
+│ ─── RETRY    ─── MAIN MENU            │
+└──────────────────────────────────────┘
+```
+
+### 10.5 存档
+
+```
+SaveService
+├── SaveSettings(SettingsData)
+├── LoadSettings() → SettingsData
+├── SaveBestScore(MissionId, BattleStatistics)
+└── LoadBestScore(MissionId)
+
+位置: Application.persistentDataPath
+格式: JSON + 版本号
+```
+
+---
+
+## 11. 组件清单（19 个）
+
+| # | 组件 | 新增/修改 | 说明 |
+|---|------|----------|------|
+| 1 | IdentityComponent | — | 名称/阵营/标签 |
+| 2 | HealthComponent | ✏️ | +ArmorType, +MaxHealth |
+| 3 | WeaponComponent | ✏️ | +DamageType |
+| 4 | PositionComponent | ✏️ | +Elevation(高度) |
+| 5 | MovementComponent | ✏️ | +TerrainSpeedModifier |
+| 6 | CollisionComponent | — | 碰撞半径 |
+| 7 | CommandQueueComponent | ✏️ | 支持 7 种指令 |
+| 8 | CurrentOrderComponent | ✏️ | 支持 Patrol/Hold/Retreat |
+| 9 | SquadMemberComponent | — | 小队归属 |
+| 10 | SquadRosterComponent | ✏️ | +FormationType 热切换 |
+| 11 | SelectionComponent | — | 可选中 |
+| 12 | RenderComponent | ✏️ | +DeathAnimation 状态 |
+| 13 | AIBehaviorComponent | 🆕 | 行为树 + 黑板 |
+| 14 | PerceptionComponent | 🆕 | 感知范围 |
+| 15 | TargetingComponent | 🆕 | 目标优先级 |
+| 16 | TerrainAwareComponent | 🆕 | 当前地形类型 + 高度 |
+| 17 | StatusEffectComponent | 🆕 | Buff/Debuff 列表 |
+| 18 | SpecialAbilityComponent | 🆕 | 能力ID/冷却/就绪 |
+| 19 | FormationComponent | 🆕 | 阵型类型/槽位索引 |
+
+---
+
+## 12. 系统执行顺序（每帧）
+
+```
+ 1. InputSystem            鼠标/键盘 → Intent 事件
+ 2. CommandSystem          指令队列 → 更新实体状态
+ 3. AISystem               行为树 Tick → 生成指令 → 执行
+ 4. StatusEffectSystem     Buff/Debuff 更新 → 修改组件
+ 5. MovementSystem         移动 + 地形修正 + 碰撞分离 + 阵型
+ 6. CombatSystem           攻击判定 + 护甲克制 + 高地加成 + 溅射
+ 7. WaveSystem             波次触发 → 生成敌人
+ 8. CleanupSystem          死亡处理 + 特效触发
+ 9. MissionSystem          全灭判定 + 胜负检查
+10. DamageNumberSystem     消费 DamageEvent → 飘字
+11. AudioSystem            消费事件 → 播放音效
+12. PresentationSync       同步所有状态到 Unity 表现层
+```
+
+---
+
+## 13. 程序集依赖图
+
+```
+Warzone.Foundation ← 所有程序集
+Warzone.Content    ← Combat, Controls, Adapters
+Warzone.Combat     ← Controls(via interface), Adapters, Application
+Warzone.Controls   ← Adapters
+Warzone.Presentation ← Adapters
+Warzone.Meta       ← Application
+Warzone.Application ← Adapters (composition root)
+Warzone.Framework  ← 所有程序集（通用工具）
+```
+
+---
+
+## 14. SandboxBattleBootstrap 拆分方案
+
+当前 821 行的 God Class 必须拆分：
+
+| 新类 | 职责 | 预估行数 |
+|------|------|---------|
+| `BattleSceneBootstrap` | 只做组装：创建服务、连接事件、启动生命周期 | ~150 |
+| `InputInterpreter` | 鼠标/键盘输入 → Intent 事件（单选/框选/右键指令/快捷键） | ~200 |
+| `SelectionService` | 选中管理 + 编队管理 + SelectionChanged 事件 | ~150 |
+| `CommandDispatcher` | Intent → Command → BattleSession.ExecuteCommand | ~100 |
+| `PresentationSync` | 遍历实体 → 同步位置/旋转/HP/选中/死亡到 Unity View | ~150 |
+| `WaveController` | 波次计时 + 触发 + 生成实体 + 发布 WaveEvent | ~120 |
+| `FormationCalculator` | 阵型槽位计算（Grid/Line/Column/Wedge/Circle） | ~100 |
+| `ObstacleResolver` | 碰撞分离（实体间 + 障碍物） | ~80 |
+
+> Bootstrap 只 `new` 这些服务并注入依赖，然后每帧调用各自的 `Tick()`。所有业务逻辑在服务中。
+
+---
+
+## 15. 实施步骤
+
+### Step 1：代码规范整改 + Foundation 补全（~5h）
+- [ ] 修正 C-01~C-08 全部代码问题
+- [ ] 拆分 SandboxBattleBootstrap → 8 个服务
+- [ ] CombatResolver 提取 GetFirstAliveUnit
+- [ ] Tick 内 LINQ → for 循环
+- [ ] 删除冗余 using
+- [ ] 添加 readonly
+- [ ] Adapter 层通过接口隔离 Presentation
+- [ ] Scheduler 定时任务系统
+- [ ] ObjectPool 扩展
+
+### Step 2：Low-Poly 素材采购与集成（~5h）
+- [ ] 选择并导入 Low-Poly 军事模型包
+- [ ] 人形模型 + 骨骼绑定 + 基础动画(idle/walk/run/attack/death)
+- [ ] 武器模型 + 挂点
+- [ ] 建筑/掩体模型
+- [ ] 载具模型（装饰用）
+- [ ] 创建 Prefab + Material 设置
+- [ ] 替换 SandboxBattleBootstrap 中的 CreatePrimitive 为 Prefab 实例化
+
+### Step 3：Entity 组件化框架（~5h）
+- [ ] Entity + IComponent + Registry + Blueprint
+- [ ] 19 个组件定义
+- [ ] 从 SquadState 平滑迁移（或保持 SquadState + 组件并行）
+- [ ] 单元测试：组件增删查
+
+### Step 4：Combat 扩展（~5h）
+- [ ] 伤害克制表（ArmorType vs DamageType）
+- [ ] 溅射伤害
+- [ ] 高地射程加成
+- [ ] 狙击手穿甲特殊规则
+- [ ] 新指令类型：Patrol / HoldPosition / Retreat / UseAbility
+- [ ] 单元测试：伤害计算 + 克制表
+
+### Step 5：AI 行为树（~6h）
+- [ ] BTNode 框架（Selector/Sequence/Condition/Action/Decorator）
+- [ ] AIBlackboard
+- [ ] AISystem.Tick + 频率控制
+- [ ] 5 套行为树（民兵/RPG/皮卡/Boss/医疗兵-敌方不需要但框架预留）
+- [ ] 皮卡侧翼迂回逻辑
+- [ ] Boss 多阶段切换
+- [ ] 单元测试：行为树节点
+
+### Step 6：StatusEffect + SpecialAbility（~3h）
+- [ ] StatusEffectDefinition + StatusEffectSystem
+- [ ] 医疗兵治疗光环
+- [ ] 减速效果（泥泞地形）
+- [ ] Boss 狂暴模式
+
+### Step 7：地形系统（~4h）
+- [ ] TerrainMap 数据结构
+- [ ] GetTerrainAt / 移速修正 / 射程修正 / 视线遮挡
+- [ ] 场景地形放置
+- [ ] 地形可视化
+- [ ] 可摧毁掩体（可选）
+
+### Step 8：Controls 扩展（~5h）
+- [ ] 编队快捷键 Ctrl+1~9 / 1~9
+- [ ] 阵型切换 F1~F4 + FormationSystem
+- [ ] 变速 [/] 键 6 档
+- [ ] 摄像机聚焦 Space + 双击跳转
+- [ ] 暂停菜单（Esc）
+
+### Step 9：Audio 系统（~3h）
+- [ ] AudioService + SFXChannel + MusicChannel
+- [ ] 21 个音效定义
+- [ ] 3D 空间衰减
+- [ ] 事件驱动播放
+
+### Step 10：VFX 扩展（~3h）
+- [ ] DamageNumberSystem（飘字 + 对象池）
+- [ ] 死亡特效（倒地 + 渐隐）
+- [ ] 枪口火焰
+- [ ] 爆炸特效
+- [ ] 医疗兵治疗光环视觉
+
+### Step 11：HUD 完整实现（~5h）
+- [ ] 选中面板（HP/武器/护甲/状态/DPS）
+- [ ] 可交互小地图
+- [ ] 编队栏（10 槽）
+- [ ] 任务目标面板
+- [ ] 通知条（事件驱动 + 淡出）
+- [ ] 速度指示器
+
+### Step 12：Meta 层：游戏外壳（~5h）
+- [ ] 主菜单（New Operation / Settings / Credits / Exit）
+- [ ] 设置面板（Audio/Graphics/Controls）
+- [ ] 暂停菜单（Resume / Restart / Settings / Abort）
+- [ ] SaveService（JSON）
+- [ ] 结算统计面板 + 星级评价
+
+### Step 13：Content 数据（~3h）
+- [ ] 8 种单位 + 9 种武器定义
+- [ ] 地形类型定义
+- [ ] 4 波次配置（含 Boss）
+- [ ] ScriptableObject 资产
+
+### Step 14：场景搭建（~4h）
+- [ ] 80m × 60m 地形网格
+- [ ] 建筑/掩体/车辆放置
+- [ ] 高地/低洼/泥泞区域绘制
+- [ ] 光照 + 天空盒 + Post-processing
+- [ ] 摄像机初始位置 + 小地图配置
+
+### Step 15：调试打磨（~5h）
+- [ ] 数值平衡（4 波次难度曲线）
+- [ ] AI 行为调试
+- [ ] 操控手感
+- [ ] Bug 修复
+- [ ] 单元测试补充
+- [ ] 架构约束测试更新
+
+---
+
+## 16. 总预估
+
+| Step | 内容 | 估时 |
+|------|------|------|
+| 1 | 代码规范整改 + Foundation | 5h |
+| 2 | Low-Poly 素材集成 | 5h |
+| 3 | Entity 组件化 | 5h |
+| 4 | Combat 扩展 | 5h |
+| 5 | AI 行为树 | 6h |
+| 6 | StatusEffect + Ability | 3h |
+| 7 | 地形系统 | 4h |
+| 8 | Controls 扩展 | 5h |
+| 9 | Audio 系统 | 3h |
+| 10 | VFX 扩展 | 3h |
+| 11 | HUD 完整实现 | 5h |
+| 12 | Meta 游戏外壳 | 5h |
+| 13 | Content 数据 | 3h |
+| 14 | 场景搭建 | 4h |
+| 15 | 调试打磨 | 5h |
+| **合计** | | **~66h** |
+
+---
+
+## 17. 与 POC-2 的关系
+
+```
+POC-2（已完成）                    POC-3（本任务书）
+├── 波次系统 ✓                    ├── 代码规范整改（God Class/LINQ/DI/接口隔离）
+├── 基础 AI ✓（内联索敌）          ├── Low-Poly 素材替换
+├── 指令队列 ✓                    ├── 现代战争主题重构（8 单位/9 武器）
+├── 基础 HUD ✓                    ├── 行为树 AI（5 套单位特化）
+├── 投射物 ✓                      ├── 地形系统 + 战术地图
+├── 碰撞分离 ✓                    ├── 音效系统（21 个音效）
+└── 结算 ✓                        ├── 阵型/编队/变速
+                                  ├── 完整 HUD（6 面板）
+                                  ├── 游戏外壳（菜单/设置/存档）
+                                  └── 状态效果 + 特殊能力
+```
+
+---
+
+## 18. 明确排除（留给后续版本）
+
+| 不做 | 留给 |
+|------|------|
+| 战役地图 / 多关卡 | POC-4 |
+| 花名册 / 单位升级 / 特质 | POC-4 |
+| 小队多单位（1 squad = 多 unit） | POC-4 |
+| NavMesh 寻路 | POC-4 |
+| 建筑建造 / 资源系统 | 不确定 |
+| 多人 / 联机 | 不确定 |
+| 完整按键映射 UI | POC-4 |
+| 剧情 / 过场动画 | 不确定 |
+| 天气系统 | 不确定 |
