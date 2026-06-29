@@ -36,9 +36,10 @@ namespace Warzone.Adapters
                 settlement.MissionCompleted,
                 settlement.UnitsLost,
                 battleResult.ElapsedTimeSeconds);
+            viewModel.UnitsKept = settlement.UnitsKept;
 
             _debriefScreen.Show(viewModel);
-            Debug.Log("Battle finished. Victory=" + viewModel.IsVictory + ", UnitsLost=" + viewModel.UnitsLost + ", Time=" + viewModel.ElapsedTimeSeconds.ToString("F1") + "s");
+            Debug.Log("Battle finished. Victory=" + viewModel.IsVictory + ", UnitsLost=" + viewModel.UnitsLost + ", UnitsKept=" + viewModel.UnitsKept + ", Time=" + viewModel.ElapsedTimeSeconds.ToString("F1") + "s");
         }
     }
 }
