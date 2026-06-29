@@ -1,0 +1,400 @@
+# WARZONE POC-2 任务书：可玩 Demo
+
+> **目标**：在组件化架构上搭建一个完整的可玩 Demo —— 3 波次战斗、敌方 AI、音效、完整 HUD。
+> **定位**：不是技术验证，是可以给朋友玩的小游戏。
+
+---
+
+## 1. 验收标准（玩家视角）
+
+### 1.1 进入体验
+- 启动游戏，直接进入战斗场景（无主菜单）
+- 看到 4 个己方单位（2 步兵 + 2 弓箭手）在左侧
+- 屏幕上方显示 "Wave 1 incoming..."
+
+### 1.2 操控体验
+- 左键单击选中一个兵 → 看到选中圈 + HP 条 + 射程圈
+- 左键拖拽框选多个兵
+- Shift 加选、Ctrl 切换选
+- 右键点地面 → 编队移动（自动网格阵型散开）
+- 右键点敌人 → 编队攻击
+- Shift+右键 → 指令追加到队列
+- **Ctrl+1 绑定编队**，按 1 快速选中
+- **F1/F2/F3 切换阵型**（线形/纵队/楔形）
+- **P 暂停**、**+/- 变速**（0.5x/1x/2x）
+
+### 1.3 战斗体验
+- 敌人从右侧刷新，**主动走过来攻击**（有 AI）
+- 能看到弹道飞行（步枪直线、弓箭抛物线）
+- 能听到开火声、命中声、死亡声、指令确认声
+- 看到伤害数字飘字、命令标记
+- 单位死亡 → 播放死亡效果 → 消失
+
+### 1.4 波次体验
+- **Wave 1**：5 僵尸 → 热身
+- **Wave 2**（清完 Wave 1 后 5 秒）：6 僵尸 + 2 胖子 → 需要集火
+- **Wave 3**（清完 Wave 2 后 5 秒）：8 僵尸 + 2 胖子 + 3 飞虫 → 飞虫绕后
+
+### 1.5 结算体验
+- 三波全清 → 胜利弹窗：击杀数、损失数、用时、星级评价
+- 己方全灭 → 失败弹窗
+- 弹窗上有"重试"按钮 → 重新开始
+
+### 1.6 HUD 体验
+- 左下：选中面板（名称、HP 条、武器信息）
+- 右下：小地图（友绿敌红，点击可跳转）
+- 底部中间：编队栏（已绑定的编队缩略图）
+- 右上：任务目标（"消灭所有敌人 - Wave 2/3"）
+- 顶部：通知条（"Wave 2 来袭！"）
+
+---
+
+## 2. 目录结构
+
+```
+Assets/_Project/
+├── Foundation/
+│   ├── EventBus/
+│   ├── ObjectPool/
+│   ├── DI/
+│   ├── Logger/
+│   └── Scheduler/
+├── Combat/
+│   ├── Entity/           # Entity + Component + Registry + Blueprint
+│   ├── Command/           # Command + Queue + Factory + Validator + Executor
+│   ├── Combat/            # CombatSystem + 伤害计算
+│   ├── Movement/          # MovementSystem + 碰撞分离 + 编队计算
+│   ├── AI/                # 行为树 + 感知 + 目标选择
+│   ├── Mission/           # 任务系统 + 波次系统
+│   └── VFX/               # 投射物 + 伤害数字 + 命令标记 + 死亡特效
+├── Controls/
+│   ├── Camera/
+│   ├── Input/             # 输入解析 + 手势识别
+│   ├── Selection/         # 选中管理 + 编队管理
+│   ├── HUD/               # 选中面板 + 小地图 + 编队栏 + 任务目标 + 通知条
+│   └── Audio/             # SFX 通道
+├── Content/               # 单位/武器数据定义
+├── Adapters/              # 场景 + 渲染 + 桥接
+└── Tests/                 # 单元测试
+```
+
+---
+
+## 3. 组件清单（15 个）
+
+### 3.1 身份类
+| 组件 | 字段 |
+|------|------|
+| `IdentityComponent` | DisplayName, FactionId(Player/Enemy), EntityTag |
+| `SquadMemberComponent` | SquadId, SlotIndex |
+| `SquadRosterComponent` | MemberEntityIds[], FormationType, Spacing |
+
+### 3.2 战斗属性类
+| 组件 | 字段 |
+|------|------|
+| `HealthComponent` | CurrentHP, MaxHP, IsAlive, RegenRate |
+| `WeaponComponent` | WeaponDef, CooldownRemaining |
+| `DamageSourceComponent` | DamagePerHit, DamageType, SplashRadius, ProjectileSpeed |
+
+### 3.3 移动类
+| 组件 | 字段 |
+|------|------|
+| `PositionComponent` | Position(Vector2), Rotation, PreviousPosition |
+| `MovementComponent` | MoveSpeed, Acceleration, TurnSpeed, IsMoving |
+| `CollisionComponent` | CollisionRadius, IsStatic |
+
+### 3.4 指令类
+| 组件 | 字段 |
+|------|------|
+| `CommandQueueComponent` | Queue<Command>, MaxQueueSize(8) |
+| `CurrentOrderComponent` | ActiveCommand, OrderState(Idle/Executing/Completed) |
+
+### 3.5 AI 类
+| 组件 | 字段 |
+|------|------|
+| `AIBehaviorComponent` | AggroRange, UpdateInterval, UpdateTimer |
+| `PerceptionComponent` | VisibleEntityIds[], LastKnownPositions |
+| `TargetingComponent` | CurrentTargetId, AutoAcquire |
+
+### 3.6 表现类
+| 组件 | 字段 |
+|------|------|
+| `SelectionComponent` | IsSelectable, IsSelected, SelectionPriority |
+| `RenderComponent` | VisualState(Idle/Moving/Attacking/Dying/Dead) |
+
+---
+
+## 4. 单位与武器数据
+
+### 4.1 单位表
+
+| ID | 名称 | 阵营 | HP | 速度 | 武器 | 护甲 | 碰撞半径 | 仇恨范围 |
+|----|------|------|----|------|------|------|---------|---------|
+| `unit.infantry` | 步兵 | 玩家 | 18 | 5.5 | 步枪 | 轻甲(2) | 0.7 | — |
+| `unit.archer` | 弓箭手 | 玩家 | 12 | 5.0 | 长弓 | 无甲(0) | 0.6 | — |
+| `unit.zombie` | 僵尸 | 敌方 | 8 | 2.75 | 爪子 | 无甲(0) | 0.75 | 12 |
+| `unit.brute` | 胖子 | 敌方 | 30 | 1.5 | 重击 | 重甲(5) | 1.0 | 10 |
+| `unit.swarmling` | 飞虫 | 敌方 | 5 | 7.0 | 毒刺 | 无甲(0) | 0.5 | 15 |
+
+### 4.2 武器表
+
+| ID | 名称 | 类型 | 伤害 | 伤害类型 | 射程 | 攻击间隔 | 弹道速度 | 溅射 |
+|----|------|------|------|---------|------|---------|---------|------|
+| `weapon.rifle` | 步枪 | Ranged | 10 | Physical | 10 | 0.85s | 22 | 无 |
+| `weapon.longbow` | 长弓 | Ranged | 6 | Physical | 14 | 1.2s | 16(抛物线) | 无 |
+| `weapon.claws` | 爪子 | Melee | 3 | Physical | 1.5 | 1.4s | 0(即时) | 无 |
+| `weapon.smash` | 重击 | Melee | 8 | Explosive | 2.0 | 2.0s | 0(即时) | 半径2.0 |
+| `weapon.sting` | 毒刺 | Melee | 4 | Physical | 1.2 | 0.8s | 0(即时) | 无 |
+
+### 4.3 伤害克制表（POC-2 简化版）
+
+| | 无甲 | 轻甲 | 重甲 |
+|---|---|---|---|
+| **Physical** | 1.0x | 0.75x | 0.5x |
+| **Explosive** | 1.0x | 1.0x | 1.5x |
+
+---
+
+## 5. 波次配置
+
+| 波次 | 敌人组成 | 触发条件 | 生成位置 |
+|------|---------|---------|---------|
+| Wave 1 | 5 × 僵尸 | 战斗开始时 | 右侧 (x=12~15, y=-4~4) |
+| Wave 2 | 6 × 僵尸 + 2 × 胖子 | Wave 1 全灭后 5 秒 | 右侧 + 右上 (x=13~16, y=0~6) |
+| Wave 3 | 8 × 僵尸 + 2 × 胖子 + 3 × 飞虫 | Wave 2 全灭后 5 秒 | 右侧 + 左上 + 左下（飞虫绕后） |
+
+---
+
+## 6. AI 行为树
+
+所有敌方单位共用同一棵树，参数不同：
+
+```
+Selector
+├── Sequence [有目标且在攻击范围内]
+│   ├── Condition: HasTarget && DistanceToTarget <= WeaponRange
+│   └── Action: ExecuteAttack
+│
+├── Sequence [有目标但不在范围内]
+│   ├── Condition: HasTarget && DistanceToTarget > WeaponRange
+│   └── Action: MoveTowardTarget
+│
+└── Sequence [没有目标，搜索]
+    ├── Condition: NearestEnemyInAggroRange
+    └── Action: SetTarget(NearestEnemy)
+```
+
+**AI 参数差异**：
+
+| 单位 | 仇恨范围 | 更新间隔 | 特殊行为 |
+|------|---------|---------|---------|
+| 僵尸 | 12 | 0.5s | 无 |
+| 胖子 | 10 | 0.8s | 无（慢但肉） |
+| 飞虫 | 15 | 0.3s | Wave 3 时从侧翼/后方生成 |
+
+---
+
+## 7. 阵型定义
+
+| 阵型 | 快捷键 | 布局 | 适用场景 |
+|------|--------|------|---------|
+| Grid（网格） | 默认 | √n × √n 网格 | 通用 |
+| Line（线形） | F1 | 一字排开，垂直于面朝方向 | 正面交火 |
+| Column（纵队） | F2 | 纵向排列 | 行军/窄路 |
+| Wedge（楔形） | F3 | V 字前突 | 突击 |
+
+间距统一 1.75。
+
+---
+
+## 8. 系统执行顺序（每帧）
+
+```
+1. InputSystem          处理鼠标/键盘输入 → 产出 Intent 事件
+2. CommandSystem        处理指令队列 → 更新实体组件状态
+3. AISystem             敌方 AI 决策 → 生成指令 → 执行
+4. MovementSystem       移动 + 碰撞分离 + 编队位置更新
+5. CombatSystem         攻击判定 + 伤害计算 + HP 扣减
+6. WaveSystem           检查波次触发条件 → 生成新敌人
+7. CleanupSystem        处理死亡实体 → 回收
+8. MissionSystem        全灭判定 → 胜负检查
+9. AudioSystem          消费 DamageDealtEvent/UnitDiedEvent → 播放音效
+10. PresentationSync    同步所有实体状态到 Unity 表现层
+```
+
+---
+
+## 9. 音效清单
+
+| 音效 ID | 通道 | 3D | 触发 |
+|---------|------|----|------|
+| `sfx.rifle_fire` | SFX | ✓ | 步枪攻击 |
+| `sfx.bow_fire` | SFX | ✓ | 弓箭攻击 |
+| `sfx.claw_strike` | SFX | ✓ | 爪子/毒刺攻击 |
+| `sfx.smash` | SFX | ✓ | 重击攻击 |
+| `sfx.hit` | SFX | ✓ | 命中（通用） |
+| `sfx.death` | SFX | ✓ | 单位死亡 |
+| `sfx.command_confirm` | SFX | ✗ | 发出指令 |
+| `sfx.wave_alert` | SFX | ✗ | 新波次来袭 |
+| `sfx.victory` | SFX | ✗ | 胜利 |
+| `sfx.defeat` | SFX | ✗ | 失败 |
+
+---
+
+## 10. HUD 模块
+
+### 10.1 选中面板（左下）
+- 名称 + 阵营图标
+- HP 条（绿→黄→红）
+- 武器名称 + 射程
+- 护甲类型
+
+### 10.2 小地图（右下）
+- 150×150 像素
+- 友方绿色点、敌方红色点
+- 摄像机视口白色框
+- 点击小地图 → 摄像机跳转
+
+### 10.3 编队栏（底部中间）
+- 10 个槽位（1~0）
+- 已绑定的显示单位数量 + 缩略色块
+- 未绑定的灰显
+
+### 10.4 任务目标（右上）
+- "消灭所有敌人"
+- "Wave 2/3"
+- 已完成目标划线
+
+### 10.5 通知条（顶部居中）
+- "Wave 2 来袭！" → 3 秒后淡出
+- "胜利！" / "失败..." → 常驻
+
+---
+
+## 11. 实施步骤
+
+### Step 1：Foundation（~3h）
+- [ ] EventBus：Publish/Subscribe + 同步分发
+- [ ] ObjectPool：Acquire/Release + Prewarm
+- [ ] DI Container：Bind/Resolve + Singleton/Transient
+- [ ] Logger：ConsoleLogger + 标签 + 级别
+- [ ] Scheduler：Schedule/ScheduleRepeating/Cancel + Tick
+
+### Step 2：Entity 框架（~4h）
+- [ ] Entity：ID + 组件注册表 + Add/Remove/Get/Has
+- [ ] IComponent 标记接口
+- [ ] EntityRegistry：Create/Destroy/Query/QueryInRadius
+- [ ] EntityBlueprint：预定义组件组合 + 深拷贝创建
+- [ ] 15 个组件类定义
+
+### Step 3：Combat 核心逻辑（~4h）
+- [ ] CombatSystem.Tick：冷却递减 → 获取目标 → 距离检查 → 伤害计算 → DamageEvent
+- [ ] 伤害计算公式：基础伤害 → 护甲克制 → 减免 → 保底 1
+- [ ] 溅射伤害（胖子重击）
+- [ ] HP 扣减 + 死亡判定
+- [ ] MovementSystem.Tick：加速度模型 + 移动 + 朝向
+- [ ] 碰撞分离：实体间 + 障碍物
+- [ ] CleanupSystem：死亡实体标记 → 延迟回收
+
+### Step 4：Command 系统（~3h）
+- [ ] Command 结构体（10 种类型，POC-2 实现 Move/Attack/Stop）
+- [ ] CommandQueueComponent：入队/出队/清空
+- [ ] CommandSystem.Tick：取队首 → 执行 → 检查完成条件 → 取下一条
+- [ ] 完成条件表（Move=到达/Attack=目标死/Stop=立即）
+- [ ] Urgent 优先级打断逻辑
+
+### Step 5：AI 系统（~3h）
+- [ ] 行为树框架：Selector/Sequence/Condition/Action 节点
+- [ ] AIBlackboard：SelfId, TargetId, Position, 距离等
+- [ ] 最简敌方行为树（3 分支：攻击/追击/搜索）
+- [ ] PerceptionComponent：按 AggroRange 搜索可见敌方
+- [ ] AISystem.Tick：按 UpdateInterval 控制频率 → 更新黑板 → 执行行为树 → 产出指令
+
+### Step 6：Mission + Wave（~2h）
+- [ ] MissionSystem：全灭判定（某方 LivingCount == 0）
+- [ ] WaveDefinition：SpawnList + DelaySeconds + SpawnPoints
+- [ ] WaveSystem.Tick：检查触发条件 → 生成实体 → 发布 WaveStartedEvent
+- [ ] 3 波配置数据
+
+### Step 7：Controls（~5h）
+- [ ] RtsCameraController：平移(WASD/边缘) + 缩放(滚轮) + 聚焦(双击/空格)
+- [ ] InputInterpreter：单击/框选/右键/Shift/Ctrl 识别
+- [ ] SelectionService：单选/框选/加选/切换 + SelectionChanged 事件
+- [ ] ControlGroupService：Ctrl+1~9 绑定 / 1~9 召回
+- [ ] FormationHotkey：F1~F3 切换阵型
+- [ ] 暂停(P) + 变速(+/-)
+
+### Step 8：HUD（~4h）
+- [ ] 选中面板：名称 + HP 条 + 武器 + 护甲
+- [ ] 小地图：友/敌点位 + 摄像机视口框 + 点击跳转
+- [ ] 编队栏：10 槽 + 绑定状态显示
+- [ ] 任务目标面板：Wave 进度
+- [ ] 通知条：事件驱动 + 淡出
+- [ ] 胜利/失败弹窗 + 重试按钮
+
+### Step 9：Audio（~2h）
+- [ ] AudioChannelBase（继承）→ SFXChannel
+- [ ] AudioService：PlaySFX(clipId, position)
+- [ ] 10 个音效事件绑定
+- [ ] 3D 空间衰减
+
+### Step 10：VFX（~3h）
+- [ ] ProjectileView：直线弹道（步枪）+ 抛物线弹道（弓箭）
+- [ ] 伤害数字：浮动上升 → 淡出（对象池）
+- [ ] 命令标记：绿色移动标记 / 红色攻击标记 → 2 秒淡出
+- [ ] 死亡特效：简单缩放消失
+
+### Step 11：Adapters（~3h）
+- [ ] 场景搭建：平地 + 光照 + 天空盒
+- [ ] 单位渲染：胶囊体 + 颜色区分（玩家=青色/敌方=红色/胖子=深红/飞虫=黄绿）
+- [ ] PresentationSyncSystem：位置/旋转/状态/血条/选中圈同步
+- [ ] 波次生成点配置
+
+### Step 12：Content 数据（~1h）
+- [ ] 5 种单位定义 + 5 种武器定义
+- [ ] 伤害克制表
+- [ ] 3 波次配置
+
+### Step 13：调试打磨（~3h）
+- [ ] 数值平衡（确保 Wave 3 有挑战但能赢）
+- [ ] Bug 修复
+- [ ] 操控手感调整
+- [ ] 基础测试（BattleSession 能正确结束）
+
+---
+
+## 12. 总预估
+
+| Step | 内容 | 估时 |
+|------|------|------|
+| 1 | Foundation | 3h |
+| 2 | Entity 框架 | 4h |
+| 3 | Combat 核心 | 4h |
+| 4 | Command 系统 | 3h |
+| 5 | AI 系统 | 3h |
+| 6 | Mission + Wave | 2h |
+| 7 | Controls | 5h |
+| 8 | HUD | 4h |
+| 9 | Audio | 2h |
+| 10 | VFX | 3h |
+| 11 | Adapters | 3h |
+| 12 | Content 数据 | 1h |
+| 13 | 调试打磨 | 3h |
+| **合计** | | **~40h** |
+
+---
+
+## 13. 明确排除（留给后续 POC）
+
+| 不做 | 留给 |
+|------|------|
+| 主菜单 / 设置界面 | POC-3 |
+| 战役地图 / 任务选择 | POC-3 |
+| 花名册 / 编队配置 | POC-3 |
+| 存档 / 读档 | POC-3 |
+| 升级 / 特质 / 经验 | POC-3 |
+| 技能系统 | POC-3 |
+| NavMesh 寻路 | POC-3（POC-2 地图空旷，直线移动够用） |
+| 状态效果（Buff/Debuff/DoT） | POC-3 |
+| 复杂 AI（多行为树/小队协作） | POC-3 |
+| 建筑 / 资源系统 | 不确定 |
