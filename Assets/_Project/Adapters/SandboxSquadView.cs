@@ -14,6 +14,7 @@ namespace Warzone.Adapters
         [SerializeField] private bool isDead;
         private Vector3 _aliveScale = Vector3.one;
         private float _deathSinkOffset;
+        private float _hitFlashTime;
 
         public int SquadId => squadId;
         public FactionId FactionId => factionId;
@@ -92,8 +93,27 @@ namespace Warzone.Adapters
             }
         }
 
+        public void FlashHit()
+        {
+            if (isDead)
+            {
+                return;
+            }
+
+            _hitFlashTime = 0.12f;
+        }
+
         private void LateUpdate()
         {
+            if (!isDead && _hitFlashTime > 0f)
+            {
+                _hitFlashTime -= Time.deltaTime;
+                if (unitView != null)
+                {
+                    unitView.SetSelected(true);
+                }
+            }
+
             if (!isDead || _deathSinkOffset <= 0f)
             {
                 return;

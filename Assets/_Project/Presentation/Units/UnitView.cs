@@ -13,6 +13,7 @@ namespace Warzone.Presentation.Units
         private Color[] _baseColors;
         private bool _selected;
         private bool _isDead;
+        private float _hitFlashTime;
 
         private void Awake()
         {
@@ -77,6 +78,34 @@ namespace Warzone.Presentation.Units
             _isDead = true;
             _selected = false;
             ApplyColorOverride(deadColor);
+        }
+
+        public void FlashHit()
+        {
+            if (_isDead)
+            {
+                return;
+            }
+
+            _hitFlashTime = 0.12f;
+        }
+
+        private void Update()
+        {
+            if (_isDead)
+            {
+                return;
+            }
+
+            if (_hitFlashTime > 0f)
+            {
+                _hitFlashTime -= Time.deltaTime;
+                ApplyColorOverride(Color.white);
+            }
+            else
+            {
+                ApplyColorOverride(null);
+            }
         }
 
         private void ApplyColorOverride(Color? overrideColor)

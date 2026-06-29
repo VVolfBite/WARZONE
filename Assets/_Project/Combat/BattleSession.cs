@@ -155,7 +155,7 @@ namespace Warzone.Combat
         private void UpdateAttackerTargets()
         {
             AcquireTargetsForFaction(FactionId.Player, FactionId.Enemy, true, true);
-            AcquireTargetsForFaction(FactionId.Enemy, FactionId.Player, false, true);
+            AcquireTargetsForFaction(FactionId.Enemy, FactionId.Player, true, true);
         }
 
         private void AcquireTargetsForFaction(FactionId attackerFaction, FactionId defenderFaction, bool autoAcquireForIdleSquadsOnly, bool requireAggroRange)

@@ -128,6 +128,10 @@ namespace Warzone.Adapters
                 {
                     targetView.SetDead();
                 }
+                else
+                {
+                    targetView.FlashHit();
+                }
             }
         }
 
