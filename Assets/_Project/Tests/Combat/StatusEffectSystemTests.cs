@@ -10,7 +10,7 @@ namespace Warzone.Tests.Combat
         public void Tick_WhenEffectExpires_RemovesEffectAndAppliesDamage()
         {
             BattleUnitState unit = new BattleUnitState(new BattleEntityId(1), "unit.test", FactionId.Player, 10);
-            StatusEffectDefinition definition = new StatusEffectDefinition("effect.test", "Test", 1f, 0.5f, 2, 1f, 1f);
+            StatusEffectDefinition definition = new StatusEffectDefinition("effect.test", "Test", 1f, 0.5f, 2, 0, 1f, 1f);
 
             unit.AddStatusEffect(new ActiveStatusEffect(definition));
             unit.TickStatusEffects(0.5f);

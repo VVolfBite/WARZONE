@@ -28,13 +28,14 @@ namespace Warzone.Content.Authoring
                         new WeaponDefinition(
                             unitAsset.Weapon.Id,
                             unitAsset.Weapon.Range,
-                            unitAsset.Weapon.AttackIntervalSeconds,
-                            unitAsset.Weapon.DamagePerHit,
-                            unitAsset.Weapon.ProjectileSpeed,
-                            unitAsset.Weapon.DamageType),
+                        unitAsset.Weapon.AttackIntervalSeconds,
+                        unitAsset.Weapon.DamagePerHit,
+                        unitAsset.Weapon.ProjectileSpeed,
+                        unitAsset.Weapon.DamageType),
                         unitAsset.AggroRange,
                         unitAsset.CollisionRadius,
-                        unitAsset.ArmorType);
+                        unitAsset.ArmorType,
+                        unitAsset.DefaultStatusEffect != null ? unitAsset.DefaultStatusEffect.Id : null);
                 }
 
                 foreach (MissionDefinitionAsset missionAsset in asset.MissionDefinitions)

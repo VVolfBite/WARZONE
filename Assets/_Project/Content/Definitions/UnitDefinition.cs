@@ -11,7 +11,8 @@ namespace Warzone.Content.Definitions
             WeaponDefinition weapon,
             float aggroRange,
             float collisionRadius,
-            ArmorType armorType)
+            ArmorType armorType,
+            string defaultStatusEffectId = null)
         {
             Id = id;
             DisplayName = displayName;
@@ -22,6 +23,7 @@ namespace Warzone.Content.Definitions
             AggroRange = aggroRange;
             CollisionRadius = collisionRadius;
             ArmorType = armorType;
+            DefaultStatusEffectId = defaultStatusEffectId;
         }
 
         public string Id { get; }
@@ -33,5 +35,6 @@ namespace Warzone.Content.Definitions
         public float AggroRange { get; }
         public float CollisionRadius { get; }
         public ArmorType ArmorType { get; }
+        public string DefaultStatusEffectId { get; }
     }
 }

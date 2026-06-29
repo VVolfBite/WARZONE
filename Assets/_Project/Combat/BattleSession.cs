@@ -13,6 +13,11 @@ namespace Warzone.Combat
         private readonly StatusEffectSystem _statusEffectSystem = new StatusEffectSystem();
         private readonly TerrainMap _terrainMap;
         private readonly List<DamageEvent> _pendingDamageEvents = new List<DamageEvent>();
+        private readonly Dictionary<string, StatusEffectDefinition> _statusEffectLibrary = new Dictionary<string, StatusEffectDefinition>
+        {
+            ["effect.support.heal"] = new StatusEffectDefinition("effect.support.heal", "Healing Aura", 2f, 0.5f, 0, 1, 1f, 1f),
+            ["effect.zombie.toxic"] = new StatusEffectDefinition("effect.zombie.toxic", "Toxic Cloud", 4f, 1f, 1, 0, 0.8f, 0.9f)
+        };
         private readonly int _seed;
         private float _elapsedTimeSeconds;
         private bool _resultFinalized;
@@ -30,6 +35,7 @@ namespace Warzone.Combat
             _combatResolver = combatResolver;
             _seed = seed;
             _terrainMap = terrainMap;
+            ApplyDefaultStatusEffects();
         }
 
         public IReadOnlyList<BattleSquadState> Squads => _squads;
@@ -161,6 +167,23 @@ namespace Warzone.Combat
 
         public void SyncStatusEffects()
         {
+        }
+
+        private void ApplyDefaultStatusEffects()
+        {
+            for (int i = 0; i < _squads.Count; i++)
+            {
+                BattleSquadState squad = _squads[i];
+                for (int j = 0; j < squad.Units.Count; j++)
+                {
+                    BattleUnitState unit = squad.Units[j];
+                    UnitDefinition definition = _combatResolver.GetPrimaryDefinition(squad);
+                    if (definition?.DefaultStatusEffectId != null && _statusEffectLibrary.TryGetValue(definition.DefaultStatusEffectId, out StatusEffectDefinition statusEffectDefinition))
+                    {
+                        unit.AddStatusEffect(new ActiveStatusEffect(statusEffectDefinition));
+                    }
+                }
+            }
         }
 
         private void UpdateAttackerTargets()

@@ -71,6 +71,7 @@ namespace Warzone.Combat
                 if (effect.TickTimer <= 0f)
                 {
                     ApplyDamage(effect.Definition.FlatDamagePerTick);
+                    ApplyHealing(effect.Definition.FlatHealingPerTick);
                     effect.TickTimer = effect.Definition.TickIntervalSeconds;
                 }
 
