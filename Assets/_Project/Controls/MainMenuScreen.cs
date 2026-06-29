@@ -47,6 +47,11 @@ namespace Warzone.Controls
                 _showSettings = !_showSettings;
             }
 
+            if (GUILayout.Button(_viewModel.TertiaryActionLabel, GUILayout.Height(36f)))
+            {
+                _showSettings = false;
+            }
+
             if (GUILayout.Button(_viewModel.SecondaryActionLabel, GUILayout.Height(36f)))
             {
                 Application.Quit();
@@ -58,6 +63,9 @@ namespace Warzone.Controls
                 GUILayout.Label("Settings", BuildSectionStyle());
                 GUILayout.Label("Audio / Graphics / Controls");
                 GUILayout.Label("Audio settings and control binding will be added later.");
+                GUILayout.Space(8f);
+                GUILayout.Label("Credits", BuildSectionStyle());
+                GUILayout.Label("Warzone POC3 demo shell.");
             }
 
             GUILayout.Space(10f);

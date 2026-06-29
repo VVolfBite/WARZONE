@@ -6,5 +6,6 @@ namespace Warzone.Controls
         public string Subtitle { get; set; }
         public string PrimaryActionLabel { get; set; }
         public string SecondaryActionLabel { get; set; }
+        public string TertiaryActionLabel { get; set; }
     }
 }

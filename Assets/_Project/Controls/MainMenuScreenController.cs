@@ -18,6 +18,7 @@ namespace Warzone.Controls
                 Title = "WARZONE",
                 Subtitle = "RTS Prototype",
                 PrimaryActionLabel = "Demo",
+                TertiaryActionLabel = "Credits",
                 SecondaryActionLabel = "Exit",
             };
         }
