@@ -6,6 +6,7 @@ namespace Warzone.Controls
     {
         private MainMenuViewModel _viewModel;
         private MainMenuScreenController _controller;
+        private bool _showSettings;
 
         public void Configure(MainMenuScreenController controller)
         {
@@ -41,9 +42,22 @@ namespace Warzone.Controls
                 _controller.StartDemo();
             }
 
+            if (GUILayout.Button("Settings", GUILayout.Height(36f)))
+            {
+                _showSettings = !_showSettings;
+            }
+
             if (GUILayout.Button(_viewModel.SecondaryActionLabel, GUILayout.Height(36f)))
             {
                 Application.Quit();
+            }
+
+            if (_showSettings)
+            {
+                GUILayout.Space(12f);
+                GUILayout.Label("Settings", BuildSectionStyle());
+                GUILayout.Label("Audio / Graphics / Controls");
+                GUILayout.Label("These options are placeholders in POC3.");
             }
 
             GUILayout.Space(10f);
@@ -65,6 +79,15 @@ namespace Warzone.Controls
             style.fontSize = 16;
             style.alignment = TextAnchor.MiddleCenter;
             style.normal.textColor = new Color(0.8f, 0.85f, 0.9f);
+            return style;
+        }
+
+        private static GUIStyle BuildSectionStyle()
+        {
+            GUIStyle style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 14;
+            style.fontStyle = FontStyle.Bold;
+            style.alignment = TextAnchor.MiddleLeft;
             return style;
         }
     }

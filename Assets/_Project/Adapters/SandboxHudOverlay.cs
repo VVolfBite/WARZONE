@@ -1,16 +1,18 @@
-using System.Text;
+using System;
 using UnityEngine;
 
 namespace Warzone.Adapters
 {
     public sealed class SandboxHudOverlay : MonoBehaviour
     {
-        private readonly StringBuilder _builder = new StringBuilder(512);
         private bool _isPaused;
         private int _activeWaveIndex;
         private int _totalWaveCount;
         private string _objectiveText;
         private string _notificationText;
+        private Action _resumeAction;
+        private Action _restartAction;
+        private Action _returnToMenuAction;
 
         public void Bind(bool isPaused, int activeWaveIndex, int totalWaveCount, string objectiveText, string notificationText)
         {
@@ -21,13 +23,11 @@ namespace Warzone.Adapters
             _notificationText = notificationText;
         }
 
-        private void OnGUI()
+        public void SetPauseActions(Action resumeAction, Action restartAction, Action returnToMenuAction)
         {
-            DrawTopBar();
-            DrawObjectivePanel();
-            DrawTeamBar();
-            DrawMinimap();
-            DrawControlHint();
+            _resumeAction = resumeAction;
+            _restartAction = restartAction;
+            _returnToMenuAction = returnToMenuAction;
         }
 
         private void DrawTopBar()
@@ -73,6 +73,43 @@ namespace Warzone.Adapters
             GUILayout.Label("Shift queue, Ctrl toggle");
             GUILayout.Label("P pause, +/- speed");
             GUILayout.EndArea();
+        }
+
+        private void DrawPauseMenu()
+        {
+            GUILayout.BeginArea(new Rect((Screen.width - 320f) * 0.5f, (Screen.height - 220f) * 0.5f, 320f, 220f), GUI.skin.box);
+            GUILayout.Label("MISSION PAUSED");
+
+            if (GUILayout.Button("Resume", GUILayout.Height(34f)))
+            {
+                _resumeAction?.Invoke();
+            }
+
+            if (GUILayout.Button("Restart Mission", GUILayout.Height(34f)))
+            {
+                _restartAction?.Invoke();
+            }
+
+            if (GUILayout.Button("Main Menu", GUILayout.Height(34f)))
+            {
+                _returnToMenuAction?.Invoke();
+            }
+
+            GUILayout.EndArea();
+        }
+
+        private void OnGUI()
+        {
+            DrawTopBar();
+            DrawObjectivePanel();
+            DrawTeamBar();
+            DrawMinimap();
+            DrawControlHint();
+
+            if (_isPaused)
+            {
+                DrawPauseMenu();
+            }
         }
     }
 }

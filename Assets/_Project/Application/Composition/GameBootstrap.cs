@@ -5,7 +5,7 @@ namespace Warzone.Application.Composition
 {
     public sealed class GameBootstrap : MonoBehaviour
     {
-        [SerializeField] private string initialSceneName = "SampleScene";
+        [SerializeField] private string initialSceneName = "MainMenu";
 
         private void Start()
         {

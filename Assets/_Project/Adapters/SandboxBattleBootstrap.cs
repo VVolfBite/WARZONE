@@ -36,6 +36,7 @@ namespace Warzone.Adapters
             _presentationSync = new SandboxPresentationSync(mainCamera, selectionInfoOverlay);
             _inputInterpreter = new SandboxInputInterpreter(mainCamera, selectionBoxOverlay, _selectionService, commandDispatcher, _presentationSync);
             _waveController = new SandboxWaveController(_notifications);
+            _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
         }
 
         private void OnDestroy()
@@ -139,6 +140,21 @@ namespace Warzone.Adapters
             }
 
             return string.Join("\n", _notifications.ToArray());
+        }
+
+        private void ResumeBattle()
+        {
+            _isPaused = false;
+        }
+
+        private void RestartBattle()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene");
+        }
+
+        private void ReturnToMainMenu()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
     }
 }
