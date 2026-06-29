@@ -9,6 +9,7 @@ namespace Warzone.Combat
         private readonly List<BattleSquadState> _squads;
         private readonly CommandProcessor _commandProcessor;
         private readonly CombatResolver _combatResolver;
+        private readonly AiSystem _aiSystem = new AiSystem();
         private readonly List<DamageEvent> _pendingDamageEvents = new List<DamageEvent>();
         private readonly int _seed;
         private float _elapsedTimeSeconds;
@@ -58,6 +59,7 @@ namespace Warzone.Combat
             }
 
             ProcessQueuedCommands();
+            _aiSystem.Tick(this, deltaTimeSeconds);
             UpdateAttackerTargets();
             UpdateMovement(deltaTimeSeconds);
             ResolveUnitSeparation();
