@@ -1,10 +1,9 @@
 {
-    "name": "Warzone.Meta",
-    "rootNamespace": "Warzone.Meta",
+    "name": "Warzone.Combat",
+    "rootNamespace": "Warzone.Combat",
     "references": [
         "Warzone.Foundation",
-        "Warzone.Content",
-        "Warzone.Combat"
+        "Warzone.Content"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -14,5 +13,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

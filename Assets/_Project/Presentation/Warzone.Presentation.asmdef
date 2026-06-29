@@ -3,7 +3,7 @@
     "rootNamespace": "Warzone.Presentation",
     "references": [
         "Warzone.Foundation",
-        "Warzone.BattleDomain",
+        "Warzone.Combat",
         "Warzone.Content"
     ],
     "includePlatforms": [],

@@ -1,6 +1,4 @@
-using Warzone.BattleDomain;
-
-using Warzone.BattleDomain;
+using Warzone.Combat;
 
 namespace Warzone.Meta
 {

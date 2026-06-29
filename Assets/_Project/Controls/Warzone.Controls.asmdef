@@ -1,10 +1,10 @@
 {
-    "name": "Warzone.Meta",
-    "rootNamespace": "Warzone.Meta",
+    "name": "Warzone.Controls",
+    "rootNamespace": "Warzone.Controls",
     "references": [
         "Warzone.Foundation",
-        "Warzone.Content",
-        "Warzone.Combat"
+        "Warzone.Framework",
+        "Warzone.Application"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

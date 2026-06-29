@@ -5,7 +5,7 @@
         "Warzone.Foundation",
         "Warzone.Framework",
         "Warzone.Meta",
-        "Warzone.BattleDomain",
+        "Warzone.Combat",
         "Warzone.Content"
     ],
     "includePlatforms": [],

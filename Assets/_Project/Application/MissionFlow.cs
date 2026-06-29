@@ -1,4 +1,4 @@
-using Warzone.BattleDomain;
+using Warzone.Combat;
 using Warzone.Meta;
 
 namespace Warzone.Application

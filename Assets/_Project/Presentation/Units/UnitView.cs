@@ -51,7 +51,7 @@ namespace Warzone.Presentation.Units
             ApplyColorOverride(null);
         }
 
-        public void SetCommandStateColor(Warzone.BattleDomain.SquadCommandState commandState)
+        public void SetCommandStateColor(Warzone.Combat.SquadCommandState commandState)
         {
             if (_isDead)
             {
@@ -60,10 +60,10 @@ namespace Warzone.Presentation.Units
 
             switch (commandState)
             {
-                case Warzone.BattleDomain.SquadCommandState.Moving:
+                case Warzone.Combat.SquadCommandState.Moving:
                     ApplyColorOverride(movingColor);
                     break;
-                case Warzone.BattleDomain.SquadCommandState.Attacking:
+                case Warzone.Combat.SquadCommandState.Attacking:
                     ApplyColorOverride(attackingColor);
                     break;
                 default:
