@@ -36,6 +36,37 @@ namespace Warzone.Adapters
             return keyboard != null && keyboard.pKey.wasPressedThisFrame;
         }
 
+        public bool ConsumeCameraFocus()
+        {
+            Keyboard keyboard = Keyboard.current;
+            return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
+        }
+
+        public bool TryConsumeTeamCommand(out int slotIndex, out bool bindTeam)
+        {
+            slotIndex = -1;
+            bindTeam = false;
+
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            bindTeam = keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed;
+            if (keyboard.digit1Key.wasPressedThisFrame) { slotIndex = 0; return true; }
+            if (keyboard.digit2Key.wasPressedThisFrame) { slotIndex = 1; return true; }
+            if (keyboard.digit3Key.wasPressedThisFrame) { slotIndex = 2; return true; }
+            if (keyboard.digit4Key.wasPressedThisFrame) { slotIndex = 3; return true; }
+            if (keyboard.digit5Key.wasPressedThisFrame) { slotIndex = 4; return true; }
+            if (keyboard.digit6Key.wasPressedThisFrame) { slotIndex = 5; return true; }
+            if (keyboard.digit7Key.wasPressedThisFrame) { slotIndex = 6; return true; }
+            if (keyboard.digit8Key.wasPressedThisFrame) { slotIndex = 7; return true; }
+            if (keyboard.digit9Key.wasPressedThisFrame) { slotIndex = 8; return true; }
+
+            return false;
+        }
+
         public void Tick(BattleSession battleSession)
         {
             if (battleSession == null || _mainCamera == null)

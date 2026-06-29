@@ -10,6 +10,7 @@ namespace Warzone.Combat
         private readonly CommandProcessor _commandProcessor;
         private readonly CombatResolver _combatResolver;
         private readonly AiSystem _aiSystem = new AiSystem();
+        private readonly TerrainMap _terrainMap;
         private readonly List<DamageEvent> _pendingDamageEvents = new List<DamageEvent>();
         private readonly int _seed;
         private float _elapsedTimeSeconds;
@@ -20,12 +21,14 @@ namespace Warzone.Combat
             IReadOnlyList<BattleSquadState> squads,
             CommandProcessor commandProcessor,
             CombatResolver combatResolver,
-            int seed)
+            int seed,
+            TerrainMap terrainMap = null)
         {
             _squads = new List<BattleSquadState>(squads);
             _commandProcessor = commandProcessor;
             _combatResolver = combatResolver;
             _seed = seed;
+            _terrainMap = terrainMap;
         }
 
         public IReadOnlyList<BattleSquadState> Squads => _squads;
@@ -290,6 +293,11 @@ namespace Warzone.Combat
 
                 float distance = CombatResolver.GetDistance(squad, target);
                 float range = _combatResolver.GetAttackRange(squad);
+                if (_terrainMap != null)
+                {
+                    range *= _terrainMap.GetRangeMultiplier(squad.Position);
+                }
+
                 if (distance > range || squad.AttackCooldownRemaining > 0f)
                 {
                     continue;
@@ -319,6 +327,10 @@ namespace Warzone.Combat
             }
 
             float moveSpeed = _combatResolver.GetMoveSpeed(squad);
+            if (_terrainMap != null)
+            {
+                moveSpeed *= _terrainMap.GetMoveSpeedMultiplier(squad.Position);
+            }
             Vector2 direction = Vector2.Normalize(offset);
             float step = moveSpeed * deltaTimeSeconds;
             if (step >= offset.Length())

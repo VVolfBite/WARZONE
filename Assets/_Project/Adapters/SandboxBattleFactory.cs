@@ -44,8 +44,9 @@ namespace Warzone.Adapters
             return new BattleSession(
                 squads,
                 new CommandProcessor(),
-                new CombatResolver(catalog),
-                seed);
+                new CombatResolver(catalog, TerrainMap.CreateDefault()),
+                seed,
+                TerrainMap.CreateDefault());
         }
 
         public static IReadOnlyList<SandboxWaveSpawnPlan> BuildWaves()

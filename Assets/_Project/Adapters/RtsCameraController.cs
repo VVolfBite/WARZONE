@@ -131,6 +131,11 @@ namespace Warzone.Adapters
             Vector2 delta = mouse.delta.ReadValue();
             _yaw += delta.x * rotationSpeed;
             _pitch = Mathf.Clamp(_pitch - (delta.y * rotationSpeed), minPitch, maxPitch);
+
+            if (mouse.middleButton.wasPressedThisFrame)
+            {
+                _positionVelocity = Vector3.zero;
+            }
         }
 
         private void HandleZoom(Mouse mouse)

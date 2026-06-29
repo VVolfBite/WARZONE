@@ -5,6 +5,7 @@ namespace Warzone.Adapters
     public sealed class SandboxSelectionService
     {
         private readonly HashSet<int> _selectedSquadIds = new HashSet<int>();
+        private readonly Dictionary<int, List<int>> _teamBindings = new Dictionary<int, List<int>>();
 
         public IReadOnlyCollection<int> SelectedSquadIds => _selectedSquadIds;
         public int? HoveredEnemySquadId { get; private set; }
@@ -53,6 +54,33 @@ namespace Warzone.Adapters
             List<int> ordered = new List<int>(_selectedSquadIds);
             ordered.Sort();
             return ordered;
+        }
+
+        public void BindTeam(int slotIndex)
+        {
+            List<int> ordered = BuildOrderedSelection();
+            if (ordered.Count == 0)
+            {
+                return;
+            }
+
+            _teamBindings[slotIndex] = ordered;
+        }
+
+        public bool TrySelectTeam(int slotIndex)
+        {
+            if (!_teamBindings.TryGetValue(slotIndex, out List<int> binding) || binding == null || binding.Count == 0)
+            {
+                return false;
+            }
+
+            _selectedSquadIds.Clear();
+            for (int i = 0; i < binding.Count; i++)
+            {
+                _selectedSquadIds.Add(binding[i]);
+            }
+
+            return true;
         }
     }
 }

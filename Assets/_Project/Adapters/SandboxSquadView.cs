@@ -15,6 +15,7 @@ namespace Warzone.Adapters
         private Vector3 _aliveScale = Vector3.one;
         private float _deathSinkOffset;
         private float _hitFlashTime;
+        private float _rangePulseTime;
 
         public int SquadId => squadId;
         public FactionId FactionId => factionId;
@@ -39,6 +40,11 @@ namespace Warzone.Adapters
             if (unitView != null)
             {
                 unitView.SetSelected(selected);
+            }
+
+            if (selected)
+            {
+                _rangePulseTime = 0.25f;
             }
         }
 
@@ -105,6 +111,12 @@ namespace Warzone.Adapters
 
         private void LateUpdate()
         {
+            if (!isDead && _rangePulseTime > 0f && worldUiView != null)
+            {
+                _rangePulseTime -= Time.deltaTime;
+                worldUiView.SetRangePulse(Mathf.Lerp(0.35f, 1f, _rangePulseTime / 0.25f));
+            }
+
             if (!isDead && _hitFlashTime > 0f)
             {
                 _hitFlashTime -= Time.deltaTime;

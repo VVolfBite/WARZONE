@@ -8,10 +8,12 @@ namespace Warzone.Combat
     public sealed class CombatResolver
     {
         private readonly ContentCatalog _contentCatalog;
+        private readonly TerrainMap _terrainMap;
 
-        public CombatResolver(ContentCatalog contentCatalog)
+        public CombatResolver(ContentCatalog contentCatalog, TerrainMap terrainMap = null)
         {
             _contentCatalog = contentCatalog;
+            _terrainMap = terrainMap;
         }
 
         public IReadOnlyList<DamageEvent> ResolveAttack(BattleSquadState attacker, BattleSquadState defender)
@@ -69,7 +71,8 @@ namespace Warzone.Combat
                 return 0f;
             }
 
-            return _contentCatalog.Units[firstAliveUnit.DefinitionId].Weapon.Range;
+            float range = _contentCatalog.Units[firstAliveUnit.DefinitionId].Weapon.Range;
+            return range * GetRangeMultiplier(squad.Position);
         }
 
         public float GetAttackInterval(BattleSquadState squad)
@@ -91,7 +94,8 @@ namespace Warzone.Combat
                 return 0f;
             }
 
-            return _contentCatalog.Units[firstAliveUnit.DefinitionId].MoveSpeed;
+            float speed = _contentCatalog.Units[firstAliveUnit.DefinitionId].MoveSpeed;
+            return speed * GetMoveSpeedMultiplier(squad.Position);
         }
 
         public float GetAggroRange(BattleSquadState squad)
@@ -130,6 +134,21 @@ namespace Warzone.Combat
         public static float GetDistance(BattleSquadState squadA, BattleSquadState squadB)
         {
             return Vector2.Distance(squadA.Position, squadB.Position);
+        }
+
+        public float GetRangeMultiplier(Vector2 position)
+        {
+            return _terrainMap != null ? _terrainMap.GetRangeMultiplier(position) : 1f;
+        }
+
+        public float GetMoveSpeedMultiplier(Vector2 position)
+        {
+            return _terrainMap != null ? _terrainMap.GetMoveSpeedMultiplier(position) : 1f;
+        }
+
+        public bool BlocksLineOfSight(Vector2 from, Vector2 to)
+        {
+            return _terrainMap != null && _terrainMap.BlocksLineOfSight(from, to);
         }
 
         private static BattleUnitState GetFirstAliveUnit(BattleSquadState squad)

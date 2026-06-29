@@ -10,17 +10,21 @@ namespace Warzone.Adapters
         private int _totalWaveCount;
         private string _objectiveText;
         private string _notificationText;
+        private string _debugText;
+        private string _teamText;
         private Action _resumeAction;
         private Action _restartAction;
         private Action _returnToMenuAction;
 
-        public void Bind(bool isPaused, int activeWaveIndex, int totalWaveCount, string objectiveText, string notificationText)
+        public void Bind(bool isPaused, int activeWaveIndex, int totalWaveCount, string objectiveText, string notificationText, string debugText = null, string teamText = null)
         {
             _isPaused = isPaused;
             _activeWaveIndex = activeWaveIndex;
             _totalWaveCount = totalWaveCount;
             _objectiveText = objectiveText;
             _notificationText = notificationText;
+            _debugText = debugText;
+            _teamText = teamText;
         }
 
         public void SetPauseActions(Action resumeAction, Action restartAction, Action returnToMenuAction)
@@ -32,10 +36,9 @@ namespace Warzone.Adapters
 
         private void DrawTopBar()
         {
-            GUILayout.BeginArea(new Rect(20f, 20f, Screen.width - 40f, 110f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(20f, 20f, Screen.width - 40f, 120f), GUI.skin.box);
             GUILayout.Label("WARZONE");
             GUILayout.Label(_objectiveText ?? "Objective");
-            GUILayout.Label(_notificationText ?? string.Empty);
             GUILayout.Label(_isPaused ? "Paused" : "Running");
             GUILayout.EndArea();
         }
@@ -55,6 +58,7 @@ namespace Warzone.Adapters
             GUILayout.Label("Team");
             GUILayout.Label("1-4: squads");
             GUILayout.Label("Ctrl+1: bind team");
+            GUILayout.Label(_teamText ?? string.Empty);
             GUILayout.EndArea();
         }
 
@@ -72,6 +76,15 @@ namespace Warzone.Adapters
             GUILayout.Label("LMB select, RMB move/attack");
             GUILayout.Label("Shift queue, Ctrl toggle");
             GUILayout.Label("P pause, +/- speed");
+            GUILayout.EndArea();
+        }
+
+        private void DrawDebugPanel()
+        {
+            GUILayout.BeginArea(new Rect(20f, 140f, 340f, 120f), GUI.skin.box);
+            GUILayout.Label("Debug");
+            GUILayout.Label(_notificationText ?? string.Empty);
+            GUILayout.Label(_debugText ?? string.Empty);
             GUILayout.EndArea();
         }
 
@@ -105,6 +118,7 @@ namespace Warzone.Adapters
             DrawTeamBar();
             DrawMinimap();
             DrawControlHint();
+            DrawDebugPanel();
 
             if (_isPaused)
             {

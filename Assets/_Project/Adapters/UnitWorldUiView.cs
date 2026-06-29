@@ -35,6 +35,19 @@ namespace Warzone.Adapters
             }
         }
 
+        public void SetRangePulse(float alphaScale)
+        {
+            if (_rangeRenderer == null)
+            {
+                return;
+            }
+
+            Color color = _rangeColor;
+            color.a = Mathf.Clamp01(alphaScale);
+            _rangeRenderer.startColor = color;
+            _rangeRenderer.endColor = color;
+        }
+
         private void OnGUI()
         {
             if (_camera == null)

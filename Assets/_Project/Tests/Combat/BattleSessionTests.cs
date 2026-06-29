@@ -15,8 +15,9 @@ namespace Warzone.Tests.Combat
             BattleSession session = new BattleSession(
                 BuildSquads(),
                 new CommandProcessor(),
-                new CombatResolver(catalog),
-                seed: 7);
+                new CombatResolver(catalog, TerrainMap.CreateDefault()),
+                seed: 7,
+                terrainMap: TerrainMap.CreateDefault());
 
             for (int i = 0; i < 20 && session.CurrentOutcome == MissionOutcome.InProgress; i++)
             {
@@ -74,8 +75,9 @@ namespace Warzone.Tests.Combat
             BattleSession session = new BattleSession(
                 BuildSquads(),
                 new CommandProcessor(),
-                new CombatResolver(catalog),
-                seed: 7);
+                new CombatResolver(catalog, TerrainMap.CreateDefault()),
+                seed: 7,
+                terrainMap: TerrainMap.CreateDefault());
 
             for (int i = 0; i < 30 && session.CurrentOutcome == MissionOutcome.InProgress; i++)
             {
