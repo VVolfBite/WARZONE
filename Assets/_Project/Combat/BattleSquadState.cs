@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Warzone.Content.Definitions;
 
@@ -31,8 +30,38 @@ namespace Warzone.Combat
         public SquadCommandState CommandState { get; private set; }
         public int QueuedCommandCount => _commandQueue.Count;
 
-        public bool HasLivingUnits => Units.Any(unit => unit.IsAlive);
-        public int LivingUnitCount => Units.Count(unit => unit.IsAlive);
+        public bool HasLivingUnits
+        {
+            get
+            {
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    if (Units[i].IsAlive)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public int LivingUnitCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    if (Units[i].IsAlive)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
 
         public void SetMoveDestination(Vector2 destination)
         {

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Warzone.Content;
 using Warzone.Content.Definitions;
@@ -23,7 +22,7 @@ namespace Warzone.Combat
             }
 
             List<DamageEvent> damageEvents = new List<DamageEvent>();
-            BattleUnitState targetUnit = defender.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState targetUnit = GetFirstAliveUnit(defender);
             if (targetUnit == null)
             {
                 return damageEvents;
@@ -51,7 +50,7 @@ namespace Warzone.Combat
 
                 if (!targetUnit.IsAlive)
                 {
-                    targetUnit = defender.Units.FirstOrDefault(unit => unit.IsAlive);
+                    targetUnit = GetFirstAliveUnit(defender);
                     if (targetUnit == null)
                     {
                         break;
@@ -64,7 +63,7 @@ namespace Warzone.Combat
 
         public float GetAttackRange(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return 0f;
@@ -75,7 +74,7 @@ namespace Warzone.Combat
 
         public float GetAttackInterval(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return 1f;
@@ -86,7 +85,7 @@ namespace Warzone.Combat
 
         public float GetMoveSpeed(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return 0f;
@@ -97,7 +96,7 @@ namespace Warzone.Combat
 
         public float GetAggroRange(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return 0f;
@@ -108,7 +107,7 @@ namespace Warzone.Combat
 
         public float GetCollisionRadius(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return squad.Units.Count > 0 ? _contentCatalog.Units[squad.Units[0].DefinitionId].CollisionRadius : 0.5f;
@@ -119,7 +118,7 @@ namespace Warzone.Combat
 
         public UnitDefinition GetPrimaryDefinition(BattleSquadState squad)
         {
-            BattleUnitState firstAliveUnit = squad.Units.FirstOrDefault(unit => unit.IsAlive);
+            BattleUnitState firstAliveUnit = GetFirstAliveUnit(squad);
             if (firstAliveUnit == null)
             {
                 return squad.Units.Count > 0 ? _contentCatalog.Units[squad.Units[0].DefinitionId] : null;
@@ -131,6 +130,20 @@ namespace Warzone.Combat
         public static float GetDistance(BattleSquadState squadA, BattleSquadState squadB)
         {
             return Vector2.Distance(squadA.Position, squadB.Position);
+        }
+
+        private static BattleUnitState GetFirstAliveUnit(BattleSquadState squad)
+        {
+            for (int i = 0; i < squad.Units.Count; i++)
+            {
+                BattleUnitState unit = squad.Units[i];
+                if (unit.IsAlive)
+                {
+                    return unit;
+                }
+            }
+
+            return null;
         }
     }
 }

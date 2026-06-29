@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Warzone.Combat
 {
@@ -10,7 +9,7 @@ namespace Warzone.Combat
             IReadOnlyList<BattleSquadState> squads,
             CombatResolver combatResolver)
         {
-            BattleSquadState sourceSquad = squads.FirstOrDefault(squad => squad.SquadId == command.SourceSquadId);
+            BattleSquadState sourceSquad = FindSquad(command.SourceSquadId, squads);
             if (sourceSquad == null)
             {
                 return new List<DamageEvent>();
@@ -61,6 +60,19 @@ namespace Warzone.Combat
             {
                 sourceSquad.SetAttackTarget(command.TargetSquadId.Value);
             }
+        }
+
+        private static BattleSquadState FindSquad(int squadId, IReadOnlyList<BattleSquadState> squads)
+        {
+            for (int i = 0; i < squads.Count; i++)
+            {
+                if (squads[i].SquadId == squadId)
+                {
+                    return squads[i];
+                }
+            }
+
+            return null;
         }
     }
 }

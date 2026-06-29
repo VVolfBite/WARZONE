@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Warzone.Content.Definitions;
 
@@ -10,8 +9,8 @@ namespace Warzone.Combat
         private readonly List<BattleSquadState> _squads;
         private readonly CommandProcessor _commandProcessor;
         private readonly CombatResolver _combatResolver;
-        private readonly int _seed;
         private readonly List<DamageEvent> _pendingDamageEvents = new List<DamageEvent>();
+        private readonly int _seed;
         private float _elapsedTimeSeconds;
         private bool _resultFinalized;
         private int _pendingWaveCount;
@@ -31,6 +30,7 @@ namespace Warzone.Combat
         public IReadOnlyList<BattleSquadState> Squads => _squads;
         public MissionOutcome CurrentOutcome { get; private set; } = MissionOutcome.InProgress;
         public bool HasFinished => CurrentOutcome != MissionOutcome.InProgress;
+
         public void ConfigurePendingWaveCount(int waveCount)
         {
             _pendingWaveCount = waveCount;
@@ -79,7 +79,11 @@ namespace Warzone.Combat
 
         public void AddSquads(IEnumerable<BattleSquadState> squads)
         {
-            _squads.AddRange(squads);
+            foreach (BattleSquadState squad in squads)
+            {
+                _squads.Add(squad);
+            }
+
             CurrentOutcome = DetermineOutcome();
         }
 
@@ -88,19 +92,32 @@ namespace Warzone.Combat
             _resultFinalized = true;
             List<BattleEntityId> casualties = new List<BattleEntityId>();
             List<UnitOutcome> unitOutcomes = new List<UnitOutcome>();
+            int playerUnitsRemaining = 0;
+            int enemyUnitsRemaining = 0;
 
-            foreach (BattleUnitState unit in _squads.SelectMany(squad => squad.Units))
+            for (int i = 0; i < _squads.Count; i++)
             {
-                bool survived = unit.IsAlive;
-                unitOutcomes.Add(new UnitOutcome(unit.EntityId, survived));
-                if (!survived)
+                BattleSquadState squad = _squads[i];
+                for (int j = 0; j < squad.Units.Count; j++)
                 {
-                    casualties.Add(unit.EntityId);
+                    BattleUnitState unit = squad.Units[j];
+                    bool survived = unit.IsAlive;
+                    unitOutcomes.Add(new UnitOutcome(unit.EntityId, survived));
+                    if (!survived)
+                    {
+                        casualties.Add(unit.EntityId);
+                    }
+                }
+
+                if (squad.FactionId == FactionId.Player)
+                {
+                    playerUnitsRemaining += squad.LivingUnitCount;
+                }
+                else if (squad.FactionId == FactionId.Enemy)
+                {
+                    enemyUnitsRemaining += squad.LivingUnitCount;
                 }
             }
-
-            int playerUnitsRemaining = _squads.Where(squad => squad.FactionId == FactionId.Player).Sum(squad => squad.LivingUnitCount);
-            int enemyUnitsRemaining = _squads.Where(squad => squad.FactionId == FactionId.Enemy).Sum(squad => squad.LivingUnitCount);
 
             return new BattleResult(
                 CurrentOutcome,
@@ -137,14 +154,20 @@ namespace Warzone.Combat
 
         private void UpdateAttackerTargets()
         {
-            AcquireTargetsForFaction(FactionId.Player, FactionId.Enemy, autoAcquireForIdleSquadsOnly: true, requireAggroRange: true);
-            AcquireTargetsForFaction(FactionId.Enemy, FactionId.Player, autoAcquireForIdleSquadsOnly: false, requireAggroRange: true);
+            AcquireTargetsForFaction(FactionId.Player, FactionId.Enemy, true, true);
+            AcquireTargetsForFaction(FactionId.Enemy, FactionId.Player, false, true);
         }
 
         private void AcquireTargetsForFaction(FactionId attackerFaction, FactionId defenderFaction, bool autoAcquireForIdleSquadsOnly, bool requireAggroRange)
         {
-            foreach (BattleSquadState squad in _squads.Where(squad => squad.FactionId == attackerFaction && squad.HasLivingUnits))
+            for (int i = 0; i < _squads.Count; i++)
             {
+                BattleSquadState squad = _squads[i];
+                if (squad.FactionId != attackerFaction || !squad.HasLivingUnits)
+                {
+                    continue;
+                }
+
                 if (autoAcquireForIdleSquadsOnly && squad.CommandState != SquadCommandState.Idle)
                 {
                     continue;
@@ -190,8 +213,9 @@ namespace Warzone.Combat
             BattleSquadState nearest = null;
             float nearestDistance = float.MaxValue;
 
-            foreach (BattleSquadState squad in _squads)
+            for (int i = 0; i < _squads.Count; i++)
             {
+                BattleSquadState squad = _squads[i];
                 if (squad.FactionId != defenderFaction || !squad.HasLivingUnits)
                 {
                     continue;
@@ -210,8 +234,14 @@ namespace Warzone.Combat
 
         private void UpdateMovement(float deltaTimeSeconds)
         {
-            foreach (BattleSquadState squad in _squads.Where(squad => squad.HasLivingUnits))
+            for (int i = 0; i < _squads.Count; i++)
             {
+                BattleSquadState squad = _squads[i];
+                if (!squad.HasLivingUnits)
+                {
+                    continue;
+                }
+
                 if (squad.MoveDestination.HasValue)
                 {
                     MoveTowardDestination(squad, squad.MoveDestination.Value, deltaTimeSeconds);
@@ -223,7 +253,7 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                BattleSquadState target = _squads.FirstOrDefault(other => other.SquadId == squad.AttackTargetSquadId.Value && other.HasLivingUnits);
+                BattleSquadState target = FindLivingSquadById(squad.AttackTargetSquadId.Value);
                 if (target == null)
                 {
                     squad.Stop();
@@ -241,9 +271,15 @@ namespace Warzone.Combat
 
         private void ResolveAttacks()
         {
-            foreach (BattleSquadState squad in _squads.Where(squad => squad.HasLivingUnits && squad.AttackTargetSquadId.HasValue))
+            for (int i = 0; i < _squads.Count; i++)
             {
-                BattleSquadState target = _squads.FirstOrDefault(other => other.SquadId == squad.AttackTargetSquadId.Value && other.HasLivingUnits);
+                BattleSquadState squad = _squads[i];
+                if (!squad.HasLivingUnits || !squad.AttackTargetSquadId.HasValue)
+                {
+                    continue;
+                }
+
+                BattleSquadState target = FindLivingSquadById(squad.AttackTargetSquadId.Value);
                 if (target == null)
                 {
                     squad.Stop();
@@ -258,7 +294,11 @@ namespace Warzone.Combat
                 }
 
                 IReadOnlyList<DamageEvent> damageEvents = _combatResolver.ResolveAttack(squad, target);
-                _pendingDamageEvents.AddRange(damageEvents);
+                for (int j = 0; j < damageEvents.Count; j++)
+                {
+                    _pendingDamageEvents.Add(damageEvents[j]);
+                }
+
                 squad.ResetAttackCooldown(_combatResolver.GetAttackInterval(squad));
             }
         }
@@ -294,9 +334,10 @@ namespace Warzone.Combat
 
         private void ProcessQueuedCommands()
         {
-            foreach (BattleSquadState squad in _squads.Where(squad => squad.HasLivingUnits))
+            for (int i = 0; i < _squads.Count; i++)
             {
-                if (squad.HasActiveCommand())
+                BattleSquadState squad = _squads[i];
+                if (!squad.HasLivingUnits || squad.HasActiveCommand())
                 {
                     continue;
                 }
@@ -341,6 +382,20 @@ namespace Warzone.Combat
                     squadB.UpdatePosition(squadB.Position + correction);
                 }
             }
+        }
+
+        private BattleSquadState FindLivingSquadById(int squadId)
+        {
+            for (int i = 0; i < _squads.Count; i++)
+            {
+                BattleSquadState squad = _squads[i];
+                if (squad.SquadId == squadId && squad.HasLivingUnits)
+                {
+                    return squad;
+                }
+            }
+
+            return null;
         }
 
         private MissionOutcome DetermineOutcome()
