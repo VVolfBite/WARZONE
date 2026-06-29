@@ -51,14 +51,14 @@ namespace Warzone.Tests.Combat
 
         private static ContentCatalog BuildCatalog()
         {
-            WeaponDefinition playerWeapon = new WeaponDefinition("weapon.player", 4f, 1f, 3, 16f);
-            WeaponDefinition enemyWeapon = new WeaponDefinition("weapon.enemy", 2f, 1f, 1, 12f);
+            WeaponDefinition playerWeapon = new WeaponDefinition("weapon.player", 4f, 1f, 3, 16f, DamageType.Piercing);
+            WeaponDefinition enemyWeapon = new WeaponDefinition("weapon.enemy", 2f, 1f, 1, 12f, DamageType.Kinetic);
 
             return new ContentCatalog(
                 new Dictionary<string, UnitDefinition>
                 {
-                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f),
-                    ["unit.enemy"] = new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f)
+                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium),
+                    ["unit.enemy"] = new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f, ArmorType.Light)
                 },
                 new Dictionary<string, MissionDefinition>());
         }

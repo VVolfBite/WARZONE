@@ -7,13 +7,15 @@ namespace Warzone.Content.Definitions
             float range,
             float attackIntervalSeconds,
             int damagePerHit,
-            float projectileSpeed)
+            float projectileSpeed,
+            DamageType damageType)
         {
             Id = id;
             Range = range;
             AttackIntervalSeconds = attackIntervalSeconds;
             DamagePerHit = damagePerHit;
             ProjectileSpeed = projectileSpeed;
+            DamageType = damageType;
         }
 
         public string Id { get; }
@@ -21,5 +23,6 @@ namespace Warzone.Content.Definitions
         public float AttackIntervalSeconds { get; }
         public int DamagePerHit { get; }
         public float ProjectileSpeed { get; }
+        public DamageType DamageType { get; }
     }
 }

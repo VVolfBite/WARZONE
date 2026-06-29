@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Warzone.Content;
@@ -39,7 +40,8 @@ namespace Warzone.Combat
 
                 UnitDefinition definition = _contentCatalog.Units[attackingUnit.DefinitionId];
                 WeaponDefinition weapon = definition.Weapon;
-                int damage = weapon.DamagePerHit;
+                UnitDefinition defenderDefinition = _contentCatalog.Units[defender.Units[0].DefinitionId];
+                int damage = ApplyDamageTable(weapon.DamagePerHit, weapon.DamageType, defenderDefinition.ArmorType);
                 targetUnit.ApplyDamage(damage);
                 damageEvents.Add(new DamageEvent(
                     attackingUnit.EntityId,
@@ -163,6 +165,25 @@ namespace Warzone.Combat
             }
 
             return null;
+        }
+
+        private static int ApplyDamageTable(int baseDamage, DamageType damageType, ArmorType armorType)
+        {
+            float multiplier = 1f;
+            if (damageType == DamageType.Piercing && armorType == ArmorType.Heavy)
+            {
+                multiplier = 1.25f;
+            }
+            else if (damageType == DamageType.Explosive && armorType == ArmorType.Light)
+            {
+                multiplier = 1.1f;
+            }
+            else if (damageType == DamageType.Fire && armorType == ArmorType.Fortified)
+            {
+                multiplier = 0.85f;
+            }
+
+            return Math.Max(1, (int)Math.Round(baseDamage * multiplier, MidpointRounding.AwayFromZero));
         }
     }
 }

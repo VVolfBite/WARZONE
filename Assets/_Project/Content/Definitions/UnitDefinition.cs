@@ -10,7 +10,8 @@ namespace Warzone.Content.Definitions
             float moveSpeed,
             WeaponDefinition weapon,
             float aggroRange,
-            float collisionRadius)
+            float collisionRadius,
+            ArmorType armorType)
         {
             Id = id;
             DisplayName = displayName;
@@ -20,6 +21,7 @@ namespace Warzone.Content.Definitions
             Weapon = weapon;
             AggroRange = aggroRange;
             CollisionRadius = collisionRadius;
+            ArmorType = armorType;
         }
 
         public string Id { get; }
@@ -30,5 +32,6 @@ namespace Warzone.Content.Definitions
         public WeaponDefinition Weapon { get; }
         public float AggroRange { get; }
         public float CollisionRadius { get; }
+        public ArmorType ArmorType { get; }
     }
 }

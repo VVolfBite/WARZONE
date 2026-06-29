@@ -30,9 +30,11 @@ namespace Warzone.Content.Authoring
                             unitAsset.Weapon.Range,
                             unitAsset.Weapon.AttackIntervalSeconds,
                             unitAsset.Weapon.DamagePerHit,
-                            unitAsset.Weapon.ProjectileSpeed),
+                            unitAsset.Weapon.ProjectileSpeed,
+                            unitAsset.Weapon.DamageType),
                         unitAsset.AggroRange,
-                        unitAsset.CollisionRadius);
+                        unitAsset.CollisionRadius,
+                        unitAsset.ArmorType);
                 }
 
                 foreach (MissionDefinitionAsset missionAsset in asset.MissionDefinitions)

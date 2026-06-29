@@ -1,4 +1,5 @@
 using UnityEngine;
+using Warzone.Content.Definitions;
 
 namespace Warzone.Content.Authoring
 {
@@ -10,11 +11,13 @@ namespace Warzone.Content.Authoring
         [SerializeField] private float attackIntervalSeconds = 1f;
         [SerializeField] private int damagePerHit = 1;
         [SerializeField] private float projectileSpeed = 18f;
+        [SerializeField] private DamageType damageType = DamageType.Kinetic;
 
         public string Id => id;
         public float Range => range;
         public float AttackIntervalSeconds => attackIntervalSeconds;
         public int DamagePerHit => damagePerHit;
         public float ProjectileSpeed => projectileSpeed;
+        public DamageType DamageType => damageType;
     }
 }

@@ -10,17 +10,17 @@ namespace Warzone.Adapters
     {
         public static ContentCatalog BuildSandboxContent()
         {
-            WeaponDefinition playerRifle = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f);
-            WeaponDefinition playerSupport = new WeaponDefinition("weapon.player.carbine", 9f, 0.5f, 3, 22f);
-            WeaponDefinition enemyClaws = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f);
-            WeaponDefinition enemyRifle = new WeaponDefinition("weapon.enemy.rifle", 10f, 0.9f, 2, 20f);
+            WeaponDefinition playerRifle = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f, DamageType.Piercing);
+            WeaponDefinition playerSupport = new WeaponDefinition("weapon.player.carbine", 9f, 0.5f, 3, 22f, DamageType.Kinetic);
+            WeaponDefinition enemyClaws = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f, DamageType.Kinetic);
+            WeaponDefinition enemyRifle = new WeaponDefinition("weapon.enemy.rifle", 10f, 0.9f, 2, 20f, DamageType.Piercing);
 
             Dictionary<string, UnitDefinition> units = new Dictionary<string, UnitDefinition>
             {
-                ["unit.player.infantry"] = new UnitDefinition("unit.player.infantry", "Infantry", FactionId.Player, 22, 5.75f, playerRifle, 15f, 0.72f),
-                ["unit.player.support"] = new UnitDefinition("unit.player.support", "Support", FactionId.Player, 26, 5.1f, playerSupport, 13f, 0.76f),
-                ["unit.enemy.zombie"] = new UnitDefinition("unit.enemy.zombie", "Zombie", FactionId.Enemy, 10, 2.8f, enemyClaws, 8f, 0.78f),
-                ["unit.enemy.rifleman"] = new UnitDefinition("unit.enemy.rifleman", "Rifleman", FactionId.Enemy, 14, 3.9f, enemyRifle, 11f, 0.7f)
+                ["unit.player.infantry"] = new UnitDefinition("unit.player.infantry", "Infantry", FactionId.Player, 22, 5.75f, playerRifle, 15f, 0.72f, ArmorType.Medium),
+                ["unit.player.support"] = new UnitDefinition("unit.player.support", "Support", FactionId.Player, 26, 5.1f, playerSupport, 13f, 0.76f, ArmorType.Light),
+                ["unit.enemy.zombie"] = new UnitDefinition("unit.enemy.zombie", "Zombie", FactionId.Enemy, 10, 2.8f, enemyClaws, 8f, 0.78f, ArmorType.Light),
+                ["unit.enemy.rifleman"] = new UnitDefinition("unit.enemy.rifleman", "Rifleman", FactionId.Enemy, 14, 3.9f, enemyRifle, 11f, 0.7f, ArmorType.Medium)
             };
 
             Dictionary<string, MissionDefinition> missions = new Dictionary<string, MissionDefinition>

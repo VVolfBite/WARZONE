@@ -13,6 +13,7 @@ namespace Warzone.Content.Authoring
         [SerializeField] private float moveSpeed = 4f;
         [SerializeField] private float aggroRange = 10f;
         [SerializeField] private float collisionRadius = 0.65f;
+        [SerializeField] private ArmorType armorType = ArmorType.Light;
         [SerializeField] private WeaponDefinitionAsset weapon;
 
         public string Id => id;
@@ -22,6 +23,7 @@ namespace Warzone.Content.Authoring
         public float MoveSpeed => moveSpeed;
         public float AggroRange => aggroRange;
         public float CollisionRadius => collisionRadius;
+        public ArmorType ArmorType => armorType;
         public WeaponDefinitionAsset Weapon => weapon;
     }
 }
