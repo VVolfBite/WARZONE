@@ -156,5 +156,13 @@ namespace Warzone.Adapters
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
+
+        private void OnEnable()
+        {
+            if (_sandboxHudOverlay != null)
+            {
+                _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
+            }
+        }
     }
 }
