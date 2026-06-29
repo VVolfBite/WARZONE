@@ -7,5 +7,8 @@ namespace Warzone.Controls
         public string PrimaryActionLabel { get; set; }
         public string SecondaryActionLabel { get; set; }
         public string TertiaryActionLabel { get; set; }
+        public float MasterVolume { get; set; }
+        public float MusicVolume { get; set; }
+        public int GraphicsQuality { get; set; }
     }
 }

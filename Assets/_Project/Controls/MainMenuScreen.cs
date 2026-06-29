@@ -7,6 +7,9 @@ namespace Warzone.Controls
         private MainMenuViewModel _viewModel;
         private MainMenuScreenController _controller;
         private bool _showSettings;
+        private float _masterVolume = 0.8f;
+        private float _musicVolume = 0.7f;
+        private int _graphicsQuality = 2;
 
         public void Configure(MainMenuScreenController controller)
         {
@@ -17,6 +20,9 @@ namespace Warzone.Controls
         public void Bind(MainMenuViewModel viewModel)
         {
             _viewModel = viewModel;
+            _masterVolume = viewModel.MasterVolume;
+            _musicVolume = viewModel.MusicVolume;
+            _graphicsQuality = viewModel.GraphicsQuality;
         }
 
         private void OnGUI()
@@ -62,10 +68,19 @@ namespace Warzone.Controls
                 GUILayout.Space(12f);
                 GUILayout.Label("Settings", BuildSectionStyle());
                 GUILayout.Label("Audio / Graphics / Controls");
-                GUILayout.Label("Audio settings and control binding will be added later.");
+                GUILayout.Label($"Master Volume: {_masterVolume:0.00}");
+                _masterVolume = GUILayout.HorizontalSlider(_masterVolume, 0f, 1f);
+                GUILayout.Label($"Music Volume: {_musicVolume:0.00}");
+                _musicVolume = GUILayout.HorizontalSlider(_musicVolume, 0f, 1f);
+                GUILayout.Label($"Graphics Quality: {_graphicsQuality}");
+                _graphicsQuality = Mathf.RoundToInt(GUILayout.HorizontalSlider(_graphicsQuality, 0f, 4f));
+                if (GUILayout.Button("Apply", GUILayout.Height(30f)))
+                {
+                    _controller.SaveSettings(_masterVolume, _musicVolume, _graphicsQuality);
+                }
                 GUILayout.Space(8f);
                 GUILayout.Label("Credits", BuildSectionStyle());
-                GUILayout.Label("Warzone POC3 demo shell.");
+                GUILayout.Label("Warzone RTS prototype.");
             }
 
             GUILayout.Space(10f);
