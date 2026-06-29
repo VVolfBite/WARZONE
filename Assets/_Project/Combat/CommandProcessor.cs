@@ -23,6 +23,18 @@ namespace Warzone.Combat
                 case CommandType.Attack when command.TargetSquadId.HasValue:
                     ApplyOrQueueCommand(sourceSquad, command);
                     return new List<DamageEvent>();
+                case CommandType.Patrol when command.Destination.HasValue && command.SecondaryDestination.HasValue:
+                    ApplyOrQueueCommand(sourceSquad, command);
+                    return new List<DamageEvent>();
+                case CommandType.HoldPosition:
+                    ApplyOrQueueCommand(sourceSquad, command);
+                    return new List<DamageEvent>();
+                case CommandType.Retreat when command.Destination.HasValue:
+                    ApplyOrQueueCommand(sourceSquad, command);
+                    return new List<DamageEvent>();
+                case CommandType.UseAbility:
+                    ApplyOrQueueCommand(sourceSquad, command);
+                    return new List<DamageEvent>();
                 case CommandType.Stop:
                     sourceSquad.ClearQueuedCommands();
                     sourceSquad.Stop();
@@ -59,6 +71,30 @@ namespace Warzone.Combat
             if (command.CommandType == CommandType.Attack && command.TargetSquadId.HasValue)
             {
                 sourceSquad.SetAttackTarget(command.TargetSquadId.Value);
+                return;
+            }
+
+            if (command.CommandType == CommandType.Patrol && command.Destination.HasValue)
+            {
+                sourceSquad.SetMoveDestination(command.Destination.Value);
+                return;
+            }
+
+            if (command.CommandType == CommandType.HoldPosition)
+            {
+                sourceSquad.Stop();
+                return;
+            }
+
+            if (command.CommandType == CommandType.Retreat && command.Destination.HasValue)
+            {
+                sourceSquad.SetMoveDestination(command.Destination.Value);
+                return;
+            }
+
+            if (command.CommandType == CommandType.UseAbility)
+            {
+                sourceSquad.Stop();
             }
         }
 
