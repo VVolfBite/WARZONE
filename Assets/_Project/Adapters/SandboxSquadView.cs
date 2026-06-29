@@ -67,6 +67,11 @@ namespace Warzone.Adapters
                 unitView.SetDead();
             }
 
+            if (worldUiView != null)
+            {
+                worldUiView.SetRangeVisible(false, 0f, Color.gray);
+            }
+
             transform.localScale = new Vector3(_aliveScale.x, _aliveScale.y * 0.35f, _aliveScale.z);
             _deathSinkOffset = 0.65f;
         }

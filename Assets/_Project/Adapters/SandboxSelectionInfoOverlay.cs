@@ -41,6 +41,7 @@ namespace Warzone.Adapters
                 GUILayout.Label($"Weapon: {_playerDefinition.Weapon.Id}");
                 GUILayout.Label($"Damage: {_playerDefinition.Weapon.DamagePerHit}");
                 GUILayout.Label($"Range: {_playerDefinition.Weapon.Range:F1}");
+                GUILayout.Label($"Aggro: {_playerDefinition.AggroRange:F1}");
                 GUILayout.Label($"Speed: {_playerDefinition.MoveSpeed:F1}");
                 GUILayout.EndArea();
             }
@@ -53,6 +54,7 @@ namespace Warzone.Adapters
                 GUILayout.Label($"Weapon: {_hoverDefinition.Weapon.Id}");
                 GUILayout.Label($"Damage: {_hoverDefinition.Weapon.DamagePerHit}");
                 GUILayout.Label($"Range: {_hoverDefinition.Weapon.Range:F1}");
+                GUILayout.Label($"Aggro: {_hoverDefinition.AggroRange:F1}");
                 GUILayout.Label($"Speed: {_hoverDefinition.MoveSpeed:F1}");
                 GUILayout.EndArea();
             }

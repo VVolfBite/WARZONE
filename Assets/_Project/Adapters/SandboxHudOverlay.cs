@@ -33,7 +33,7 @@ namespace Warzone.Adapters
         private void DrawTopBar()
         {
             GUILayout.BeginArea(new Rect(20f, 20f, Screen.width - 40f, 110f), GUI.skin.box);
-            GUILayout.Label("WARZONE POC2");
+            GUILayout.Label("WARZONE");
             GUILayout.Label(_objectiveText ?? "Objective");
             GUILayout.Label(_notificationText ?? string.Empty);
             GUILayout.Label(_isPaused ? "Paused" : "Running");
@@ -62,7 +62,7 @@ namespace Warzone.Adapters
         {
             GUILayout.BeginArea(new Rect(Screen.width - 210f, Screen.height - 210f, 190f, 190f), GUI.skin.box);
             GUILayout.Label("Minimap");
-            GUILayout.Label("Demo view");
+            GUILayout.Label("Battle view");
             GUILayout.EndArea();
         }
 

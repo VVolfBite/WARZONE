@@ -57,7 +57,7 @@ namespace Warzone.Controls
                 GUILayout.Space(12f);
                 GUILayout.Label("Settings", BuildSectionStyle());
                 GUILayout.Label("Audio / Graphics / Controls");
-                GUILayout.Label("These options are placeholders in POC3.");
+                GUILayout.Label("These options are placeholders for now.");
             }
 
             GUILayout.Space(10f);

@@ -10,13 +10,17 @@ namespace Warzone.Adapters
     {
         public static ContentCatalog BuildSandboxContent()
         {
-            WeaponDefinition playerWeapon = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f);
-            WeaponDefinition enemyWeapon = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f);
+            WeaponDefinition playerRifle = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f);
+            WeaponDefinition playerSupport = new WeaponDefinition("weapon.player.carbine", 9f, 0.5f, 3, 22f);
+            WeaponDefinition enemyClaws = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f);
+            WeaponDefinition enemyRifle = new WeaponDefinition("weapon.enemy.rifle", 10f, 0.9f, 2, 20f);
 
             Dictionary<string, UnitDefinition> units = new Dictionary<string, UnitDefinition>
             {
-                ["unit.player.infantry"] = new UnitDefinition("unit.player.infantry", "Infantry", FactionId.Player, 22, 5.75f, playerWeapon, 15f, 0.72f),
-                ["unit.enemy.zombie"] = new UnitDefinition("unit.enemy.zombie", "Zombie", FactionId.Enemy, 10, 2.8f, enemyWeapon, 8f, 0.78f)
+                ["unit.player.infantry"] = new UnitDefinition("unit.player.infantry", "Infantry", FactionId.Player, 22, 5.75f, playerRifle, 15f, 0.72f),
+                ["unit.player.support"] = new UnitDefinition("unit.player.support", "Support", FactionId.Player, 26, 5.1f, playerSupport, 13f, 0.76f),
+                ["unit.enemy.zombie"] = new UnitDefinition("unit.enemy.zombie", "Zombie", FactionId.Enemy, 10, 2.8f, enemyClaws, 8f, 0.78f),
+                ["unit.enemy.rifleman"] = new UnitDefinition("unit.enemy.rifleman", "Rifleman", FactionId.Enemy, 14, 3.9f, enemyRifle, 11f, 0.7f)
             };
 
             Dictionary<string, MissionDefinition> missions = new Dictionary<string, MissionDefinition>
@@ -51,17 +55,20 @@ namespace Warzone.Adapters
                 new SandboxWaveSpawnPlan(1, 1.5f, new[]
                 {
                     CreateSingleUnitSquad(101, FactionId.Enemy, "unit.enemy.zombie", 16f, -4f, 10),
-                    CreateSingleUnitSquad(102, FactionId.Enemy, "unit.enemy.zombie", 18f, 1f, 10)
+                    CreateSingleUnitSquad(102, FactionId.Enemy, "unit.enemy.zombie", 18f, 1f, 10),
+                    CreateSingleUnitSquad(103, FactionId.Enemy, "unit.enemy.rifleman", 19f, -1f, 14)
                 }),
                 new SandboxWaveSpawnPlan(2, 2.5f, new[]
                 {
-                    CreateSingleUnitSquad(103, FactionId.Enemy, "unit.enemy.zombie", 17f, -2f, 10),
-                    CreateSingleUnitSquad(104, FactionId.Enemy, "unit.enemy.zombie", 19f, 2f, 10)
+                    CreateSingleUnitSquad(104, FactionId.Enemy, "unit.enemy.zombie", 17f, -2f, 10),
+                    CreateSingleUnitSquad(105, FactionId.Enemy, "unit.enemy.rifleman", 19f, 2f, 14),
+                    CreateSingleUnitSquad(106, FactionId.Enemy, "unit.enemy.zombie", 18f, 4f, 10)
                 }),
                 new SandboxWaveSpawnPlan(3, 3.0f, new[]
                 {
-                    CreateSingleUnitSquad(105, FactionId.Enemy, "unit.enemy.zombie", 20f, 0f, 12),
-                    CreateSingleUnitSquad(106, FactionId.Enemy, "unit.enemy.zombie", 21f, 3.5f, 12)
+                    CreateSingleUnitSquad(107, FactionId.Enemy, "unit.enemy.rifleman", 20f, 0f, 14),
+                    CreateSingleUnitSquad(108, FactionId.Enemy, "unit.enemy.zombie", 21f, 3.5f, 12),
+                    CreateSingleUnitSquad(109, FactionId.Enemy, "unit.enemy.rifleman", 22f, -3.5f, 14)
                 })
             };
         }
