@@ -1,18 +1,22 @@
 using UnityEngine;
+using Warzone.Application;
 using Warzone.Combat;
 using Warzone.Controls;
+using Warzone.Meta;
 
 namespace Warzone.Adapters
 {
-    public sealed class SandboxDebriefListener : MonoBehaviour
+    public sealed class SandboxMissionCompletionPresenter : MonoBehaviour
     {
         private readonly DebriefScreenController _controller = new DebriefScreenController();
         private BattleRuntimeHost _battleRuntimeHost;
-        private DebriefScreen _debriefScreen;
+        private MissionFlow _missionFlow;
+        private IDebriefScreen _debriefScreen;
 
-        public void Configure(BattleRuntimeHost battleRuntimeHost, DebriefScreen debriefScreen)
+        public void Configure(BattleRuntimeHost battleRuntimeHost, MissionFlow missionFlow, IDebriefScreen debriefScreen)
         {
             _battleRuntimeHost = battleRuntimeHost;
+            _missionFlow = missionFlow;
             _debriefScreen = debriefScreen;
             _battleRuntimeHost.BattleFinished += HandleBattleFinished;
         }
@@ -27,13 +31,14 @@ namespace Warzone.Adapters
 
         private void HandleBattleFinished(BattleResult battleResult)
         {
+            MetaSettlementResult settlement = _missionFlow.CompleteMission(battleResult);
             DebriefViewModel viewModel = _controller.BuildViewModel(
-                battleResult.MissionOutcome == MissionOutcome.Victory,
-                battleResult.Casualties.Count,
+                settlement.MissionCompleted,
+                settlement.UnitsLost,
                 battleResult.ElapsedTimeSeconds);
 
             _debriefScreen.Show(viewModel);
-            Debug.Log($"Battle finished. Victory={viewModel.IsVictory}, UnitsLost={viewModel.UnitsLost}, Time={viewModel.ElapsedTimeSeconds:F1}s");
+            Debug.Log("Battle finished. Victory=" + viewModel.IsVictory + ", UnitsLost=" + viewModel.UnitsLost + ", Time=" + viewModel.ElapsedTimeSeconds.ToString("F1") + "s");
         }
     }
 }

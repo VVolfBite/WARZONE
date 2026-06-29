@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Warzone.Application;
 using Warzone.Controls;
+using Warzone.Meta;
 
 namespace Warzone.Adapters
 {
@@ -18,16 +20,20 @@ namespace Warzone.Adapters
             EnsureGroundPlane();
             Camera mainCamera = EnsureCamera();
             BattleRuntimeHost battleRuntimeHost = new GameObject("BattleRuntimeHost").AddComponent<BattleRuntimeHost>();
+            GameFlow gameFlow = new GameFlow();
+            ProgressionService progressionService = new ProgressionService();
+            MissionFlow missionFlow = new MissionFlow(gameFlow, battleRuntimeHost, progressionService);
+            MissionStartRequest missionStartRequest = SandboxMissionRequestFactory.CreateDemoMissionRequest();
 
             SandboxBattleBootstrap battleBootstrap = new GameObject("SandboxBattleBootstrap").AddComponent<SandboxBattleBootstrap>();
             battleBootstrap.Configure(battleRuntimeHost, mainCamera);
 
             SandboxMissionStarter missionStarter = new GameObject("SandboxMissionStarter").AddComponent<SandboxMissionStarter>();
-            missionStarter.Configure(battleRuntimeHost);
+            missionStarter.Configure(missionFlow, missionStartRequest);
 
             DebriefScreen debriefScreen = EnsureDebriefScreen();
-            SandboxDebriefListener debriefListener = new GameObject("SandboxDebriefListener").AddComponent<SandboxDebriefListener>();
-            debriefListener.Configure(battleRuntimeHost, debriefScreen);
+            SandboxMissionCompletionPresenter missionCompletionPresenter = new GameObject("SandboxMissionCompletionPresenter").AddComponent<SandboxMissionCompletionPresenter>();
+            missionCompletionPresenter.Configure(battleRuntimeHost, missionFlow, debriefScreen);
 
             missionStarter.StartDemoMission();
         }

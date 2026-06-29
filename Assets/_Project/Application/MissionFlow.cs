@@ -27,7 +27,6 @@ namespace Warzone.Application
 
         public MetaSettlementResult CompleteMission(BattleResult battleResult)
         {
-            _battleRuntimeHost.FinishBattle(battleResult);
             _gameFlow.ExitMission();
             return _progressionService.ApplyBattleResult(battleResult);
         }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Warzone.Controls
 {
-    public sealed class DebriefScreen : MonoBehaviour
+    public sealed class DebriefScreen : MonoBehaviour, IDebriefScreen
     {
         private DebriefViewModel _viewModel;
 
