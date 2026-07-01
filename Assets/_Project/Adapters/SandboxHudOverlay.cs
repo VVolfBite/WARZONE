@@ -74,7 +74,7 @@ namespace Warzone.Adapters
         {
             GUILayout.BeginArea(new Rect(20f, Screen.height - 220f, 260f, 90f), GUI.skin.box);
             GUILayout.Label("LMB select, RMB move/attack");
-            GUILayout.Label("Shift queue, Ctrl toggle");
+            GUILayout.Label("Shift queue, Ctrl toggle, Q ability");
             GUILayout.Label("P pause, +/- speed");
             GUILayout.EndArea();
         }

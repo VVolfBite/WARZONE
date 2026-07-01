@@ -27,6 +27,17 @@ namespace Warzone.Adapters
             }
         }
 
+        public void IssueUseAbility(BattleSession battleSession, IReadOnlyCollection<int> selectedSquadIds, string abilityId)
+        {
+            foreach (int squadId in selectedSquadIds)
+            {
+                battleSession.ExecuteCommand(new Command(
+                    CommandType.UseAbility,
+                    squadId,
+                    abilityId: abilityId));
+            }
+        }
+
         private static List<System.Numerics.Vector2> BuildFormationDestinations(System.Numerics.Vector2 center, int count)
         {
             List<System.Numerics.Vector2> destinations = new List<System.Numerics.Vector2>(count);

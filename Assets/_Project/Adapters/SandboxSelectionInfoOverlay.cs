@@ -11,12 +11,14 @@ namespace Warzone.Adapters
         private int _playerMaxHealth;
         private string _playerLabel;
         private string _playerStatusText;
+        private string _playerAbilityText;
 
         private UnitDefinition _hoverDefinition;
         private int _hoverCurrentHealth;
         private int _hoverMaxHealth;
         private string _hoverLabel;
         private string _hoverStatusText;
+        private string _hoverAbilityText;
 
         public void BindSelection(string label, UnitDefinition definition, int currentHealth, int maxHealth, BattleUnitState unit)
         {
@@ -25,6 +27,7 @@ namespace Warzone.Adapters
             _playerCurrentHealth = currentHealth;
             _playerMaxHealth = maxHealth;
             _playerStatusText = BuildStatusText(unit);
+            _playerAbilityText = definition != null && !string.IsNullOrEmpty(definition.ActiveAbilityId) ? definition.ActiveAbilityId : "None";
         }
 
         public void BindHover(string label, UnitDefinition definition, int currentHealth, int maxHealth, BattleUnitState unit)
@@ -34,6 +37,7 @@ namespace Warzone.Adapters
             _hoverCurrentHealth = currentHealth;
             _hoverMaxHealth = maxHealth;
             _hoverStatusText = BuildStatusText(unit);
+            _hoverAbilityText = definition != null && !string.IsNullOrEmpty(definition.ActiveAbilityId) ? definition.ActiveAbilityId : "None";
         }
 
         private void OnGUI()
@@ -49,6 +53,7 @@ namespace Warzone.Adapters
                 GUILayout.Label($"Armor: {_playerDefinition.ArmorType}");
                 GUILayout.Label($"Aggro: {_playerDefinition.AggroRange:F1}");
                 GUILayout.Label($"Speed: {_playerDefinition.MoveSpeed:F1}");
+                GUILayout.Label($"Ability: {_playerAbilityText}");
                 GUILayout.Label($"Status: {_playerStatusText}");
                 GUILayout.EndArea();
             }
@@ -64,6 +69,7 @@ namespace Warzone.Adapters
                 GUILayout.Label($"Armor: {_hoverDefinition.ArmorType}");
                 GUILayout.Label($"Aggro: {_hoverDefinition.AggroRange:F1}");
                 GUILayout.Label($"Speed: {_hoverDefinition.MoveSpeed:F1}");
+                GUILayout.Label($"Ability: {_hoverAbilityText}");
                 GUILayout.Label($"Status: {_hoverStatusText}");
                 GUILayout.EndArea();
             }

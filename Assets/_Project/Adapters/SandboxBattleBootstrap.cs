@@ -76,6 +76,11 @@ namespace Warzone.Adapters
                 _cameraFocusController.FocusOnSelection(_mainCamera, _selectionService, _battleSession);
             }
 
+            if (_inputInterpreter != null && _inputInterpreter.ConsumePrimaryAbility())
+            {
+                TriggerPrimaryAbility();
+            }
+
             if (_battleSession != null)
             {
                 _inputInterpreter.Tick(_battleSession);
@@ -132,6 +137,39 @@ namespace Warzone.Adapters
         private void ResumeBattle()
         {
             _isPaused = false;
+        }
+
+        private void TriggerPrimaryAbility()
+        {
+            if (_battleSession == null || _selectionService == null || _selectionService.SelectedSquadIds.Count == 0)
+            {
+                return;
+            }
+
+            SandboxCommandDispatcher commandDispatcher = new SandboxCommandDispatcher();
+            bool triggered = false;
+            foreach (int squadId in _selectionService.SelectedSquadIds)
+            {
+                BattleSquadState squad = _battleSession.FindSquadById(squadId);
+                if (squad == null)
+                {
+                    continue;
+                }
+
+                string abilityId = _battleSession.GetPrimaryDefinition(squad)?.ActiveAbilityId;
+                if (string.IsNullOrEmpty(abilityId))
+                {
+                    continue;
+                }
+
+                commandDispatcher.IssueUseAbility(_battleSession, new[] { squadId }, abilityId);
+                triggered = true;
+            }
+
+            if (triggered)
+            {
+                _notifications.Enqueue("Ability used");
+            }
         }
 
         private void RestartBattle()

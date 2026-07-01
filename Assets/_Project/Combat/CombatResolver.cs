@@ -17,6 +17,8 @@ namespace Warzone.Combat
             _terrainMap = terrainMap;
         }
 
+        public ContentCatalog ContentCatalog => _contentCatalog;
+
         public IReadOnlyList<DamageEvent> ResolveAttack(BattleSquadState attacker, BattleSquadState defender)
         {
             if (!attacker.HasLivingUnits || !defender.HasLivingUnits)

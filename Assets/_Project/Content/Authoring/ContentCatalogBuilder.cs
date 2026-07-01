@@ -9,6 +9,7 @@ namespace Warzone.Content.Authoring
         {
             Dictionary<string, UnitDefinition> units = new Dictionary<string, UnitDefinition>();
             Dictionary<string, MissionDefinition> missions = new Dictionary<string, MissionDefinition>();
+            Dictionary<string, AbilityDefinition> abilities = new Dictionary<string, AbilityDefinition>();
 
             if (asset != null)
             {
@@ -35,7 +36,8 @@ namespace Warzone.Content.Authoring
                         unitAsset.AggroRange,
                         unitAsset.CollisionRadius,
                         unitAsset.ArmorType,
-                        unitAsset.DefaultStatusEffect != null ? unitAsset.DefaultStatusEffect.Id : null);
+                        unitAsset.DefaultStatusEffect != null ? unitAsset.DefaultStatusEffect.Id : null,
+                        unitAsset.ActiveAbilityId);
                 }
 
                 foreach (MissionDefinitionAsset missionAsset in asset.MissionDefinitions)
@@ -53,7 +55,7 @@ namespace Warzone.Content.Authoring
                 }
             }
 
-            return new ContentCatalog(units, missions);
+            return new ContentCatalog(units, missions, abilities);
         }
     }
 }

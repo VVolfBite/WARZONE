@@ -9,6 +9,7 @@ namespace Warzone.Combat
         private readonly List<BattleSquadState> _squads;
         private readonly CommandProcessor _commandProcessor;
         private readonly CombatResolver _combatResolver;
+        private readonly AbilitySystem _abilitySystem;
         private readonly AiSystem _aiSystem = new AiSystem();
         private readonly StatusEffectSystem _statusEffectSystem = new StatusEffectSystem();
         private readonly TerrainMap _terrainMap;
@@ -33,6 +34,7 @@ namespace Warzone.Combat
             _squads = new List<BattleSquadState>(squads);
             _commandProcessor = commandProcessor;
             _combatResolver = combatResolver;
+            _abilitySystem = new AbilitySystem(combatResolver.ContentCatalog);
             _seed = seed;
             _terrainMap = terrainMap;
             ApplyDefaultStatusEffects();
@@ -82,6 +84,18 @@ namespace Warzone.Combat
         {
             if (CurrentOutcome != MissionOutcome.InProgress)
             {
+                return new List<DamageEvent>();
+            }
+
+            if (command.CommandType == CommandType.UseAbility)
+            {
+                BattleSquadState sourceSquad = FindLivingSquadById(command.SourceSquadId);
+                if (sourceSquad != null)
+                {
+                    _abilitySystem.TryUseAbility(this, sourceSquad, command.AbilityId);
+                }
+
+                CurrentOutcome = DetermineOutcome();
                 return new List<DamageEvent>();
             }
 
@@ -174,9 +188,37 @@ namespace Warzone.Combat
             return _combatResolver.GetPrimaryDefinition(squad);
         }
 
+        public BattleSquadState FindSquadById(int squadId)
+        {
+            for (int i = 0; i < _squads.Count; i++)
+            {
+                if (_squads[i].SquadId == squadId)
+                {
+                    return _squads[i];
+                }
+            }
+
+            return null;
+        }
+
         public bool TryGetStatusEffectDefinition(string effectId, out StatusEffectDefinition definition)
         {
             return _statusEffectLibrary.TryGetValue(effectId, out definition);
+        }
+
+        public void ApplyStatusEffect(BattleUnitState unit, StatusEffectDefinition definition)
+        {
+            _statusEffectSystem.ApplyEffect(unit, definition);
+        }
+
+        public int GetMaxHealth(BattleUnitState unit)
+        {
+            if (unit == null || !_combatResolver.ContentCatalog.Units.TryGetValue(unit.DefinitionId, out UnitDefinition definition))
+            {
+                return 0;
+            }
+
+            return definition.MaxHealth;
         }
 
         private void ApplyDefaultStatusEffects()

@@ -7,13 +7,16 @@ namespace Warzone.Content
     {
         public ContentCatalog(
             IReadOnlyDictionary<string, UnitDefinition> units,
-            IReadOnlyDictionary<string, MissionDefinition> missions)
+            IReadOnlyDictionary<string, MissionDefinition> missions,
+            IReadOnlyDictionary<string, AbilityDefinition> abilities = null)
         {
             Units = units;
             Missions = missions;
+            Abilities = abilities ?? new Dictionary<string, AbilityDefinition>();
         }
 
         public IReadOnlyDictionary<string, UnitDefinition> Units { get; }
         public IReadOnlyDictionary<string, MissionDefinition> Missions { get; }
+        public IReadOnlyDictionary<string, AbilityDefinition> Abilities { get; }
     }
 }

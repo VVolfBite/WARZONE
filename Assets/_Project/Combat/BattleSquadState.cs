@@ -7,6 +7,7 @@ namespace Warzone.Combat
     public sealed class BattleSquadState
     {
         private readonly Queue<Command> _commandQueue = new Queue<Command>();
+        private float _abilityCooldownRemaining;
 
         public BattleSquadState(
             int squadId,
@@ -27,6 +28,7 @@ namespace Warzone.Combat
         public Vector2? MoveDestination { get; private set; }
         public int? AttackTargetSquadId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
+        public float AbilityCooldownRemaining => _abilityCooldownRemaining;
         public SquadCommandState CommandState { get; private set; }
         public int QueuedCommandCount => _commandQueue.Count;
 
@@ -88,19 +90,34 @@ namespace Warzone.Combat
         {
             if (AttackCooldownRemaining <= 0f)
             {
-                return;
+            }
+            else
+            {
+                AttackCooldownRemaining -= deltaTimeSeconds;
+                if (AttackCooldownRemaining < 0f)
+                {
+                    AttackCooldownRemaining = 0f;
+                }
             }
 
-            AttackCooldownRemaining -= deltaTimeSeconds;
-            if (AttackCooldownRemaining < 0f)
+            if (_abilityCooldownRemaining > 0f)
             {
-                AttackCooldownRemaining = 0f;
+                _abilityCooldownRemaining -= deltaTimeSeconds;
+                if (_abilityCooldownRemaining < 0f)
+                {
+                    _abilityCooldownRemaining = 0f;
+                }
             }
         }
 
         public void ResetAttackCooldown(float cooldownSeconds)
         {
             AttackCooldownRemaining = cooldownSeconds;
+        }
+
+        public void ResetAbilityCooldown(float cooldownSeconds)
+        {
+            _abilityCooldownRemaining = cooldownSeconds;
         }
 
         public void UpdatePosition(Vector2 position)

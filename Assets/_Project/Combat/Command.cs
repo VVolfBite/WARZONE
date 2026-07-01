@@ -10,6 +10,7 @@ namespace Warzone.Combat
             int? targetSquadId = null,
             Vector2? destination = null,
             Vector2? secondaryDestination = null,
+            string abilityId = null,
             bool queue = false)
         {
             CommandType = commandType;
@@ -17,6 +18,7 @@ namespace Warzone.Combat
             TargetSquadId = targetSquadId;
             Destination = destination;
             SecondaryDestination = secondaryDestination;
+            AbilityId = abilityId;
             Queue = queue;
         }
 
@@ -25,6 +27,7 @@ namespace Warzone.Combat
         public int? TargetSquadId { get; }
         public Vector2? Destination { get; }
         public Vector2? SecondaryDestination { get; }
+        public string AbilityId { get; }
         public bool Queue { get; }
     }
 }

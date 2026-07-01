@@ -42,6 +42,12 @@ namespace Warzone.Adapters
             return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
         }
 
+        public bool ConsumePrimaryAbility()
+        {
+            Keyboard keyboard = Keyboard.current;
+            return keyboard != null && keyboard.qKey.wasPressedThisFrame;
+        }
+
         public bool TryConsumeTeamCommand(out int slotIndex, out bool bindTeam)
         {
             slotIndex = -1;

@@ -10,6 +10,7 @@ namespace Warzone.Adapters
     {
         public static ContentCatalog BuildSandboxContent()
         {
+            AbilityDefinition fieldMedkit = new AbilityDefinition("ability.support.field_medkit", "Field Medkit", 8f, 6f, 4, "effect.support.heal");
             WeaponDefinition playerRifle = new WeaponDefinition("weapon.player.rifle", 12f, 0.75f, 4, 26f, DamageType.Piercing);
             WeaponDefinition playerSupport = new WeaponDefinition("weapon.player.carbine", 9f, 0.5f, 3, 22f, DamageType.Kinetic);
             WeaponDefinition enemyClaws = new WeaponDefinition("weapon.enemy.claws", 2.0f, 1.2f, 1, 14f, DamageType.Kinetic);
@@ -17,9 +18,13 @@ namespace Warzone.Adapters
             Dictionary<string, UnitDefinition> units = new Dictionary<string, UnitDefinition>
             {
                 ["unit.player.infantry"] = new UnitDefinition("unit.player.infantry", "Infantry", FactionId.Player, 22, 5.75f, playerRifle, 15f, 0.72f, ArmorType.Medium),
-                ["unit.player.support"] = new UnitDefinition("unit.player.support", "Support", FactionId.Player, 26, 5.1f, playerSupport, 13f, 0.76f, ArmorType.Light, "effect.support.heal"),
+                ["unit.player.support"] = new UnitDefinition("unit.player.support", "Support", FactionId.Player, 26, 5.1f, playerSupport, 13f, 0.76f, ArmorType.Light, "effect.support.heal", "ability.support.field_medkit"),
                 ["unit.enemy.zombie"] = new UnitDefinition("unit.enemy.zombie", "Zombie", FactionId.Enemy, 10, 2.8f, enemyClaws, 8f, 0.78f, ArmorType.Light, "effect.zombie.toxic"),
                 ["unit.enemy.rifleman"] = new UnitDefinition("unit.enemy.rifleman", "Rifleman", FactionId.Enemy, 14, 3.9f, enemyRifle, 11f, 0.7f, ArmorType.Medium)
+            };
+            Dictionary<string, AbilityDefinition> abilities = new Dictionary<string, AbilityDefinition>
+            {
+                [fieldMedkit.Id] = fieldMedkit
             };
 
             Dictionary<string, MissionDefinition> missions = new Dictionary<string, MissionDefinition>
@@ -27,7 +32,7 @@ namespace Warzone.Adapters
                 ["mission.sandbox"] = new MissionDefinition("mission.sandbox", "Sandbox", 1, 3)
             };
 
-            return new ContentCatalog(units, missions);
+            return new ContentCatalog(units, missions, abilities);
         }
 
         public static BattleSession CreateSandboxBattle(ContentCatalog catalog, int seed)

@@ -12,7 +12,8 @@ namespace Warzone.Content.Definitions
             float aggroRange,
             float collisionRadius,
             ArmorType armorType,
-            string defaultStatusEffectId = null)
+            string defaultStatusEffectId = null,
+            string activeAbilityId = null)
         {
             Id = id;
             DisplayName = displayName;
@@ -24,6 +25,7 @@ namespace Warzone.Content.Definitions
             CollisionRadius = collisionRadius;
             ArmorType = armorType;
             DefaultStatusEffectId = defaultStatusEffectId;
+            ActiveAbilityId = activeAbilityId;
         }
 
         public string Id { get; }
@@ -36,5 +38,6 @@ namespace Warzone.Content.Definitions
         public float CollisionRadius { get; }
         public ArmorType ArmorType { get; }
         public string DefaultStatusEffectId { get; }
+        public string ActiveAbilityId { get; }
     }
 }

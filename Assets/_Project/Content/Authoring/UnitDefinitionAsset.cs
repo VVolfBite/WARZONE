@@ -15,6 +15,7 @@ namespace Warzone.Content.Authoring
         [SerializeField] private float collisionRadius = 0.65f;
         [SerializeField] private ArmorType armorType = ArmorType.Light;
         [SerializeField] private StatusEffectAsset defaultStatusEffect;
+        [SerializeField] private string activeAbilityId;
         [SerializeField] private WeaponDefinitionAsset weapon;
 
         public string Id => id;
@@ -26,6 +27,7 @@ namespace Warzone.Content.Authoring
         public float CollisionRadius => collisionRadius;
         public ArmorType ArmorType => armorType;
         public StatusEffectAsset DefaultStatusEffect => defaultStatusEffect;
+        public string ActiveAbilityId => activeAbilityId;
         public WeaponDefinitionAsset Weapon => weapon;
     }
 }
