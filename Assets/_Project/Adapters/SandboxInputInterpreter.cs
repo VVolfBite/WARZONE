@@ -13,6 +13,7 @@ namespace Warzone.Adapters
         private readonly SandboxSelectionService _selectionService;
         private readonly SandboxCommandDispatcher _commandDispatcher;
         private readonly SandboxPresentationSync _presentationSync;
+        private int _formationIndex;
         private Vector2 _selectionStart;
         private bool _isDraggingSelection;
         private float _lastLeftClickTime;
@@ -35,7 +36,7 @@ namespace Warzone.Adapters
         public bool ConsumePauseToggle()
         {
             Keyboard keyboard = Keyboard.current;
-            return keyboard != null && keyboard.pKey.wasPressedThisFrame;
+            return keyboard != null && (keyboard.pKey.wasPressedThisFrame || keyboard.escapeKey.wasPressedThisFrame);
         }
 
         public bool ConsumeCameraFocus()
@@ -105,6 +106,23 @@ namespace Warzone.Adapters
             return false;
         }
 
+        public bool TryConsumeFormation(out int formationIndex)
+        {
+            formationIndex = -1;
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            if (keyboard.f1Key.wasPressedThisFrame) { formationIndex = 0; return true; }
+            if (keyboard.f2Key.wasPressedThisFrame) { formationIndex = 1; return true; }
+            if (keyboard.f3Key.wasPressedThisFrame) { formationIndex = 2; return true; }
+            if (keyboard.f4Key.wasPressedThisFrame) { formationIndex = 3; return true; }
+
+            return false;
+        }
+
         public void Tick(BattleSession battleSession)
         {
             if (battleSession == null || _mainCamera == null)
@@ -152,6 +170,11 @@ namespace Warzone.Adapters
             }
 
             UpdateHoverTarget();
+        }
+
+        public void SetFormationIndex(int formationIndex)
+        {
+            _formationIndex = formationIndex;
         }
 
         private void TrySelectSingleSquad()
@@ -230,7 +253,7 @@ namespace Warzone.Adapters
             }
 
             List<int> orderedSquadIds = _selectionService.BuildOrderedSelection();
-            _commandDispatcher.IssueMove(battleSession, orderedSquadIds, hit.point, IsShiftHeld());
+            _commandDispatcher.IssueFormationMove(battleSession, orderedSquadIds, hit.point, _formationIndex, IsShiftHeld());
             _presentationSync.SpawnCommandMarker(hit.point, Color.cyan);
         }
 

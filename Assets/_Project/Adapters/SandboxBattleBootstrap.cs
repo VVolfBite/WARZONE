@@ -19,6 +19,7 @@ namespace Warzone.Adapters
         private SandboxPresentationSync _presentationSync;
         private SandboxWaveController _waveController;
         private SandboxHudPresenter _hudPresenter;
+        private SandboxCommandDispatcher _commandDispatcher;
         private readonly SandboxCameraFocusController _cameraFocusController = new SandboxCameraFocusController();
         private static readonly float[] TimeScales = { 0.5f, 0.75f, 1f, 1.5f, 2f, 3f };
         private bool _isPaused;
@@ -26,6 +27,7 @@ namespace Warzone.Adapters
         private ObstacleVolume[] _obstacleVolumes = new ObstacleVolume[0];
         private Camera _mainCamera;
         private int _timeScaleIndex = 2;
+        private int _formationIndex;
 
         public void Configure(BattleRuntimeHost battleRuntimeHost, Camera mainCamera)
         {
@@ -38,9 +40,9 @@ namespace Warzone.Adapters
             SandboxSelectionInfoOverlay selectionInfoOverlay = gameObject.AddComponent<SandboxSelectionInfoOverlay>();
 
             _selectionService = new SandboxSelectionService();
-            SandboxCommandDispatcher commandDispatcher = new SandboxCommandDispatcher();
+            _commandDispatcher = new SandboxCommandDispatcher();
             _presentationSync = new SandboxPresentationSync(mainCamera, selectionInfoOverlay);
-            _inputInterpreter = new SandboxInputInterpreter(mainCamera, selectionBoxOverlay, _selectionService, commandDispatcher, _presentationSync);
+            _inputInterpreter = new SandboxInputInterpreter(mainCamera, selectionBoxOverlay, _selectionService, _commandDispatcher, _presentationSync);
             _waveController = new SandboxWaveController(_notifications);
             _hudPresenter = new SandboxHudPresenter(_notifications, _sandboxHudOverlay);
             _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
@@ -72,6 +74,13 @@ namespace Warzone.Adapters
                 {
                     _selectionService.Clear();
                 }
+            }
+
+            if (_inputInterpreter != null && _inputInterpreter.TryConsumeFormation(out int formationIndex))
+            {
+                _formationIndex = formationIndex;
+                _inputInterpreter.SetFormationIndex(_formationIndex);
+                _notifications.Enqueue("Formation set: " + GetFormationLabel(_formationIndex));
             }
 
             if (_inputInterpreter != null && _inputInterpreter.ConsumeCameraFocus())
@@ -135,7 +144,9 @@ namespace Warzone.Adapters
             _hasPublishedBattleResult = false;
             _isPaused = false;
             _timeScaleIndex = 2;
+            _formationIndex = 0;
             Time.timeScale = TimeScales[_timeScaleIndex];
+            _inputInterpreter.SetFormationIndex(_formationIndex);
             _selectionService.Clear();
             _notifications.Clear();
             _notifications.Enqueue("Demo started");
@@ -162,7 +173,6 @@ namespace Warzone.Adapters
                 return;
             }
 
-            SandboxCommandDispatcher commandDispatcher = new SandboxCommandDispatcher();
             bool triggered = false;
             foreach (int squadId in _selectionService.SelectedSquadIds)
             {
@@ -178,7 +188,7 @@ namespace Warzone.Adapters
                     continue;
                 }
 
-                commandDispatcher.IssueUseAbility(_battleSession, new[] { squadId }, abilityId);
+                _commandDispatcher.IssueUseAbility(_battleSession, new[] { squadId }, abilityId);
                 triggered = true;
             }
 
@@ -229,6 +239,17 @@ namespace Warzone.Adapters
             }
 
             _mainCamera.transform.position = new Vector3(squad.Position.X, _mainCamera.transform.position.y, squad.Position.Y - 4f);
+        }
+
+        private static string GetFormationLabel(int formationIndex)
+        {
+            switch (formationIndex)
+            {
+                case 1: return "Line";
+                case 2: return "Column";
+                case 3: return "Circle";
+                default: return "Grid";
+            }
         }
     }
 }
