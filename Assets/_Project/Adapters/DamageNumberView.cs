@@ -2,21 +2,24 @@ using UnityEngine;
 
 namespace Warzone.Adapters
 {
-    public sealed class DamageNumberView : MonoBehaviour
+    public sealed class DamageNumberView : PooledTransientView
     {
         private Camera _camera;
         private string _text;
         private Color _color;
         private float _remainingLifetime;
         private Vector3 _velocity;
+        private System.Action<DamageNumberView> _release;
 
-        public void Initialize(Camera camera, string text, Color color)
+        public void Initialize(Camera camera, string text, Color color, System.Action<DamageNumberView> release)
         {
             _camera = camera;
             _text = text;
             _color = color;
             _remainingLifetime = 0.9f;
             _velocity = new Vector3(Random.Range(-0.2f, 0.2f), 0.9f, 0f);
+            _release = release;
+            Activate();
         }
 
         private void Update()
@@ -24,7 +27,7 @@ namespace Warzone.Adapters
             _remainingLifetime -= Time.deltaTime;
             if (_remainingLifetime <= 0f)
             {
-                Destroy(gameObject);
+                _release?.Invoke(this);
                 return;
             }
 

@@ -2,13 +2,16 @@ using UnityEngine;
 
 namespace Warzone.Adapters
 {
-    public sealed class MuzzleFlashView : MonoBehaviour
+    public sealed class MuzzleFlashView : PooledTransientView
     {
         private float _remainingLifetime;
+        private System.Action<MuzzleFlashView> _release;
 
-        private void OnEnable()
+        public void Initialize(System.Action<MuzzleFlashView> release)
         {
+            _release = release;
             _remainingLifetime = 0.08f;
+            Activate();
         }
 
         private void Update()
@@ -16,7 +19,7 @@ namespace Warzone.Adapters
             _remainingLifetime -= Time.deltaTime;
             if (_remainingLifetime <= 0f)
             {
-                Destroy(gameObject);
+                _release?.Invoke(this);
                 return;
             }
 

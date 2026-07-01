@@ -2,15 +2,18 @@ using UnityEngine;
 
 namespace Warzone.Adapters
 {
-    public sealed class CommandMarkerView : MonoBehaviour
+    public sealed class CommandMarkerView : PooledTransientView
     {
         [SerializeField] private float lifetimeSeconds = 0.75f;
 
         private float _timeRemaining;
+        private System.Action<CommandMarkerView> _release;
 
-        private void OnEnable()
+        public void Initialize(System.Action<CommandMarkerView> release)
         {
+            _release = release;
             _timeRemaining = lifetimeSeconds;
+            Activate();
         }
 
         private void Update()
@@ -18,7 +21,7 @@ namespace Warzone.Adapters
             _timeRemaining -= Time.deltaTime;
             if (_timeRemaining <= 0f)
             {
-                Destroy(gameObject);
+                _release?.Invoke(this);
                 return;
             }
 

@@ -3,6 +3,7 @@ using UnityEngine;
 using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Content.Definitions;
+using Warzone.Foundation;
 using Warzone.Presentation.Units;
 
 namespace Warzone.Adapters
@@ -14,12 +15,18 @@ namespace Warzone.Adapters
         private readonly Camera _mainCamera;
         private readonly SandboxSelectionInfoOverlay _selectionInfoOverlay;
         private readonly AudioService _audioService;
+        private readonly SimpleObjectPool<DamageNumberView> _damageNumberPool;
+        private readonly SimpleObjectPool<MuzzleFlashView> _muzzleFlashPool;
+        private readonly SimpleObjectPool<CommandMarkerView> _commandMarkerPool;
 
         public SandboxPresentationSync(Camera mainCamera, SandboxSelectionInfoOverlay selectionInfoOverlay, AudioService audioService = null)
         {
             _mainCamera = mainCamera;
             _selectionInfoOverlay = selectionInfoOverlay;
             _audioService = audioService;
+            _damageNumberPool = new SimpleObjectPool<DamageNumberView>(CreateDamageNumberView, preloadCount: 8);
+            _muzzleFlashPool = new SimpleObjectPool<MuzzleFlashView>(CreateMuzzleFlashView, preloadCount: 6);
+            _commandMarkerPool = new SimpleObjectPool<CommandMarkerView>(CreateCommandMarkerView, preloadCount: 4);
         }
 
         public IEnumerable<KeyValuePair<int, SandboxSquadView>> SquadViews => _squadViews;
@@ -142,14 +149,12 @@ namespace Warzone.Adapters
 
         public void SpawnCommandMarker(Vector3 worldPoint, Color color)
         {
-            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            marker.name = "CommandMarker";
+            CommandMarkerView marker = _commandMarkerPool.Get();
             marker.transform.position = new Vector3(worldPoint.x, 0.1f, worldPoint.z);
             marker.transform.localScale = new Vector3(0.35f, 0.02f, 0.35f);
             Renderer renderer = marker.GetComponent<Renderer>();
             renderer.material.color = color;
-            Object.Destroy(marker.GetComponent<Collider>());
-            marker.AddComponent<CommandMarkerView>();
+            marker.Initialize(ReleaseCommandMarkerView);
         }
 
         private void SyncSelectionPanels(BattleSession battleSession, ContentCatalog contentCatalog, SandboxSelectionService selectionService)
@@ -223,22 +228,65 @@ namespace Warzone.Adapters
 
         private void SpawnDamageNumber(Vector3 position, int amount, Color color)
         {
-            GameObject root = new GameObject("DamageNumber");
-            root.transform.position = position;
-            DamageNumberView damageNumberView = root.AddComponent<DamageNumberView>();
-            damageNumberView.Initialize(_mainCamera, amount.ToString(), color);
+            DamageNumberView damageNumberView = _damageNumberPool.Get();
+            damageNumberView.transform.position = position;
+            damageNumberView.Initialize(_mainCamera, amount.ToString(), color, ReleaseDamageNumberView);
         }
 
-        private static void SpawnMuzzleFlash(Vector3 position, Color color)
+        private void SpawnMuzzleFlash(Vector3 position, Color color)
         {
-            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            flash.name = "MuzzleFlash";
+            MuzzleFlashView flash = _muzzleFlashPool.Get();
             flash.transform.position = position;
             flash.transform.localScale = new Vector3(0.24f, 0.24f, 0.24f);
             Renderer renderer = flash.GetComponent<Renderer>();
             renderer.material.color = color;
+            flash.Initialize(ReleaseMuzzleFlashView);
+        }
+
+        private DamageNumberView CreateDamageNumberView()
+        {
+            GameObject root = new GameObject("DamageNumber");
+            DamageNumberView damageNumberView = root.AddComponent<DamageNumberView>();
+            damageNumberView.Deactivate();
+            return damageNumberView;
+        }
+
+        private MuzzleFlashView CreateMuzzleFlashView()
+        {
+            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            flash.name = "MuzzleFlash";
             Object.Destroy(flash.GetComponent<Collider>());
-            flash.AddComponent<MuzzleFlashView>();
+            MuzzleFlashView view = flash.AddComponent<MuzzleFlashView>();
+            view.Deactivate();
+            return view;
+        }
+
+        private CommandMarkerView CreateCommandMarkerView()
+        {
+            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            marker.name = "CommandMarker";
+            Object.Destroy(marker.GetComponent<Collider>());
+            CommandMarkerView view = marker.AddComponent<CommandMarkerView>();
+            view.Deactivate();
+            return view;
+        }
+
+        private void ReleaseDamageNumberView(DamageNumberView view)
+        {
+            view.Deactivate();
+            _damageNumberPool.Release(view);
+        }
+
+        private void ReleaseMuzzleFlashView(MuzzleFlashView view)
+        {
+            view.Deactivate();
+            _muzzleFlashPool.Release(view);
+        }
+
+        private void ReleaseCommandMarkerView(CommandMarkerView view)
+        {
+            view.Deactivate();
+            _commandMarkerPool.Release(view);
         }
 
         private static Color? GetStatusTint(BattleUnitState unit)
