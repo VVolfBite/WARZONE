@@ -14,6 +14,7 @@ namespace Warzone.Adapters
         public string TeamText { get; set; }
         public string SpeedText { get; set; }
         public bool IsPaused { get; set; }
+        public Vector2? MinimapJumpNormalized { get; set; }
         public List<SandboxMinimapDot> MinimapDots { get; } = new List<SandboxMinimapDot>();
         public List<SandboxTeamSlotSnapshot> TeamSlots { get; } = new List<SandboxTeamSlotSnapshot>();
     }

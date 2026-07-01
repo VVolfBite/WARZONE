@@ -13,11 +13,13 @@ namespace Warzone.Adapters
         private readonly Dictionary<BattleEntityId, SandboxSquadView> _entityViews = new Dictionary<BattleEntityId, SandboxSquadView>();
         private readonly Camera _mainCamera;
         private readonly SandboxSelectionInfoOverlay _selectionInfoOverlay;
+        private readonly AudioService _audioService;
 
-        public SandboxPresentationSync(Camera mainCamera, SandboxSelectionInfoOverlay selectionInfoOverlay)
+        public SandboxPresentationSync(Camera mainCamera, SandboxSelectionInfoOverlay selectionInfoOverlay, AudioService audioService = null)
         {
             _mainCamera = mainCamera;
             _selectionInfoOverlay = selectionInfoOverlay;
+            _audioService = audioService;
         }
 
         public IEnumerable<KeyValuePair<int, SandboxSquadView>> SquadViews => _squadViews;
@@ -129,10 +131,12 @@ namespace Warzone.Adapters
 
                 if (damageEvent.DidKillTarget)
                 {
+                    _audioService?.PlayUnitDeath();
                     targetView.SetDead();
                 }
                 else
                 {
+                    _audioService?.PlayUnitHit();
                     targetView.FlashHit();
                 }
             }

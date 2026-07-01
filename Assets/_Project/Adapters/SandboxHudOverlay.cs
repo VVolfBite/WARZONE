@@ -6,6 +6,7 @@ namespace Warzone.Adapters
     public sealed class SandboxHudOverlay : MonoBehaviour
     {
         private SandboxHudSnapshot _snapshot;
+        private bool _minimapClicked;
         private Action _resumeAction;
         private Action _restartAction;
         private Action _returnToMenuAction;
@@ -67,6 +68,22 @@ namespace Warzone.Adapters
             GUILayout.Label("Minimap");
             Rect mapRect = new Rect(12f, 30f, 166f, 146f);
             GUI.Box(mapRect, GUIContent.none);
+
+            Event current = Event.current;
+            if (current != null && current.type == EventType.MouseDown && mapRect.Contains(current.mousePosition))
+            {
+                Vector2 normalized = new Vector2(
+                    Mathf.InverseLerp(mapRect.x, mapRect.xMax, current.mousePosition.x),
+                    1f - Mathf.InverseLerp(mapRect.y, mapRect.yMax, current.mousePosition.y));
+                if (_snapshot != null)
+                {
+                    _snapshot.MinimapJumpNormalized = normalized;
+                    _minimapClicked = true;
+                }
+
+                current.Use();
+            }
+
             if (_snapshot != null)
             {
                 for (int i = 0; i < _snapshot.MinimapDots.Count; i++)
@@ -84,6 +101,20 @@ namespace Warzone.Adapters
                 }
             }
             GUILayout.EndArea();
+        }
+
+        public bool TryConsumeMinimapJump(out Vector2 normalizedPosition)
+        {
+            if (_snapshot != null && _minimapClicked && _snapshot.MinimapJumpNormalized.HasValue)
+            {
+                normalizedPosition = _snapshot.MinimapJumpNormalized.Value;
+                _minimapClicked = false;
+                _snapshot.MinimapJumpNormalized = null;
+                return true;
+            }
+
+            normalizedPosition = default;
+            return false;
         }
 
         private void DrawControlHint()

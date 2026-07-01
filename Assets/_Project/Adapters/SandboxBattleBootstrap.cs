@@ -41,7 +41,8 @@ namespace Warzone.Adapters
 
             _selectionService = new SandboxSelectionService();
             _commandDispatcher = new SandboxCommandDispatcher();
-            _presentationSync = new SandboxPresentationSync(mainCamera, selectionInfoOverlay);
+            AudioService audioService = FindFirstObjectByType<AudioService>();
+            _presentationSync = new SandboxPresentationSync(mainCamera, selectionInfoOverlay, audioService);
             _inputInterpreter = new SandboxInputInterpreter(mainCamera, selectionBoxOverlay, _selectionService, _commandDispatcher, _presentationSync);
             _waveController = new SandboxWaveController(_notifications);
             _hudPresenter = new SandboxHudPresenter(_notifications, _sandboxHudOverlay);
@@ -127,6 +128,10 @@ namespace Warzone.Adapters
             _presentationSync.RenderDamageEvents(_battleSession);
             _presentationSync.Sync(_battleSession, _contentCatalog, _selectionService, _obstacleVolumes);
             _hudPresenter.BindBattle(_isPaused, _battleSession, _waveController, _selectionService, Time.timeScale);
+            if (_sandboxHudOverlay.TryConsumeMinimapJump(out Vector2 minimapJump))
+            {
+                JumpCameraFromMinimap(minimapJump);
+            }
 
             if (!_hasPublishedBattleResult && _battleSession.TryBuildResultOnce(out BattleResult result))
             {
@@ -250,6 +255,19 @@ namespace Warzone.Adapters
                 case 3: return "Circle";
                 default: return "Grid";
             }
+        }
+
+        private void JumpCameraFromMinimap(Vector2 normalizedPosition)
+        {
+            if (_mainCamera == null)
+            {
+                return;
+            }
+
+            float x = Mathf.Lerp(-40f, 40f, normalizedPosition.x);
+            float z = Mathf.Lerp(-40f, 40f, normalizedPosition.y);
+            _mainCamera.transform.position = new Vector3(x, _mainCamera.transform.position.y, z - 4f);
+            _notifications.Enqueue("Camera jumped");
         }
     }
 }
