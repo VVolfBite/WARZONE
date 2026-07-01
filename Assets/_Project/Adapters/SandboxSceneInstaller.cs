@@ -56,13 +56,16 @@ namespace Warzone.Adapters
             ground.transform.localScale = new Vector3(5f, 1f, 5f);
             Renderer renderer = ground.GetComponent<Renderer>();
             renderer.material.color = new Color(0.36f, 0.46f, 0.29f);
+            RenderSettings.ambientLight = new Color(0.72f, 0.74f, 0.76f);
 
-            CreateEnvironmentBlock("Rock_A", new Vector3(-6f, 0.75f, 7f), new Vector3(2.8f, 1.5f, 2.4f), new Color(0.45f, 0.45f, 0.45f));
-            CreateEnvironmentBlock("Rock_B", new Vector3(7f, 0.65f, -8f), new Vector3(2.2f, 1.3f, 2.2f), new Color(0.42f, 0.43f, 0.4f));
-            CreateEnvironmentBlock("House_A", new Vector3(-14f, 1.5f, -11f), new Vector3(3.5f, 3f, 3.5f), new Color(0.72f, 0.62f, 0.42f));
-            CreateEnvironmentBlock("House_B", new Vector3(15f, 1.5f, 10f), new Vector3(3.5f, 3f, 3.5f), new Color(0.63f, 0.57f, 0.39f));
-            CreateEnvironmentBlock("CrateStack_A", new Vector3(3f, 0.65f, 9f), new Vector3(1.5f, 1.3f, 1.5f), new Color(0.56f, 0.38f, 0.22f));
-            CreateEnvironmentBlock("CrateStack_B", new Vector3(-2f, 0.65f, -6f), new Vector3(1.3f, 1.3f, 1.3f), new Color(0.52f, 0.34f, 0.2f));
+            CreateEnvironmentBlock("Warehouse_A", new Vector3(-14f, 1.5f, -11f), new Vector3(4.5f, 3.2f, 6f), new Color(0.62f, 0.62f, 0.66f));
+            CreateEnvironmentBlock("Warehouse_B", new Vector3(15f, 1.5f, 10f), new Vector3(4.5f, 3.2f, 6f), new Color(0.58f, 0.58f, 0.62f));
+            CreateEnvironmentBlock("ConcreteBarrier_A", new Vector3(-6f, 0.45f, 7f), new Vector3(3.8f, 0.9f, 1.2f), new Color(0.52f, 0.52f, 0.54f));
+            CreateEnvironmentBlock("ConcreteBarrier_B", new Vector3(7f, 0.45f, -8f), new Vector3(3.2f, 0.9f, 1.2f), new Color(0.5f, 0.5f, 0.52f));
+            CreateEnvironmentBlock("Container_A", new Vector3(3f, 0.85f, 9f), new Vector3(2.2f, 1.7f, 5.4f), new Color(0.32f, 0.46f, 0.68f));
+            CreateEnvironmentBlock("Container_B", new Vector3(-2f, 0.85f, -6f), new Vector3(2.2f, 1.7f, 5.4f), new Color(0.58f, 0.34f, 0.22f));
+            CreateEnvironmentBlock("WatchTower_A", new Vector3(-20f, 2.4f, 14f), new Vector3(2f, 4.8f, 2f), new Color(0.38f, 0.34f, 0.28f));
+            CreateEnvironmentBlock("WatchTower_B", new Vector3(20f, 2.4f, -14f), new Vector3(2f, 4.8f, 2f), new Color(0.38f, 0.34f, 0.28f));
             CreateTerrainZone("Terrain_Forest", new Vector3(-6f, 0.02f, 7f), new Vector3(6.6f, 0.02f, 6.6f), new Color(0.18f, 0.4f, 0.2f));
             CreateTerrainZone("Terrain_Rough", new Vector3(7f, 0.02f, -8f), new Vector3(5.8f, 0.02f, 5.8f), new Color(0.52f, 0.42f, 0.28f));
             CreateTerrainZone("Terrain_Road", new Vector3(3f, 0.02f, 9f), new Vector3(5f, 0.02f, 5f), new Color(0.42f, 0.42f, 0.42f));

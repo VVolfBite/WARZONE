@@ -49,20 +49,18 @@ namespace Warzone.Adapters
                     continue;
                 }
 
-                GameObject root = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                GameObject root = new GameObject("Squad_" + squad.SquadId);
                 root.name = "Squad_" + squad.SquadId;
                 root.transform.position = new Vector3(squad.Position.X, 1f, squad.Position.Y);
 
                 UnitDefinition definition = contentCatalog.Units[squad.Units[0].DefinitionId];
                 float diameter = definition.CollisionRadius * 2f;
-                root.transform.localScale = new Vector3(diameter, 1.6f, diameter);
+                root.transform.localScale = new Vector3(diameter, 1f, diameter);
 
-                Renderer renderer = root.GetComponent<Renderer>();
-                renderer.material.color = squad.FactionId == FactionId.Player ? Color.cyan : Color.red;
-                ApplyPrototypeModel(root, squad.FactionId);
+                Renderer[] renderers = ApplyPrototypeModel(root, definition);
 
                 UnitView unitView = root.AddComponent<UnitView>();
-                unitView.Initialize(new[] { renderer });
+                unitView.Initialize(renderers);
 
                 UnitWorldUiView worldUiView = root.AddComponent<UnitWorldUiView>();
                 worldUiView.Initialize(_mainCamera);
@@ -267,25 +265,136 @@ namespace Warzone.Adapters
             return new Color(0.95f, 0.85f, 0.3f);
         }
 
-        private static void ApplyPrototypeModel(GameObject root, FactionId factionId)
+        private static Renderer[] ApplyPrototypeModel(GameObject root, UnitDefinition definition)
         {
+            FactionId factionId = definition.FactionId;
+            List<Renderer> renderers = new List<Renderer>();
+
+            GameObject basePlate = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            basePlate.name = "BasePlate";
+            basePlate.transform.SetParent(root.transform, false);
+            basePlate.transform.localPosition = new Vector3(0f, -0.45f, 0f);
+            basePlate.transform.localScale = new Vector3(0.55f, 0.08f, 0.55f);
+            Renderer baseRenderer = basePlate.GetComponent<Renderer>();
+            baseRenderer.material.color = factionId == FactionId.Player ? new Color(0.18f, 0.24f, 0.3f) : new Color(0.24f, 0.18f, 0.18f);
+            renderers.Add(baseRenderer);
+            Object.Destroy(basePlate.GetComponent<Collider>());
+
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             body.name = "Body";
             body.transform.SetParent(root.transform, false);
-            body.transform.localPosition = new Vector3(0f, 0.15f, 0f);
-            body.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
+            body.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            body.transform.localScale = new Vector3(0.42f, 0.62f, 0.42f);
             Renderer bodyRenderer = body.GetComponent<Renderer>();
-            bodyRenderer.material.color = factionId == FactionId.Player ? new Color(0.25f, 0.65f, 0.95f) : new Color(0.55f, 0.65f, 0.2f);
+            bodyRenderer.material.color = GetUniformColor(definition);
+            renderers.Add(bodyRenderer);
             Object.Destroy(body.GetComponent<Collider>());
 
             GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.name = "Head";
             head.transform.SetParent(root.transform, false);
-            head.transform.localPosition = new Vector3(0f, 1.05f, 0f);
-            head.transform.localScale = new Vector3(0.45f, 0.45f, 0.45f);
+            head.transform.localPosition = new Vector3(0f, 0.98f, 0f);
+            head.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
             Renderer headRenderer = head.GetComponent<Renderer>();
-            headRenderer.material.color = factionId == FactionId.Player ? new Color(0.92f, 0.92f, 0.96f) : new Color(0.78f, 0.88f, 0.48f);
+            headRenderer.material.color = factionId == FactionId.Player ? new Color(0.94f, 0.9f, 0.82f) : new Color(0.84f, 0.78f, 0.68f);
+            renderers.Add(headRenderer);
             Object.Destroy(head.GetComponent<Collider>());
+
+            GameObject shoulders = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            shoulders.name = "Shoulders";
+            shoulders.transform.SetParent(root.transform, false);
+            shoulders.transform.localPosition = new Vector3(0f, 0.48f, 0f);
+            shoulders.transform.localScale = new Vector3(0.78f, 0.18f, 0.24f);
+            Renderer shouldersRenderer = shoulders.GetComponent<Renderer>();
+            shouldersRenderer.material.color = bodyRenderer.material.color * 0.92f;
+            renderers.Add(shouldersRenderer);
+            Object.Destroy(shoulders.GetComponent<Collider>());
+
+            GameObject weapon = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            weapon.name = "Weapon";
+            weapon.transform.SetParent(root.transform, false);
+            weapon.transform.localPosition = new Vector3(0.34f, 0.42f, 0.12f);
+            weapon.transform.localScale = GetWeaponScale(definition);
+            weapon.transform.localRotation = Quaternion.Euler(0f, -18f, 20f);
+            Renderer weaponRenderer = weapon.GetComponent<Renderer>();
+            weaponRenderer.material.color = new Color(0.16f, 0.16f, 0.18f);
+            renderers.Add(weaponRenderer);
+            Object.Destroy(weapon.GetComponent<Collider>());
+
+            if (definition.Id == "unit.technical")
+            {
+                GameObject chassis = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                chassis.name = "Chassis";
+                chassis.transform.SetParent(root.transform, false);
+                chassis.transform.localPosition = new Vector3(0f, -0.02f, 0f);
+                chassis.transform.localScale = new Vector3(1.2f, 0.45f, 1.9f);
+                Renderer chassisRenderer = chassis.GetComponent<Renderer>();
+                chassisRenderer.material.color = new Color(0.34f, 0.28f, 0.22f);
+                renderers.Add(chassisRenderer);
+                Object.Destroy(chassis.GetComponent<Collider>());
+            }
+
+            return renderers.ToArray();
+        }
+
+        private static Color GetUniformColor(UnitDefinition definition)
+        {
+            if (definition.FactionId == FactionId.Player)
+            {
+                if (definition.Id == "unit.sniper")
+                {
+                    return new Color(0.34f, 0.56f, 0.72f);
+                }
+
+                if (definition.Id == "unit.grenadier")
+                {
+                    return new Color(0.58f, 0.56f, 0.24f);
+                }
+
+                if (definition.Id == "unit.medic")
+                {
+                    return new Color(0.28f, 0.62f, 0.42f);
+                }
+
+                return new Color(0.24f, 0.46f, 0.68f);
+            }
+
+            if (definition.Id == "unit.warlord")
+            {
+                return new Color(0.42f, 0.12f, 0.12f);
+            }
+
+            if (definition.Id == "unit.technical")
+            {
+                return new Color(0.36f, 0.3f, 0.2f);
+            }
+
+            if (definition.Id == "unit.rpg")
+            {
+                return new Color(0.46f, 0.28f, 0.2f);
+            }
+
+            return new Color(0.36f, 0.22f, 0.22f);
+        }
+
+        private static Vector3 GetWeaponScale(UnitDefinition definition)
+        {
+            if (definition.Id == "unit.sniper")
+            {
+                return new Vector3(0.16f, 0.14f, 0.82f);
+            }
+
+            if (definition.Id == "unit.grenadier" || definition.Id == "unit.rpg")
+            {
+                return new Vector3(0.22f, 0.2f, 0.7f);
+            }
+
+            if (definition.Id == "unit.warlord")
+            {
+                return new Vector3(0.28f, 0.24f, 0.9f);
+            }
+
+            return new Vector3(0.14f, 0.14f, 0.6f);
         }
 
         private static void ResolveObstacleOverlap(SandboxSquadView view, float collisionRadius, ObstacleVolume[] obstacleVolumes)
