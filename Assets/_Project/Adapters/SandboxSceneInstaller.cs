@@ -23,6 +23,7 @@ namespace Warzone.Adapters
             AudioService audioService = new GameObject("AudioService").AddComponent<AudioService>();
             GameFlow gameFlow = new GameFlow();
             ProgressionService progressionService = new ProgressionService();
+            ISettingsService settingsService = RuntimeServiceRegistry.SettingsService;
             MissionFlow missionFlow = new MissionFlow(gameFlow, battleRuntimeHost, progressionService);
             MissionStartRequest missionStartRequest = SandboxMissionRequestFactory.CreateDemoMissionRequest();
 
@@ -37,6 +38,7 @@ namespace Warzone.Adapters
             missionCompletionPresenter.Configure(battleRuntimeHost, missionFlow, debriefScreen);
             SandboxAudioListener audioListener = new GameObject("SandboxAudioListener").AddComponent<SandboxAudioListener>();
             audioListener.Configure(battleRuntimeHost, audioService);
+            ApplySettings(settingsService.Current);
 
             missionStarter.StartDemoMission();
         }
@@ -111,6 +113,12 @@ namespace Warzone.Adapters
             }
 
             return new GameObject("DebriefScreen").AddComponent<DebriefScreen>();
+        }
+
+        private static void ApplySettings(SettingsData settings)
+        {
+            AudioListener.volume = settings.MasterVolume;
+            QualitySettings.SetQualityLevel(Mathf.Clamp(settings.GraphicsQuality, 0, QualitySettings.names.Length - 1), true);
         }
 
     }

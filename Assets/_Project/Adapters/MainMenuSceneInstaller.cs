@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Warzone.Application;
 using Warzone.Controls;
+using Warzone.Meta;
 
 namespace Warzone.Adapters
 {
@@ -21,7 +22,8 @@ namespace Warzone.Adapters
             mainCamera.clearFlags = CameraClearFlags.SolidColor;
 
             SceneFlow sceneFlow = new SceneFlow("MainMenu", "SampleScene");
-            MainMenuScreenController controller = new MainMenuScreenController(sceneFlow);
+            ISettingsService settingsService = RuntimeServiceRegistry.SettingsService;
+            MainMenuScreenController controller = new MainMenuScreenController(sceneFlow, settingsService);
             MainMenuScreen menuScreen = EnsureMainMenuScreen();
             menuScreen.Configure(controller);
         }

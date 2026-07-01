@@ -74,13 +74,14 @@ namespace Warzone.Controls
                 _musicVolume = GUILayout.HorizontalSlider(_musicVolume, 0f, 1f);
                 GUILayout.Label($"Graphics Quality: {_graphicsQuality}");
                 _graphicsQuality = Mathf.RoundToInt(GUILayout.HorizontalSlider(_graphicsQuality, 0f, 4f));
+                GUILayout.Label("Controls: WASD pan / Edge pan / MMB rotate / RMB command");
                 if (GUILayout.Button("Apply", GUILayout.Height(30f)))
                 {
                     _controller.SaveSettings(_masterVolume, _musicVolume, _graphicsQuality);
                 }
                 GUILayout.Space(8f);
                 GUILayout.Label("Credits", BuildSectionStyle());
-                GUILayout.Label("Warzone RTS prototype.");
+                GUILayout.Label("Warzone RTS prototype by project workspace.");
             }
 
             GUILayout.Space(10f);
