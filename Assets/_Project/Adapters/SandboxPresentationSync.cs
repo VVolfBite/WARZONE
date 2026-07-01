@@ -93,6 +93,7 @@ namespace Warzone.Adapters
                 UnitDefinition definition = contentCatalog.Units[squad.Units[0].DefinitionId];
                 view.SetHealth((float)squad.Units[0].CurrentHealth / definition.MaxHealth);
                 view.SetRangeVisible(selectionService.Contains(squad.SquadId), definition.Weapon.Range);
+                view.SetStatusTint(GetStatusTint(squad.Units[0]));
                 ResolveObstacleOverlap(view, definition.CollisionRadius, obstacleVolumes);
 
                 if (!squad.HasLivingUnits)
@@ -166,11 +167,12 @@ namespace Warzone.Adapters
                     "Selected: Squad " + selectedSquad.SquadId,
                     definition,
                     selectedSquad.Units[0].CurrentHealth,
-                    definition.MaxHealth);
+                    definition.MaxHealth,
+                    selectedSquad.Units[0]);
             }
             else
             {
-                _selectionInfoOverlay.BindSelection(null, null, 0, 0);
+                _selectionInfoOverlay.BindSelection(null, null, 0, 0, null);
             }
 
             if (selectionService.HoveredEnemySquadId.HasValue)
@@ -183,12 +185,13 @@ namespace Warzone.Adapters
                         "Enemy: Squad " + hoverSquad.SquadId,
                         definition,
                         hoverSquad.Units[0].CurrentHealth,
-                        definition.MaxHealth);
+                        definition.MaxHealth,
+                        hoverSquad.Units[0]);
                     return;
                 }
             }
 
-            _selectionInfoOverlay.BindHover(null, null, 0, 0);
+            _selectionInfoOverlay.BindHover(null, null, 0, 0, null);
         }
 
         private static BattleSquadState FindSquad(BattleSession battleSession, int squadId)
@@ -212,6 +215,30 @@ namespace Warzone.Adapters
             Object.Destroy(projectile.GetComponent<Collider>());
             ProjectileView projectileView = projectile.AddComponent<ProjectileView>();
             projectileView.Launch(start, target, speed, color);
+        }
+
+        private static Color? GetStatusTint(BattleUnitState unit)
+        {
+            if (unit == null || unit.StatusEffects.Count == 0)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < unit.StatusEffects.Count; i++)
+            {
+                string effectId = unit.StatusEffects[i].Definition.Id;
+                if (effectId == "effect.zombie.toxic")
+                {
+                    return new Color(0.55f, 0.9f, 0.25f);
+                }
+
+                if (effectId == "effect.support.heal")
+                {
+                    return new Color(0.25f, 0.95f, 0.75f);
+                }
+            }
+
+            return new Color(0.95f, 0.85f, 0.3f);
         }
 
         private static void ApplyPrototypeModel(GameObject root, FactionId factionId)

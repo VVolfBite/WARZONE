@@ -98,8 +98,10 @@ namespace Warzone.Tests.Combat
                 seed: 7,
                 terrainMap: TerrainMap.CreateDefault());
 
-            Assert.That(session.Squads[0].Units[0].StatusEffects.Count, Is.EqualTo(0));
-            Assert.That(session.Squads[1].Units[0].StatusEffects.Count, Is.EqualTo(0));
+            Assert.That(session.Squads[0].Units[0].StatusEffects.Count, Is.EqualTo(1));
+            Assert.That(session.Squads[0].Units[0].StatusEffects[0].Definition.Id, Is.EqualTo("effect.support.heal"));
+            Assert.That(session.Squads[1].Units[0].StatusEffects.Count, Is.EqualTo(1));
+            Assert.That(session.Squads[1].Units[0].StatusEffects[0].Definition.Id, Is.EqualTo("effect.zombie.toxic"));
         }
     }
 }

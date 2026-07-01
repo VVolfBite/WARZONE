@@ -11,7 +11,6 @@ namespace Warzone.Adapters
         private readonly Queue<string> _notifications = new Queue<string>();
 
         private BattleRuntimeHost _battleRuntimeHost;
-        private AudioService _audioService;
         private SandboxHudOverlay _sandboxHudOverlay;
         private BattleSession _battleSession;
         private ContentCatalog _contentCatalog;
@@ -19,6 +18,8 @@ namespace Warzone.Adapters
         private SandboxSelectionService _selectionService;
         private SandboxPresentationSync _presentationSync;
         private SandboxWaveController _waveController;
+        private SandboxHudPresenter _hudPresenter;
+        private readonly SandboxCameraFocusController _cameraFocusController = new SandboxCameraFocusController();
         private bool _isPaused;
         private bool _hasPublishedBattleResult;
         private ObstacleVolume[] _obstacleVolumes = new ObstacleVolume[0];
@@ -27,7 +28,6 @@ namespace Warzone.Adapters
         public void Configure(BattleRuntimeHost battleRuntimeHost, Camera mainCamera)
         {
             _battleRuntimeHost = battleRuntimeHost;
-            _audioService = FindFirstObjectByType<AudioService>();
             _mainCamera = mainCamera;
             _battleRuntimeHost.BattleStarted += HandleBattleStarted;
 
@@ -40,6 +40,7 @@ namespace Warzone.Adapters
             _presentationSync = new SandboxPresentationSync(mainCamera, selectionInfoOverlay);
             _inputInterpreter = new SandboxInputInterpreter(mainCamera, selectionBoxOverlay, _selectionService, commandDispatcher, _presentationSync);
             _waveController = new SandboxWaveController(_notifications);
+            _hudPresenter = new SandboxHudPresenter(_notifications, _sandboxHudOverlay);
             _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
         }
 
@@ -72,7 +73,7 @@ namespace Warzone.Adapters
 
             if (_inputInterpreter != null && _inputInterpreter.ConsumeCameraFocus())
             {
-                FocusCameraOnSelection();
+                _cameraFocusController.FocusOnSelection(_mainCamera, _selectionService, _battleSession);
             }
 
             if (_battleSession != null)
@@ -82,7 +83,7 @@ namespace Warzone.Adapters
 
             if (_battleSession == null)
             {
-                _sandboxHudOverlay.Bind(_isPaused, 0, 0, "Waiting for mission...", string.Empty);
+                _hudPresenter.BindWaiting(_isPaused);
                 return;
             }
 
@@ -98,14 +99,7 @@ namespace Warzone.Adapters
 
             _presentationSync.RenderDamageEvents(_battleSession);
             _presentationSync.Sync(_battleSession, _contentCatalog, _selectionService, _obstacleVolumes);
-            _sandboxHudOverlay.Bind(
-                _isPaused,
-                _waveController.ActiveWaveIndex,
-                _waveController.TotalWaveCount,
-                GetObjectiveText(),
-                BuildNotificationText(),
-                BuildDebugText(),
-                BuildTeamText());
+            _hudPresenter.BindBattle(_isPaused, _battleSession, _waveController, _selectionService);
 
             if (!_hasPublishedBattleResult && _battleSession.TryBuildResultOnce(out BattleResult result))
             {
@@ -135,62 +129,6 @@ namespace Warzone.Adapters
             }
         }
 
-        private string GetObjectiveText()
-        {
-            if (_battleSession == null)
-            {
-                return "Initialize";
-            }
-
-            if (_battleSession.CurrentOutcome == MissionOutcome.Victory)
-            {
-                return "Objective complete";
-            }
-
-            if (_battleSession.CurrentOutcome == MissionOutcome.Defeat)
-            {
-                return "Mission failed";
-            }
-
-            return "Hold the line. Waves cleared: " + _waveController.ActiveWaveIndex + "/" + _waveController.TotalWaveCount;
-        }
-
-        private string BuildNotificationText()
-        {
-            while (_notifications.Count > 4)
-            {
-                _notifications.Dequeue();
-            }
-
-            if (_notifications.Count == 0)
-            {
-                return "No alerts";
-            }
-
-            return string.Join("\n", _notifications.ToArray());
-        }
-
-        private string BuildDebugText()
-        {
-            if (_battleSession == null)
-            {
-                return string.Empty;
-            }
-
-            int selectedCount = _selectionService != null ? _selectionService.SelectedSquadIds.Count : 0;
-            return "Selected squads: " + selectedCount + "\nTerrain: active";
-        }
-
-        private string BuildTeamText()
-        {
-            if (_selectionService == null || _selectionService.SelectedSquadIds.Count == 0)
-            {
-                return "No team selected";
-            }
-
-            return "Selected: " + string.Join(",", _selectionService.BuildOrderedSelection());
-        }
-
         private void ResumeBattle()
         {
             _isPaused = false;
@@ -212,54 +150,6 @@ namespace Warzone.Adapters
             {
                 _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
             }
-        }
-
-        private void FocusCameraOnSelection()
-        {
-            if (_mainCamera == null || _selectionService.SelectedSquadIds.Count == 0)
-            {
-                return;
-            }
-
-            Vector3 sum = Vector3.zero;
-            int count = 0;
-            foreach (int squadId in _selectionService.SelectedSquadIds)
-            {
-                BattleSquadState squad = FindSquadById(squadId);
-                if (squad == null)
-                {
-                    continue;
-                }
-
-                sum += new Vector3(squad.Position.X, 0f, squad.Position.Y);
-                count++;
-            }
-
-            if (count == 0)
-            {
-                return;
-            }
-
-            Vector3 focus = sum / count;
-            _mainCamera.transform.position = new Vector3(focus.x, _mainCamera.transform.position.y, focus.z - 4f);
-        }
-
-        private BattleSquadState FindSquadById(int squadId)
-        {
-            if (_battleSession == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < _battleSession.Squads.Count; i++)
-            {
-                if (_battleSession.Squads[i].SquadId == squadId)
-                {
-                    return _battleSession.Squads[i];
-                }
-            }
-
-            return null;
         }
     }
 }

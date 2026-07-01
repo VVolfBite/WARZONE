@@ -6,6 +6,7 @@ namespace Warzone.Combat
     public sealed class BattleUnitState
     {
         private readonly List<ActiveStatusEffect> _statusEffects = new List<ActiveStatusEffect>();
+        private readonly int _maxHealth;
 
         public BattleUnitState(
             BattleEntityId entityId,
@@ -17,6 +18,7 @@ namespace Warzone.Combat
             DefinitionId = definitionId;
             FactionId = factionId;
             CurrentHealth = currentHealth;
+            _maxHealth = currentHealth;
         }
 
         public BattleEntityId EntityId { get; }
@@ -48,6 +50,10 @@ namespace Warzone.Combat
             }
 
             CurrentHealth += healing;
+            if (CurrentHealth > _maxHealth)
+            {
+                CurrentHealth = _maxHealth;
+            }
         }
 
         public void AddStatusEffect(ActiveStatusEffect statusEffect)
@@ -58,6 +64,45 @@ namespace Warzone.Combat
             }
 
             _statusEffects.Add(statusEffect);
+        }
+
+        public bool HasStatusEffect(string effectId)
+        {
+            if (string.IsNullOrEmpty(effectId))
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _statusEffects.Count; i++)
+            {
+                if (_statusEffects[i].Definition.Id == effectId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void RefreshStatusEffect(StatusEffectDefinition definition)
+        {
+            if (definition == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _statusEffects.Count; i++)
+            {
+                ActiveStatusEffect effect = _statusEffects[i];
+                if (effect.Definition.Id != definition.Id)
+                {
+                    continue;
+                }
+
+                effect.RemainingDuration = definition.DurationSeconds;
+                effect.TickTimer = definition.TickIntervalSeconds;
+                return;
+            }
         }
 
         public void TickStatusEffects(float deltaTimeSeconds)

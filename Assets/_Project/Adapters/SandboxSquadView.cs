@@ -16,6 +16,7 @@ namespace Warzone.Adapters
         private float _deathSinkOffset;
         private float _hitFlashTime;
         private float _rangePulseTime;
+        private Color? _statusTint;
 
         public int SquadId => squadId;
         public FactionId FactionId => factionId;
@@ -96,6 +97,15 @@ namespace Warzone.Adapters
             if (worldUiView != null)
             {
                 worldUiView.SetRangeVisible(visible, radius, factionId == FactionId.Player ? Color.cyan : Color.red);
+            }
+        }
+
+        public void SetStatusTint(Color? statusTint)
+        {
+            _statusTint = statusTint;
+            if (unitView != null)
+            {
+                unitView.SetStatusTint(statusTint);
             }
         }
 

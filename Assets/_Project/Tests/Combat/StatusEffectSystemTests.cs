@@ -24,11 +24,12 @@ namespace Warzone.Tests.Combat
         public void ApplyHealingAura_IncreasesHealth()
         {
             BattleUnitState unit = new BattleUnitState(new BattleEntityId(1), "unit.test", FactionId.Player, 10);
+            unit.ApplyDamage(4);
             StatusEffectSystem system = new StatusEffectSystem();
 
             system.ApplyHealingAura(unit, 3);
 
-            Assert.That(unit.CurrentHealth, Is.EqualTo(13));
+            Assert.That(unit.CurrentHealth, Is.EqualTo(9));
         }
     }
 }

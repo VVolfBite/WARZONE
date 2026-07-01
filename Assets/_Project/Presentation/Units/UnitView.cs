@@ -14,6 +14,7 @@ namespace Warzone.Presentation.Units
         private bool _selected;
         private bool _isDead;
         private float _hitFlashTime;
+        private Color? _statusTint;
 
         private void Awake()
         {
@@ -90,6 +91,17 @@ namespace Warzone.Presentation.Units
             _hitFlashTime = 0.12f;
         }
 
+        public void SetStatusTint(Color? statusTint)
+        {
+            if (_isDead)
+            {
+                return;
+            }
+
+            _statusTint = statusTint;
+            ApplyColorOverride(null);
+        }
+
         private void Update()
         {
             if (_isDead)
@@ -115,6 +127,10 @@ namespace Warzone.Presentation.Units
                 if (_selected)
                 {
                     targetRenderers[i].material.color = selectedColor;
+                }
+                else if (_statusTint.HasValue)
+                {
+                    targetRenderers[i].material.color = Color.Lerp(_baseColors[i], _statusTint.Value, 0.65f);
                 }
                 else if (overrideColor.HasValue)
                 {

@@ -169,6 +169,16 @@ namespace Warzone.Combat
         {
         }
 
+        public UnitDefinition GetPrimaryDefinition(BattleSquadState squad)
+        {
+            return _combatResolver.GetPrimaryDefinition(squad);
+        }
+
+        public bool TryGetStatusEffectDefinition(string effectId, out StatusEffectDefinition definition)
+        {
+            return _statusEffectLibrary.TryGetValue(effectId, out definition);
+        }
+
         private void ApplyDefaultStatusEffects()
         {
             for (int i = 0; i < _squads.Count; i++)
@@ -180,7 +190,14 @@ namespace Warzone.Combat
                     UnitDefinition definition = _combatResolver.GetPrimaryDefinition(squad);
                     if (definition?.DefaultStatusEffectId != null && _statusEffectLibrary.TryGetValue(definition.DefaultStatusEffectId, out StatusEffectDefinition statusEffectDefinition))
                     {
-                        unit.AddStatusEffect(new ActiveStatusEffect(statusEffectDefinition));
+                        if (unit.HasStatusEffect(statusEffectDefinition.Id))
+                        {
+                            unit.RefreshStatusEffect(statusEffectDefinition);
+                        }
+                        else
+                        {
+                            unit.AddStatusEffect(new ActiveStatusEffect(statusEffectDefinition));
+                        }
                     }
                 }
             }

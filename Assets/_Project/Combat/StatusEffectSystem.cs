@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
 {
@@ -6,6 +7,8 @@ namespace Warzone.Combat
     {
         public void Tick(BattleSession battleSession, float deltaTimeSeconds)
         {
+            ApplyAuraEffects(battleSession);
+
             for (int i = 0; i < battleSession.Squads.Count; i++)
             {
                 BattleSquadState squad = battleSession.Squads[i];
@@ -26,6 +29,12 @@ namespace Warzone.Combat
                 return;
             }
 
+            if (unit.HasStatusEffect(definition.Id))
+            {
+                unit.RefreshStatusEffect(definition);
+                return;
+            }
+
             unit.AddStatusEffect(new ActiveStatusEffect(definition));
         }
 
@@ -37,6 +46,87 @@ namespace Warzone.Combat
             }
 
             unit.ApplyHealing(healingAmount);
+        }
+
+        private void ApplyAuraEffects(BattleSession battleSession)
+        {
+            const float SupportHealRadius = 4.5f;
+            const float ToxicAuraRadius = 3.5f;
+
+            for (int i = 0; i < battleSession.Squads.Count; i++)
+            {
+                BattleSquadState sourceSquad = battleSession.Squads[i];
+                if (!sourceSquad.HasLivingUnits)
+                {
+                    continue;
+                }
+
+                UnitDefinition sourceDefinition = battleSession.GetPrimaryDefinition(sourceSquad);
+                if (sourceDefinition == null || string.IsNullOrEmpty(sourceDefinition.DefaultStatusEffectId))
+                {
+                    continue;
+                }
+
+                if (sourceDefinition.DefaultStatusEffectId == "effect.support.heal")
+                {
+                    ApplySupportAura(battleSession, sourceSquad, SupportHealRadius);
+                    continue;
+                }
+
+                if (sourceDefinition.DefaultStatusEffectId == "effect.zombie.toxic")
+                {
+                    ApplyToxicAura(battleSession, sourceSquad, ToxicAuraRadius, sourceDefinition.DefaultStatusEffectId);
+                }
+            }
+        }
+
+        private void ApplySupportAura(BattleSession battleSession, BattleSquadState sourceSquad, float radius)
+        {
+            for (int i = 0; i < battleSession.Squads.Count; i++)
+            {
+                BattleSquadState targetSquad = battleSession.Squads[i];
+                if (targetSquad.FactionId != sourceSquad.FactionId || !targetSquad.HasLivingUnits)
+                {
+                    continue;
+                }
+
+                if (CombatResolver.GetDistance(sourceSquad, targetSquad) > radius)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < targetSquad.Units.Count; j++)
+                {
+                    ApplyHealingAura(targetSquad.Units[j], 1);
+                }
+            }
+        }
+
+        private void ApplyToxicAura(BattleSession battleSession, BattleSquadState sourceSquad, float radius, string effectId)
+        {
+            if (!battleSession.TryGetStatusEffectDefinition(effectId, out StatusEffectDefinition definition))
+            {
+                return;
+            }
+
+            for (int i = 0; i < battleSession.Squads.Count; i++)
+            {
+                BattleSquadState targetSquad = battleSession.Squads[i];
+                if (targetSquad.FactionId == sourceSquad.FactionId || !targetSquad.HasLivingUnits)
+                {
+                    continue;
+                }
+
+                if (CombatResolver.GetDistance(sourceSquad, targetSquad) > radius)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < targetSquad.Units.Count; j++)
+                {
+                    ApplyEffect(targetSquad.Units[j], definition);
+                }
+            }
         }
     }
 }
