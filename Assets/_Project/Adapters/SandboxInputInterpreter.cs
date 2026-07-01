@@ -15,6 +15,8 @@ namespace Warzone.Adapters
         private readonly SandboxPresentationSync _presentationSync;
         private Vector2 _selectionStart;
         private bool _isDraggingSelection;
+        private float _lastLeftClickTime;
+        private int? _lastClickedSquadId;
 
         public SandboxInputInterpreter(
             Camera mainCamera,
@@ -46,6 +48,36 @@ namespace Warzone.Adapters
         {
             Keyboard keyboard = Keyboard.current;
             return keyboard != null && keyboard.qKey.wasPressedThisFrame;
+        }
+
+        public bool TryConsumeSpeedChange(out int direction)
+        {
+            direction = 0;
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            if (keyboard.equalsKey.wasPressedThisFrame || keyboard.numpadPlusKey.wasPressedThisFrame || keyboard.rightBracketKey.wasPressedThisFrame)
+            {
+                direction = 1;
+                return true;
+            }
+
+            if (keyboard.minusKey.wasPressedThisFrame || keyboard.numpadMinusKey.wasPressedThisFrame || keyboard.leftBracketKey.wasPressedThisFrame)
+            {
+                direction = -1;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryConsumeDoubleClickFocus(out int squadId)
+        {
+            squadId = -1;
+            return false;
         }
 
         public bool TryConsumeTeamCommand(out int slotIndex, out bool bindTeam)
@@ -137,6 +169,7 @@ namespace Warzone.Adapters
             SandboxSquadView squadView = hit.collider.GetComponent<SandboxSquadView>();
             if (squadView != null && squadView.FactionId == FactionId.Player)
             {
+                RegisterClick(squadView.SquadId);
                 bool shift = IsShiftHeld();
                 bool ctrl = IsCtrlHeld();
 
@@ -165,6 +198,20 @@ namespace Warzone.Adapters
             {
                 _selectionService.Clear();
             }
+        }
+
+        public bool TryConsumeDoubleClickSelectionFocus(out int squadId)
+        {
+            squadId = -1;
+            if (_lastClickedSquadId.HasValue && Time.unscaledTime - _lastLeftClickTime <= 0.25f)
+            {
+                squadId = _lastClickedSquadId.Value;
+                _lastClickedSquadId = null;
+                _lastLeftClickTime = -100f;
+                return true;
+            }
+
+            return false;
         }
 
         private void TryIssueCommand(BattleSession battleSession)
@@ -284,6 +331,18 @@ namespace Warzone.Adapters
         {
             Keyboard keyboard = Keyboard.current;
             return keyboard != null && (keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed);
+        }
+
+        private void RegisterClick(int squadId)
+        {
+            if (_lastClickedSquadId.HasValue && _lastClickedSquadId.Value == squadId && Time.unscaledTime - _lastLeftClickTime <= 0.25f)
+            {
+                _lastLeftClickTime = Time.unscaledTime;
+                return;
+            }
+
+            _lastClickedSquadId = squadId;
+            _lastLeftClickTime = Time.unscaledTime;
         }
     }
 }

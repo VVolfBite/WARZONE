@@ -16,14 +16,15 @@ namespace Warzone.Adapters
 
         public void BindWaiting(bool isPaused)
         {
-            _hudOverlay.Bind(isPaused, 0, 0, "Waiting for mission...", string.Empty);
+            _hudOverlay.Bind(isPaused, 0, 0, "Waiting for mission...", string.Empty, speedText: "Speed x1");
         }
 
         public void BindBattle(
             bool isPaused,
             BattleSession battleSession,
             SandboxWaveController waveController,
-            SandboxSelectionService selectionService)
+            SandboxSelectionService selectionService,
+            float timeScale)
         {
             _hudOverlay.Bind(
                 isPaused,
@@ -32,7 +33,8 @@ namespace Warzone.Adapters
                 GetObjectiveText(battleSession, waveController),
                 BuildNotificationText(),
                 BuildDebugText(battleSession, selectionService),
-                BuildTeamText(selectionService));
+                BuildTeamText(selectionService),
+                BuildSpeedText(timeScale));
         }
 
         private string GetObjectiveText(BattleSession battleSession, SandboxWaveController waveController)
@@ -89,6 +91,11 @@ namespace Warzone.Adapters
             }
 
             return "Selected: " + string.Join(",", selectionService.BuildOrderedSelection());
+        }
+
+        private static string BuildSpeedText(float timeScale)
+        {
+            return "Speed x" + timeScale.ToString("F1");
         }
     }
 }

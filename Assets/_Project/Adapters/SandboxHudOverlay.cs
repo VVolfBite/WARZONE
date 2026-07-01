@@ -12,11 +12,12 @@ namespace Warzone.Adapters
         private string _notificationText;
         private string _debugText;
         private string _teamText;
+        private string _speedText;
         private Action _resumeAction;
         private Action _restartAction;
         private Action _returnToMenuAction;
 
-        public void Bind(bool isPaused, int activeWaveIndex, int totalWaveCount, string objectiveText, string notificationText, string debugText = null, string teamText = null)
+        public void Bind(bool isPaused, int activeWaveIndex, int totalWaveCount, string objectiveText, string notificationText, string debugText = null, string teamText = null, string speedText = null)
         {
             _isPaused = isPaused;
             _activeWaveIndex = activeWaveIndex;
@@ -25,6 +26,7 @@ namespace Warzone.Adapters
             _notificationText = notificationText;
             _debugText = debugText;
             _teamText = teamText;
+            _speedText = speedText;
         }
 
         public void SetPauseActions(Action resumeAction, Action restartAction, Action returnToMenuAction)
@@ -40,6 +42,7 @@ namespace Warzone.Adapters
             GUILayout.Label("WARZONE");
             GUILayout.Label(_objectiveText ?? "Objective");
             GUILayout.Label(_isPaused ? "Paused" : "Running");
+            GUILayout.Label(_speedText ?? "Speed x1");
             GUILayout.EndArea();
         }
 

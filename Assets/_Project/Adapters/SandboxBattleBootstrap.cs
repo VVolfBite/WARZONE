@@ -20,10 +20,12 @@ namespace Warzone.Adapters
         private SandboxWaveController _waveController;
         private SandboxHudPresenter _hudPresenter;
         private readonly SandboxCameraFocusController _cameraFocusController = new SandboxCameraFocusController();
+        private static readonly float[] TimeScales = { 0.5f, 0.75f, 1f, 1.5f, 2f, 3f };
         private bool _isPaused;
         private bool _hasPublishedBattleResult;
         private ObstacleVolume[] _obstacleVolumes = new ObstacleVolume[0];
         private Camera _mainCamera;
+        private int _timeScaleIndex = 2;
 
         public void Configure(BattleRuntimeHost battleRuntimeHost, Camera mainCamera)
         {
@@ -57,6 +59,7 @@ namespace Warzone.Adapters
             if (_inputInterpreter != null && _inputInterpreter.ConsumePauseToggle())
             {
                 _isPaused = !_isPaused;
+                Time.timeScale = _isPaused ? 0f : TimeScales[_timeScaleIndex];
             }
 
             if (_inputInterpreter != null && _inputInterpreter.TryConsumeTeamCommand(out int slotIndex, out bool bindTeam))
@@ -76,9 +79,19 @@ namespace Warzone.Adapters
                 _cameraFocusController.FocusOnSelection(_mainCamera, _selectionService, _battleSession);
             }
 
+            if (_inputInterpreter != null && _inputInterpreter.TryConsumeDoubleClickSelectionFocus(out int focusedSquadId))
+            {
+                FocusCameraOnSquad(focusedSquadId);
+            }
+
             if (_inputInterpreter != null && _inputInterpreter.ConsumePrimaryAbility())
             {
                 TriggerPrimaryAbility();
+            }
+
+            if (_inputInterpreter != null && _inputInterpreter.TryConsumeSpeedChange(out int speedDirection))
+            {
+                AdjustTimeScale(speedDirection);
             }
 
             if (_battleSession != null)
@@ -104,7 +117,7 @@ namespace Warzone.Adapters
 
             _presentationSync.RenderDamageEvents(_battleSession);
             _presentationSync.Sync(_battleSession, _contentCatalog, _selectionService, _obstacleVolumes);
-            _hudPresenter.BindBattle(_isPaused, _battleSession, _waveController, _selectionService);
+            _hudPresenter.BindBattle(_isPaused, _battleSession, _waveController, _selectionService, Time.timeScale);
 
             if (!_hasPublishedBattleResult && _battleSession.TryBuildResultOnce(out BattleResult result))
             {
@@ -121,6 +134,8 @@ namespace Warzone.Adapters
 
             _hasPublishedBattleResult = false;
             _isPaused = false;
+            _timeScaleIndex = 2;
+            Time.timeScale = TimeScales[_timeScaleIndex];
             _selectionService.Clear();
             _notifications.Clear();
             _notifications.Enqueue("Demo started");
@@ -137,6 +152,7 @@ namespace Warzone.Adapters
         private void ResumeBattle()
         {
             _isPaused = false;
+            Time.timeScale = TimeScales[_timeScaleIndex];
         }
 
         private void TriggerPrimaryAbility()
@@ -174,11 +190,13 @@ namespace Warzone.Adapters
 
         private void RestartBattle()
         {
+            Time.timeScale = 1f;
             UnityEngine.SceneManagement.SceneManager.LoadScene("SampleScene");
         }
 
         private void ReturnToMainMenu()
         {
+            Time.timeScale = 1f;
             UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
@@ -188,6 +206,29 @@ namespace Warzone.Adapters
             {
                 _sandboxHudOverlay.SetPauseActions(ResumeBattle, RestartBattle, ReturnToMainMenu);
             }
+        }
+
+        private void AdjustTimeScale(int direction)
+        {
+            _timeScaleIndex = Mathf.Clamp(_timeScaleIndex + direction, 0, TimeScales.Length - 1);
+            Time.timeScale = _isPaused ? 0f : TimeScales[_timeScaleIndex];
+            _notifications.Enqueue("Speed set to x" + TimeScales[_timeScaleIndex].ToString("F1"));
+        }
+
+        private void FocusCameraOnSquad(int squadId)
+        {
+            if (_mainCamera == null || _battleSession == null)
+            {
+                return;
+            }
+
+            BattleSquadState squad = _battleSession.FindSquadById(squadId);
+            if (squad == null)
+            {
+                return;
+            }
+
+            _mainCamera.transform.position = new Vector3(squad.Position.X, _mainCamera.transform.position.y, squad.Position.Y - 4f);
         }
     }
 }
