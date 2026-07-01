@@ -35,8 +35,8 @@ namespace Warzone.Adapters
             DebriefViewModel viewModel = _controller.BuildViewModel(
                 settlement.MissionCompleted,
                 settlement.UnitsLost,
+                settlement.UnitsKept,
                 battleResult.ElapsedTimeSeconds);
-            viewModel.UnitsKept = settlement.UnitsKept;
 
             _debriefScreen.Show(viewModel);
             Debug.Log("Battle finished. Victory=" + viewModel.IsVictory + ", UnitsLost=" + viewModel.UnitsLost + ", UnitsKept=" + viewModel.UnitsKept + ", Time=" + viewModel.ElapsedTimeSeconds.ToString("F1") + "s");

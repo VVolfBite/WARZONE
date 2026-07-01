@@ -60,15 +60,15 @@ namespace Warzone.Adapters
 
             if (battleSession.CurrentOutcome == MissionOutcome.Victory)
             {
-                return "Objective complete";
+                return "Operation: Industrial Cleanup\nObjective complete";
             }
 
             if (battleSession.CurrentOutcome == MissionOutcome.Defeat)
             {
-                return "Mission failed";
+                return "Operation: Industrial Cleanup\nMission failed";
             }
 
-            return "Hold the line. Waves cleared: " + waveController.ActiveWaveIndex + "/" + waveController.TotalWaveCount;
+            return "Operation: Industrial Cleanup\nHold the line. Waves cleared: " + waveController.ActiveWaveIndex + "/" + waveController.TotalWaveCount;
         }
 
         private string BuildNotificationText()
