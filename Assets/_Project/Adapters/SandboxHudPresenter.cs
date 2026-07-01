@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using Warzone.Combat;
 
 namespace Warzone.Adapters
@@ -16,7 +17,14 @@ namespace Warzone.Adapters
 
         public void BindWaiting(bool isPaused)
         {
-            _hudOverlay.Bind(isPaused, 0, 0, "Waiting for mission...", string.Empty, speedText: "Speed x1");
+            SandboxHudSnapshot snapshot = new SandboxHudSnapshot
+            {
+                IsPaused = isPaused,
+                ObjectiveText = "Waiting for mission...",
+                NotificationText = string.Empty,
+                SpeedText = "Speed x1"
+            };
+            _hudOverlay.Bind(snapshot);
         }
 
         public void BindBattle(
@@ -26,15 +34,21 @@ namespace Warzone.Adapters
             SandboxSelectionService selectionService,
             float timeScale)
         {
-            _hudOverlay.Bind(
-                isPaused,
-                waveController.ActiveWaveIndex,
-                waveController.TotalWaveCount,
-                GetObjectiveText(battleSession, waveController),
-                BuildNotificationText(),
-                BuildDebugText(battleSession, selectionService),
-                BuildTeamText(selectionService),
-                BuildSpeedText(timeScale));
+            SandboxHudSnapshot snapshot = new SandboxHudSnapshot
+            {
+                IsPaused = isPaused,
+                ActiveWaveIndex = waveController.ActiveWaveIndex,
+                TotalWaveCount = waveController.TotalWaveCount,
+                ObjectiveText = GetObjectiveText(battleSession, waveController),
+                NotificationText = BuildNotificationText(),
+                DebugText = BuildDebugText(battleSession, selectionService),
+                TeamText = BuildTeamText(selectionService),
+                SpeedText = BuildSpeedText(timeScale)
+            };
+
+            BuildMinimapDots(snapshot, battleSession, selectionService);
+            BuildTeamSlots(snapshot, selectionService);
+            _hudOverlay.Bind(snapshot);
         }
 
         private string GetObjectiveText(BattleSession battleSession, SandboxWaveController waveController)
@@ -96,6 +110,47 @@ namespace Warzone.Adapters
         private static string BuildSpeedText(float timeScale)
         {
             return "Speed x" + timeScale.ToString("F1");
+        }
+
+        private static void BuildMinimapDots(SandboxHudSnapshot snapshot, BattleSession battleSession, SandboxSelectionService selectionService)
+        {
+            const float mapExtent = 40f;
+
+            for (int i = 0; i < battleSession.Squads.Count; i++)
+            {
+                BattleSquadState squad = battleSession.Squads[i];
+                if (!squad.HasLivingUnits)
+                {
+                    continue;
+                }
+
+                float normalizedX = Mathf.InverseLerp(-mapExtent, mapExtent, squad.Position.X);
+                float normalizedY = Mathf.InverseLerp(-mapExtent, mapExtent, squad.Position.Y);
+                snapshot.MinimapDots.Add(new SandboxMinimapDot
+                {
+                    NormalizedPosition = new Vector2(normalizedX, normalizedY),
+                    Color = squad.FactionId == Content.Definitions.FactionId.Player ? new Color(0.2f, 0.85f, 1f) : new Color(1f, 0.3f, 0.25f),
+                    IsSelected = selectionService != null && selectionService.Contains(squad.SquadId)
+                });
+            }
+        }
+
+        private static void BuildTeamSlots(SandboxHudSnapshot snapshot, SandboxSelectionService selectionService)
+        {
+            if (selectionService == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                snapshot.TeamSlots.Add(new SandboxTeamSlotSnapshot
+                {
+                    SlotIndex = i,
+                    BoundCount = selectionService.GetBoundCount(i),
+                    IsActive = selectionService.IsTeamActive(i)
+                });
+            }
         }
     }
 }

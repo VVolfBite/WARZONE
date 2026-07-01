@@ -82,5 +82,33 @@ namespace Warzone.Adapters
 
             return true;
         }
+
+        public int GetBoundCount(int slotIndex)
+        {
+            return _teamBindings.TryGetValue(slotIndex, out List<int> binding) && binding != null ? binding.Count : 0;
+        }
+
+        public bool IsTeamActive(int slotIndex)
+        {
+            if (!_teamBindings.TryGetValue(slotIndex, out List<int> binding) || binding == null || binding.Count == 0)
+            {
+                return false;
+            }
+
+            if (binding.Count != _selectedSquadIds.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < binding.Count; i++)
+            {
+                if (!_selectedSquadIds.Contains(binding[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
