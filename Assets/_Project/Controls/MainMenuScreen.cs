@@ -41,6 +41,8 @@ namespace Warzone.Controls
             GUILayout.Label(_viewModel.Title, BuildTitleStyle());
             GUILayout.Space(8f);
             GUILayout.Label(_viewModel.Subtitle, BuildSubtitleStyle());
+            GUILayout.Space(4f);
+            GUILayout.Label(_viewModel.BestScoreSummary, BuildInfoStyle());
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button(_viewModel.PrimaryActionLabel, GUILayout.Height(42f)))
@@ -112,6 +114,15 @@ namespace Warzone.Controls
             style.fontSize = 14;
             style.fontStyle = FontStyle.Bold;
             style.alignment = TextAnchor.MiddleLeft;
+            return style;
+        }
+
+        private static GUIStyle BuildInfoStyle()
+        {
+            GUIStyle style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 12;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.normal.textColor = new Color(0.76f, 0.8f, 0.86f);
             return style;
         }
     }

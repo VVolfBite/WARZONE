@@ -9,6 +9,7 @@ namespace Warzone.Adapters
     public sealed class SandboxMissionCompletionPresenter : MonoBehaviour
     {
         private readonly DebriefScreenController _controller = new DebriefScreenController();
+        private readonly ISaveService _saveService = new JsonSaveService();
         private BattleRuntimeHost _battleRuntimeHost;
         private MissionFlow _missionFlow;
         private IDebriefScreen _debriefScreen;
@@ -37,6 +38,7 @@ namespace Warzone.Adapters
                 settlement.UnitsLost,
                 settlement.UnitsKept,
                 battleResult.ElapsedTimeSeconds);
+            _saveService.SaveBestScore("mission.sandbox", battleResult.Statistics);
 
             _debriefScreen.Show(viewModel);
             Debug.Log("Battle finished. Victory=" + viewModel.IsVictory + ", UnitsLost=" + viewModel.UnitsLost + ", UnitsKept=" + viewModel.UnitsKept + ", Time=" + viewModel.ElapsedTimeSeconds.ToString("F1") + "s");

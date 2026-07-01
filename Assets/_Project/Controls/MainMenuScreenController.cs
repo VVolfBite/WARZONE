@@ -7,11 +7,13 @@ namespace Warzone.Controls
     {
         private readonly IMainMenuFlow _mainMenuFlow;
         private readonly ISettingsService _settingsService;
+        private readonly ISaveService _saveService;
 
         public MainMenuScreenController(IMainMenuFlow mainMenuFlow, ISettingsService settingsService)
         {
             _mainMenuFlow = mainMenuFlow;
             _settingsService = settingsService;
+            _saveService = new JsonSaveService();
         }
 
         public MainMenuViewModel BuildViewModel()
@@ -23,6 +25,7 @@ namespace Warzone.Controls
                 PrimaryActionLabel = "New Operation",
                 TertiaryActionLabel = "Credits",
                 SecondaryActionLabel = "Exit",
+                BestScoreSummary = BuildBestScoreSummary(),
                 MasterVolume = _settingsService.Current.MasterVolume,
                 MusicVolume = _settingsService.Current.MusicVolume,
                 GraphicsQuality = _settingsService.Current.GraphicsQuality,
@@ -38,6 +41,17 @@ namespace Warzone.Controls
         {
             float sfxVolume = _settingsService.Current.SfxVolume;
             _settingsService.Save(new SettingsData(masterVolume, musicVolume, sfxVolume, graphicsQuality));
+        }
+
+        private string BuildBestScoreSummary()
+        {
+            Warzone.Combat.BattleStatistics statistics = _saveService.LoadBestScore("mission.sandbox");
+            if (statistics == null)
+            {
+                return "Best Result: None";
+            }
+
+            return "Best Result: " + statistics.PlayerUnitsRemaining + " survivors, " + statistics.EnemyUnitsRemaining + " enemies left";
         }
     }
 }
