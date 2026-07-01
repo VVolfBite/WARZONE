@@ -124,6 +124,8 @@ namespace Warzone.Adapters
                     targetView.transform.position + (Vector3.up * 0.75f),
                     damageEvent.ProjectileSpeed,
                     sourceView.FactionId == FactionId.Player ? Color.cyan : new Color(1f, 0.45f, 0.2f));
+                SpawnMuzzleFlash(sourceView.transform.position + (Vector3.up * 1.1f), sourceView.FactionId == FactionId.Player ? Color.cyan : new Color(1f, 0.55f, 0.25f));
+                SpawnDamageNumber(targetView.transform.position + (Vector3.up * 1.9f), damageEvent.DamageAmount, damageEvent.DidKillTarget ? new Color(1f, 0.35f, 0.35f) : Color.white);
 
                 if (damageEvent.DidKillTarget)
                 {
@@ -215,6 +217,26 @@ namespace Warzone.Adapters
             Object.Destroy(projectile.GetComponent<Collider>());
             ProjectileView projectileView = projectile.AddComponent<ProjectileView>();
             projectileView.Launch(start, target, speed, color);
+        }
+
+        private void SpawnDamageNumber(Vector3 position, int amount, Color color)
+        {
+            GameObject root = new GameObject("DamageNumber");
+            root.transform.position = position;
+            DamageNumberView damageNumberView = root.AddComponent<DamageNumberView>();
+            damageNumberView.Initialize(_mainCamera, amount.ToString(), color);
+        }
+
+        private static void SpawnMuzzleFlash(Vector3 position, Color color)
+        {
+            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            flash.name = "MuzzleFlash";
+            flash.transform.position = position;
+            flash.transform.localScale = new Vector3(0.24f, 0.24f, 0.24f);
+            Renderer renderer = flash.GetComponent<Renderer>();
+            renderer.material.color = color;
+            Object.Destroy(flash.GetComponent<Collider>());
+            flash.AddComponent<MuzzleFlashView>();
         }
 
         private static Color? GetStatusTint(BattleUnitState unit)

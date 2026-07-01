@@ -19,7 +19,7 @@ namespace Warzone.Controls
             return new MainMenuViewModel
             {
                 Title = "WARZONE",
-                Subtitle = "Singleplayer Tactical RTS Demo",
+                Subtitle = "PMC Strike Team vs Red Hand Militia",
                 PrimaryActionLabel = "New Operation",
                 TertiaryActionLabel = "Credits",
                 SecondaryActionLabel = "Exit",

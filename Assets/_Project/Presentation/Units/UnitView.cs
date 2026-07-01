@@ -81,6 +81,16 @@ namespace Warzone.Presentation.Units
             ApplyColorOverride(deadColor);
         }
 
+        public void SetFade(float alpha)
+        {
+            for (int i = 0; i < targetRenderers.Length; i++)
+            {
+                Color color = targetRenderers[i].material.color;
+                color.a = alpha;
+                targetRenderers[i].material.color = color;
+            }
+        }
+
         public void FlashHit()
         {
             if (_isDead)

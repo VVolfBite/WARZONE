@@ -14,6 +14,7 @@ namespace Warzone.Adapters
         [SerializeField] private bool isDead;
         private Vector3 _aliveScale = Vector3.one;
         private float _deathSinkOffset;
+        private float _deathFade = 1f;
         private float _hitFlashTime;
         private float _rangePulseTime;
         private Color? _statusTint;
@@ -82,6 +83,7 @@ namespace Warzone.Adapters
 
             transform.localScale = new Vector3(_aliveScale.x, _aliveScale.y * 0.35f, _aliveScale.z);
             _deathSinkOffset = 0.65f;
+            _deathFade = 1f;
         }
 
         public void SetHealth(float currentHealthNormalized)
@@ -145,6 +147,11 @@ namespace Warzone.Adapters
             float applied = Mathf.Min(sinkStep, _deathSinkOffset);
             transform.position += Vector3.down * applied;
             _deathSinkOffset -= applied;
+            _deathFade = Mathf.Max(0f, _deathFade - (Time.deltaTime * 0.55f));
+            if (unitView != null)
+            {
+                unitView.SetFade(_deathFade);
+            }
         }
     }
 }

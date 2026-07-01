@@ -17,7 +17,9 @@ namespace Warzone.Combat
         private readonly Dictionary<string, StatusEffectDefinition> _statusEffectLibrary = new Dictionary<string, StatusEffectDefinition>
         {
             ["effect.support.heal"] = new StatusEffectDefinition("effect.support.heal", "Healing Aura", 2f, 0.5f, 0, 1, 1f, 1f),
-            ["effect.zombie.toxic"] = new StatusEffectDefinition("effect.zombie.toxic", "Toxic Cloud", 4f, 1f, 1, 0, 0.8f, 0.9f)
+            ["effect.zombie.toxic"] = new StatusEffectDefinition("effect.zombie.toxic", "Toxic Cloud", 4f, 1f, 1, 0, 0.8f, 0.9f),
+            ["effect.suppression"] = new StatusEffectDefinition("effect.suppression", "Suppressed", 3f, 1f, 0, 0, 0.75f, 0.85f),
+            ["effect.warlord.rage"] = new StatusEffectDefinition("effect.warlord.rage", "Rage", 5f, 1f, 0, 0, 1.15f, 1.2f)
         };
         private readonly int _seed;
         private float _elapsedTimeSeconds;

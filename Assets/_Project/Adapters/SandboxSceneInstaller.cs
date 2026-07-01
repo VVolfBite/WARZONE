@@ -63,6 +63,10 @@ namespace Warzone.Adapters
             CreateEnvironmentBlock("House_B", new Vector3(15f, 1.5f, 10f), new Vector3(3.5f, 3f, 3.5f), new Color(0.63f, 0.57f, 0.39f));
             CreateEnvironmentBlock("CrateStack_A", new Vector3(3f, 0.65f, 9f), new Vector3(1.5f, 1.3f, 1.5f), new Color(0.56f, 0.38f, 0.22f));
             CreateEnvironmentBlock("CrateStack_B", new Vector3(-2f, 0.65f, -6f), new Vector3(1.3f, 1.3f, 1.3f), new Color(0.52f, 0.34f, 0.2f));
+            CreateTerrainZone("Terrain_Forest", new Vector3(-6f, 0.02f, 7f), new Vector3(6.6f, 0.02f, 6.6f), new Color(0.18f, 0.4f, 0.2f));
+            CreateTerrainZone("Terrain_Rough", new Vector3(7f, 0.02f, -8f), new Vector3(5.8f, 0.02f, 5.8f), new Color(0.52f, 0.42f, 0.28f));
+            CreateTerrainZone("Terrain_Road", new Vector3(3f, 0.02f, 9f), new Vector3(5f, 0.02f, 5f), new Color(0.42f, 0.42f, 0.42f));
+            CreateTerrainZone("Terrain_Water", new Vector3(-2f, 0.02f, -6f), new Vector3(4.4f, 0.02f, 4.4f), new Color(0.2f, 0.38f, 0.62f));
         }
 
         private static void CreateEnvironmentBlock(string name, Vector3 position, Vector3 scale, Color color)
@@ -79,6 +83,21 @@ namespace Warzone.Adapters
             Renderer renderer = block.GetComponent<Renderer>();
             renderer.material.color = color;
             block.AddComponent<ObstacleVolume>();
+        }
+
+        private static void CreateTerrainZone(string name, Vector3 position, Vector3 scale, Color color)
+        {
+            if (GameObject.Find(name) != null)
+            {
+                return;
+            }
+
+            GameObject zone = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            zone.name = name;
+            zone.transform.position = position;
+            zone.GetComponent<Collider>().enabled = false;
+            TerrainZoneView terrainZoneView = zone.AddComponent<TerrainZoneView>();
+            terrainZoneView.Initialize(color, scale);
         }
 
         private static Camera EnsureCamera()
