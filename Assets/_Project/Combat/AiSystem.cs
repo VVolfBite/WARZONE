@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Numerics;
 using Warzone.Content.Definitions;
 
@@ -33,14 +32,76 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                if (blackboard.DistanceToTarget <= 3.5f)
+                AiDecision decision = EvaluateDecision(blackboard);
+                ExecuteDecision(battleSession, squad, blackboard, decision);
+            }
+        }
+
+        private static AiDecision EvaluateDecision(AiBlackboard blackboard)
+        {
+            if (!blackboard.HasTarget)
+            {
+                return AiDecision.Idle;
+            }
+
+            if (blackboard.SelfDefinitionId == "unit.rpg")
+            {
+                if (blackboard.DistanceToTarget < 8f)
                 {
+                    return AiDecision.Retreat;
+                }
+
+                return blackboard.DistanceToTarget <= 16f ? AiDecision.AttackTarget : AiDecision.MoveToTarget;
+            }
+
+            if (blackboard.SelfDefinitionId == "unit.technical")
+            {
+                return blackboard.DistanceToTarget <= 18f ? AiDecision.Strafe : AiDecision.MoveToTarget;
+            }
+
+            if (blackboard.SelfDefinitionId == "unit.warlord")
+            {
+                if (blackboard.HealthRatio <= 0.35f)
+                {
+                    return AiDecision.UseAbility;
+                }
+
+                return blackboard.DistanceToTarget <= 20f ? AiDecision.AttackTarget : AiDecision.MoveToTarget;
+            }
+
+            return blackboard.DistanceToTarget <= 12f ? AiDecision.AttackTarget : AiDecision.MoveToTarget;
+        }
+
+        private static void ExecuteDecision(BattleSession battleSession, BattleSquadState squad, AiBlackboard blackboard, AiDecision decision)
+        {
+            switch (decision)
+            {
+                case AiDecision.AttackTarget:
                     battleSession.ExecuteCommand(new Command(CommandType.Attack, squad.SquadId, blackboard.TargetSquadId));
-                }
-                else
-                {
+                    break;
+                case AiDecision.MoveToTarget:
                     battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.TargetPosition));
-                }
+                    break;
+                case AiDecision.Retreat:
+                    Vector2 retreatDirection = Vector2.Normalize(blackboard.SelfPosition - blackboard.TargetPosition);
+                    battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.SelfPosition + (retreatDirection * 6f)));
+                    break;
+                case AiDecision.Strafe:
+                    Vector2 offset = blackboard.TargetPosition - blackboard.SelfPosition;
+                    Vector2 strafeDirection = Vector2.Normalize(new Vector2(-offset.Y, offset.X));
+                    battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.TargetPosition + (strafeDirection * 5f)));
+                    break;
+                case AiDecision.UseAbility:
+                    UnitDefinition definition = battleSession.GetPrimaryDefinition(squad);
+                    if (definition != null && !string.IsNullOrEmpty(definition.ActiveAbilityId))
+                    {
+                        battleSession.ExecuteCommand(new Command(CommandType.UseAbility, squad.SquadId, abilityId: definition.ActiveAbilityId));
+                    }
+                    else
+                    {
+                        battleSession.ExecuteCommand(new Command(CommandType.Attack, squad.SquadId, blackboard.TargetSquadId));
+                    }
+                    break;
             }
         }
 
@@ -49,7 +110,9 @@ namespace Warzone.Combat
             AiBlackboard blackboard = new AiBlackboard
             {
                 SelfSquadId = sourceSquad.SquadId,
-                SelfPosition = sourceSquad.Position
+                SelfPosition = sourceSquad.Position,
+                SelfDefinitionId = sourceSquad.Units.Count > 0 ? sourceSquad.Units[0].DefinitionId : string.Empty,
+                HealthRatio = BuildHealthRatio(battleSession, sourceSquad)
             };
 
             BattleSquadState nearest = null;
@@ -80,6 +143,23 @@ namespace Warzone.Combat
             }
 
             return blackboard;
+        }
+
+        private static float BuildHealthRatio(BattleSession battleSession, BattleSquadState sourceSquad)
+        {
+            if (sourceSquad.Units.Count == 0)
+            {
+                return 1f;
+            }
+
+            BattleUnitState unit = sourceSquad.Units[0];
+            int maxHealth = battleSession.GetMaxHealth(unit);
+            if (maxHealth <= 0)
+            {
+                return 1f;
+            }
+
+            return (float)unit.CurrentHealth / maxHealth;
         }
     }
 }

@@ -37,6 +37,18 @@ namespace Warzone.Combat
                     return false;
                 }
             }
+            else if (!string.IsNullOrEmpty(ability.AppliedStatusEffectId))
+            {
+                if (!battleSession.TryGetStatusEffectDefinition(ability.AppliedStatusEffectId, out StatusEffectDefinition definition))
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < sourceSquad.Units.Count; i++)
+                {
+                    battleSession.ApplyStatusEffect(sourceSquad.Units[i], definition);
+                }
+            }
 
             sourceSquad.ResetAbilityCooldown(ability.CooldownSeconds);
             return true;

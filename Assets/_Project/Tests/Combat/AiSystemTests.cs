@@ -26,6 +26,37 @@ namespace Warzone.Tests.Combat
             Assert.That(enemy.CommandState, Is.EqualTo(SquadCommandState.Moving).Or.EqualTo(SquadCommandState.Attacking));
         }
 
+        [Test]
+        public void Tick_WhenEnemyIsRpgAndTargetTooClose_Retreats()
+        {
+            WeaponDefinition playerWeapon = new WeaponDefinition("weapon.player", 4f, 1f, 3, 16f, DamageType.Piercing);
+            WeaponDefinition enemyWeapon = new WeaponDefinition("weapon.rpg", 16f, 2f, 6, 12f, DamageType.Explosive);
+
+            ContentCatalog catalog = new ContentCatalog(
+                new Dictionary<string, UnitDefinition>
+                {
+                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium),
+                    ["unit.rpg"] = new UnitDefinition("unit.rpg", "RPG", FactionId.Enemy, 14, 2.5f, enemyWeapon, 16f, 0.5f, ArmorType.Light)
+                },
+                new Dictionary<string, MissionDefinition>());
+
+            BattleSession session = new BattleSession(
+                new List<BattleSquadState>
+                {
+                    new BattleSquadState(1, FactionId.Player, new System.Numerics.Vector2(0f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(1), "unit.player", FactionId.Player, 10) }),
+                    new BattleSquadState(2, FactionId.Enemy, new System.Numerics.Vector2(3f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(101), "unit.rpg", FactionId.Enemy, 14) })
+                },
+                new CommandProcessor(),
+                new CombatResolver(catalog, TerrainMap.CreateDefault()),
+                seed: 13,
+                terrainMap: TerrainMap.CreateDefault());
+
+            AiSystem aiSystem = new AiSystem();
+            aiSystem.Tick(session, 1f);
+
+            Assert.That(session.Squads[1].CommandState, Is.EqualTo(SquadCommandState.Moving));
+        }
+
         private static IReadOnlyList<BattleSquadState> BuildSquads()
         {
             return new List<BattleSquadState>
