@@ -137,6 +137,34 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void CombatSource_DoesNotReferenceRuntimeOrCampaignLayers()
+        {
+            string combatDirectory = Path.Combine("Assets", "_Project", "Combat");
+            AssertDirectoryDoesNotContain(combatDirectory, "Warzone.Campaign");
+            AssertDirectoryDoesNotContain(combatDirectory, "Warzone.Application");
+            AssertDirectoryDoesNotContain(combatDirectory, "Warzone.Runtime");
+            AssertDirectoryDoesNotContain(combatDirectory, "Warzone.Sandbox");
+        }
+
+        [Test]
+        public void CampaignSource_DoesNotReferenceCombatOrRuntimeLayers()
+        {
+            string campaignDirectory = Path.Combine("Assets", "_Project", "Campaign");
+            AssertDirectoryDoesNotContain(campaignDirectory, "Warzone.Combat");
+            AssertDirectoryDoesNotContain(campaignDirectory, "Warzone.Application");
+            AssertDirectoryDoesNotContain(campaignDirectory, "Warzone.Runtime");
+            AssertDirectoryDoesNotContain(campaignDirectory, "Warzone.Sandbox");
+        }
+
+        [Test]
+        public void ApplicationSource_DoesNotReferenceRuntimeOrSandboxLayers()
+        {
+            string applicationDirectory = Path.Combine("Assets", "_Project", "Application");
+            AssertDirectoryDoesNotContain(applicationDirectory, "Warzone.Runtime");
+            AssertDirectoryDoesNotContain(applicationDirectory, "Warzone.Sandbox");
+        }
+
+        [Test]
         public void RuntimeAndSandbox_DoNotUseLegacyNamespaces()
         {
             string adaptersNamespace = BuildNamespaceToken("Adapters");

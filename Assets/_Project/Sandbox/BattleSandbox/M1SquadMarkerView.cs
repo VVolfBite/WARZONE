@@ -1,0 +1,31 @@
+using UnityEngine;
+
+namespace Warzone.Sandbox.BattleSandbox
+{
+    public sealed class M1SquadMarkerView : MonoBehaviour
+    {
+        [SerializeField] private int squadId;
+        [SerializeField] private Renderer cachedRenderer;
+
+        public int SquadId
+        {
+            get { return squadId; }
+        }
+
+        public void Initialize(int newSquadId, Renderer renderer)
+        {
+            squadId = newSquadId;
+            cachedRenderer = renderer;
+        }
+
+        public void SetSelected(bool isSelected)
+        {
+            if (cachedRenderer == null)
+            {
+                return;
+            }
+
+            cachedRenderer.material.color = isSelected ? new Color(0.95f, 0.95f, 0.25f) : new Color(0.65f, 0.65f, 0.2f);
+        }
+    }
+}
