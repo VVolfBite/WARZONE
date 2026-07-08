@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using NUnit.Framework;
 using Warzone.Combat;
 using Warzone.Content;
@@ -95,3 +95,5 @@ namespace Warzone.Tests.Combat
         }
     }
 }
+
+

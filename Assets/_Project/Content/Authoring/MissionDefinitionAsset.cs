@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Warzone.Content.Authoring
 {
@@ -16,3 +16,5 @@ namespace Warzone.Content.Authoring
         public int EnemySquadCount => enemySquadCount;
     }
 }
+
+

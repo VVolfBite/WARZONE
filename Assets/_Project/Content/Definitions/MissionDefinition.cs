@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public sealed class MissionDefinition
     {
@@ -14,9 +14,12 @@ namespace Warzone.Content.Definitions
             EnemySquadCount = enemySquadCount;
         }
 
-        public string Id { get; }
-        public string DisplayName { get; }
-        public int PlayerSquadCount { get; }
-        public int EnemySquadCount { get; }
+        public string Id { get; private set; }
+        public string DisplayName { get; private set; }
+        public int PlayerSquadCount { get; private set; }
+        public int EnemySquadCount { get; private set; }
     }
 }
+
+
+

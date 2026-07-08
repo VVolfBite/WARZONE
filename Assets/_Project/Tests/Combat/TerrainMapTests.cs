@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Warzone.Combat;
 
 namespace Warzone.Tests.Combat
@@ -15,3 +15,5 @@ namespace Warzone.Tests.Combat
         }
     }
 }
+
+

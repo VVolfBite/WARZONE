@@ -1,5 +1,5 @@
-using Warzone.Combat;
-using Warzone.Meta;
+﻿using Warzone.Combat;
+using Warzone.Campaign;
 
 namespace Warzone.Application
 {
@@ -28,7 +28,26 @@ namespace Warzone.Application
         public MetaSettlementResult CompleteMission(BattleResult battleResult)
         {
             _gameFlow.ExitMission();
-            return _progressionService.ApplyBattleResult(battleResult);
+            return _progressionService.ApplySettlement(BuildSettlement(battleResult));
+        }
+
+        private static CampaignSettlement BuildSettlement(BattleResult battleResult)
+        {
+            int keptUnits = 0;
+            for (int i = 0; i < battleResult.UnitOutcomes.Count; i++)
+            {
+                if (battleResult.UnitOutcomes[i].Survived)
+                {
+                    keptUnits++;
+                }
+            }
+
+            return new CampaignSettlement(
+                missionCompleted: battleResult.MissionOutcome == MissionOutcome.Victory,
+                unitsLost: battleResult.Casualties.Count,
+                unitsKept: keptUnits);
         }
     }
 }
+
+

@@ -1,0 +1,25 @@
+{
+    "name": "Warzone.Editor",
+    "rootNamespace": "Warzone.Editor",
+    "references": [
+        "Warzone.Core",
+        "Warzone.Content",
+        "Warzone.Content.Authoring",
+        "Warzone.Combat",
+        "Warzone.Campaign",
+        "Warzone.Application",
+        "Warzone.Runtime",
+        "Warzone.Sandbox"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

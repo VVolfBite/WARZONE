@@ -2,9 +2,8 @@
     "name": "Warzone.Application",
     "rootNamespace": "Warzone.Application",
     "references": [
-        "Warzone.Foundation",
-        "Warzone.Framework",
-        "Warzone.Meta",
+        "Warzone.Core",
+        "Warzone.Campaign",
         "Warzone.Combat",
         "Warzone.Content"
     ],
@@ -16,5 +15,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

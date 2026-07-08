@@ -1,0 +1,17 @@
+{
+    "name": "Warzone.Campaign",
+    "rootNamespace": "Warzone.Campaign",
+    "references": [
+        "Warzone.Core",
+        "Warzone.Content"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

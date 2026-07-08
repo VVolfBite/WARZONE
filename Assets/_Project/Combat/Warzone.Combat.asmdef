@@ -2,7 +2,7 @@
     "name": "Warzone.Combat",
     "rootNamespace": "Warzone.Combat",
     "references": [
-        "Warzone.Foundation",
+        "Warzone.Core",
         "Warzone.Content"
     ],
     "includePlatforms": [],

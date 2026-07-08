@@ -1,4 +1,4 @@
-namespace Warzone.Application
+﻿namespace Warzone.Application
 {
     public sealed class GameFlow : IGameFlowStateReader
     {
@@ -15,3 +15,5 @@ namespace Warzone.Application
         }
     }
 }
+
+

@@ -2,7 +2,7 @@
     "name": "Warzone.Content.Authoring",
     "rootNamespace": "Warzone.Content.Authoring",
     "references": [
-        "Warzone.Foundation",
+        "Warzone.Core",
         "Warzone.Content"
     ],
     "includePlatforms": [],

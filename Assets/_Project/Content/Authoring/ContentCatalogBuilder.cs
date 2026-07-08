@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Content.Authoring
@@ -59,3 +59,5 @@ namespace Warzone.Content.Authoring
         }
     }
 }
+
+

@@ -1,6 +1,6 @@
-using Warzone.Combat;
+﻿using Warzone.Combat;
 using Warzone.Content.Definitions;
-using Warzone.Meta;
+using Warzone.Campaign;
 
 namespace Warzone.Application
 {
@@ -26,9 +26,9 @@ namespace Warzone.Application
             Seed = seed;
         }
 
-        public MissionDefinition MissionDefinition { get; }
-        public RosterSnapshot RosterSnapshot { get; }
-        public int Seed { get; }
+        public MissionDefinition MissionDefinition { get; private set; }
+        public RosterSnapshot RosterSnapshot { get; private set; }
+        public int Seed { get; private set; }
     }
 
     public interface IBattleRuntimeHost
@@ -37,3 +37,5 @@ namespace Warzone.Application
         void FinishBattle(BattleResult result);
     }
 }
+
+

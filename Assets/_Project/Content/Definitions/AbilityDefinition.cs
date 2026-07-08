@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public sealed class AbilityDefinition
     {
@@ -12,11 +12,14 @@ namespace Warzone.Content.Definitions
             AppliedStatusEffectId = appliedStatusEffectId;
         }
 
-        public string Id { get; }
-        public string DisplayName { get; }
-        public float CooldownSeconds { get; }
-        public float Range { get; }
-        public int HealAmount { get; }
-        public string AppliedStatusEffectId { get; }
+        public string Id { get; private set; }
+        public string DisplayName { get; private set; }
+        public float CooldownSeconds { get; private set; }
+        public float Range { get; private set; }
+        public int HealAmount { get; private set; }
+        public string AppliedStatusEffectId { get; private set; }
     }
 }
+
+
+

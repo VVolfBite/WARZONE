@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public enum FactionId
     {
@@ -7,3 +7,5 @@ namespace Warzone.Content.Definitions
         Enemy = 2,
     }
 }
+
+

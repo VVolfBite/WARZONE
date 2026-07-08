@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public sealed class UnitDefinition
     {
@@ -28,16 +28,19 @@ namespace Warzone.Content.Definitions
             ActiveAbilityId = activeAbilityId;
         }
 
-        public string Id { get; }
-        public string DisplayName { get; }
-        public FactionId FactionId { get; }
-        public int MaxHealth { get; }
-        public float MoveSpeed { get; }
-        public WeaponDefinition Weapon { get; }
-        public float AggroRange { get; }
-        public float CollisionRadius { get; }
-        public ArmorType ArmorType { get; }
-        public string DefaultStatusEffectId { get; }
-        public string ActiveAbilityId { get; }
+        public string Id { get; private set; }
+        public string DisplayName { get; private set; }
+        public FactionId FactionId { get; private set; }
+        public int MaxHealth { get; private set; }
+        public float MoveSpeed { get; private set; }
+        public WeaponDefinition Weapon { get; private set; }
+        public float AggroRange { get; private set; }
+        public float CollisionRadius { get; private set; }
+        public ArmorType ArmorType { get; private set; }
+        public string DefaultStatusEffectId { get; private set; }
+        public string ActiveAbilityId { get; private set; }
     }
 }
+
+
+

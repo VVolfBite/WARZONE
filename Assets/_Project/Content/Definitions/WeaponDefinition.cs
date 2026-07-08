@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public sealed class WeaponDefinition
     {
@@ -18,11 +18,14 @@ namespace Warzone.Content.Definitions
             DamageType = damageType;
         }
 
-        public string Id { get; }
-        public float Range { get; }
-        public float AttackIntervalSeconds { get; }
-        public int DamagePerHit { get; }
-        public float ProjectileSpeed { get; }
-        public DamageType DamageType { get; }
+        public string Id { get; private set; }
+        public float Range { get; private set; }
+        public float AttackIntervalSeconds { get; private set; }
+        public int DamagePerHit { get; private set; }
+        public float ProjectileSpeed { get; private set; }
+        public DamageType DamageType { get; private set; }
     }
 }
+
+
+

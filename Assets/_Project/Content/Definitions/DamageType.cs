@@ -1,4 +1,4 @@
-namespace Warzone.Content.Definitions
+﻿namespace Warzone.Content.Definitions
 {
     public enum DamageType
     {
@@ -8,3 +8,5 @@ namespace Warzone.Content.Definitions
         Piercing = 3
     }
 }
+
+

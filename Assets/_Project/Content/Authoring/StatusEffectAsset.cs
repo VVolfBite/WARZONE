@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Warzone.Content.Authoring
 {
@@ -24,3 +24,5 @@ namespace Warzone.Content.Authoring
         public float RangeMultiplier => rangeMultiplier;
     }
 }
+
+

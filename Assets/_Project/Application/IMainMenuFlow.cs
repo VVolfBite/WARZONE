@@ -1,4 +1,4 @@
-namespace Warzone.Application
+﻿namespace Warzone.Application
 {
     public interface IMainMenuFlow
     {
@@ -6,3 +6,5 @@ namespace Warzone.Application
         void ReturnToMenu();
     }
 }
+
+

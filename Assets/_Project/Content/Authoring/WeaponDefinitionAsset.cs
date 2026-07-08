@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Content.Authoring
@@ -21,3 +21,5 @@ namespace Warzone.Content.Authoring
         public DamageType DamageType => damageType;
     }
 }
+
+

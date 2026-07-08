@@ -1,0 +1,21 @@
+{
+    "name": "Warzone.Sandbox",
+    "rootNamespace": "Warzone.Sandbox",
+    "references": [
+        "Warzone.Runtime",
+        "Warzone.Application",
+        "Warzone.Combat",
+        "Warzone.Campaign",
+        "Warzone.Content",
+        "Warzone.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

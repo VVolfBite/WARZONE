@@ -1,0 +1,21 @@
+{
+    "name": "Warzone.Runtime",
+    "rootNamespace": "Warzone.Runtime",
+    "references": [
+        "Warzone.Core",
+        "Warzone.Content",
+        "Warzone.Combat",
+        "Warzone.Campaign",
+        "Warzone.Application",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
