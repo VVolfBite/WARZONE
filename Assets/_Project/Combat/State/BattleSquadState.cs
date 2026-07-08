@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -13,7 +13,7 @@ namespace Warzone.Combat
         public BattleSquadState(
             int squadId,
             FactionId factionId,
-            Vector2 position,
+            Vec2 position,
             IReadOnlyList<BattleUnitState> units)
         {
             SquadId = squadId;
@@ -30,7 +30,7 @@ namespace Warzone.Combat
         public BattleSquadState(
             int squadId,
             FactionId factionId,
-            Vector2 position,
+            Vec2 position,
             IReadOnlyList<BattleEntityId> memberIds,
             float formationSpacing = 1.5f)
         {
@@ -47,21 +47,22 @@ namespace Warzone.Combat
 
         public int SquadId { get; private set; }
         public FactionId FactionId { get; private set; }
-        public Vector2 Position { get; private set; }
+        public Vec2 Position { get; private set; }
         public IReadOnlyList<BattleUnitState> Units { get; private set; }
+
         public IReadOnlyList<BattleEntityId> MemberIds
         {
             get { return _memberIds; }
         }
 
-        public Vector2? MoveDestination { get; private set; }
+        public Vec2? MoveDestination { get; private set; }
         public int? AttackTargetSquadId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
         public BattleCommand CurrentOrder { get; private set; }
         public SquadStance Stance { get; private set; }
         public float FormationSpacing { get; private set; }
-        public Vector2 DesiredPosition { get; private set; }
-        public Vector2 RallyPosition { get; private set; }
+        public Vec2 DesiredPosition { get; private set; }
+        public Vec2 RallyPosition { get; private set; }
 
         public float AbilityCooldownRemaining
         {
@@ -79,12 +80,17 @@ namespace Warzone.Combat
         {
             get
             {
-                for (int i = 0; i < Units.Count; i++)
+                if (Units.Count > 0)
                 {
-                    if (Units[i].IsAlive)
+                    for (int i = 0; i < Units.Count; i++)
                     {
-                        return true;
+                        if (Units[i].IsAlive)
+                        {
+                            return true;
+                        }
                     }
+
+                    return false;
                 }
 
                 return _memberIds.Count > 0;
@@ -108,7 +114,7 @@ namespace Warzone.Combat
             }
         }
 
-        public void SetMoveDestination(Vector2 destination)
+        public void SetMoveDestination(Vec2 destination)
         {
             MoveDestination = destination;
             AttackTargetSquadId = null;
@@ -165,7 +171,7 @@ namespace Warzone.Combat
             _abilityCooldownRemaining = cooldownSeconds;
         }
 
-        public void UpdatePosition(Vector2 position)
+        public void UpdatePosition(Vec2 position)
         {
             Position = position;
         }
@@ -175,7 +181,7 @@ namespace Warzone.Combat
             CurrentOrder = order;
         }
 
-        public void SetDesiredPosition(Vector2 desiredPosition)
+        public void SetDesiredPosition(Vec2 desiredPosition)
         {
             DesiredPosition = desiredPosition;
             RallyPosition = desiredPosition;

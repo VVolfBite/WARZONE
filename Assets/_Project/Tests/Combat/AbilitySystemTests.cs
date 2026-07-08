@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Content.Definitions;
+using Warzone.Core.Math;
 
 namespace Warzone.Tests.Combat
 {
@@ -29,7 +30,7 @@ namespace Warzone.Tests.Combat
             BattleSquadState support = new BattleSquadState(
                 1,
                 FactionId.Player,
-                new System.Numerics.Vector2(0f, 0f),
+                new Vec2(0f, 0f),
                 new List<BattleUnitState>
                 {
                     new BattleUnitState(new BattleEntityId(1), "unit.support", FactionId.Player, 12)
@@ -39,7 +40,7 @@ namespace Warzone.Tests.Combat
             BattleSquadState ally = new BattleSquadState(
                 2,
                 FactionId.Player,
-                new System.Numerics.Vector2(2f, 0f),
+                new Vec2(2f, 0f),
                 new List<BattleUnitState>
                 {
                     damagedUnit
@@ -61,5 +62,6 @@ namespace Warzone.Tests.Combat
         }
     }
 }
+
 
 

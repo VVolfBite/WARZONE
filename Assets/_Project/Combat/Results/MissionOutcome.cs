@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public enum MissionOutcome
     {
@@ -7,5 +7,6 @@
         Defeat = 2,
     }
 }
+
 
 

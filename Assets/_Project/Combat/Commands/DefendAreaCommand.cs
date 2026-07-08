@@ -1,10 +1,10 @@
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
     public sealed class DefendAreaCommand : BattleCommand
     {
-        public DefendAreaCommand(int squadId, Vector2 areaCenter, float radius)
+        public DefendAreaCommand(int squadId, Vec2 areaCenter, float radius)
             : base(squadId)
         {
             AreaCenter = areaCenter;
@@ -16,7 +16,8 @@ namespace Warzone.Combat
             get { return "DefendArea"; }
         }
 
-        public Vector2 AreaCenter { get; private set; }
+        public Vec2 AreaCenter { get; private set; }
         public float Radius { get; private set; }
     }
 }
+

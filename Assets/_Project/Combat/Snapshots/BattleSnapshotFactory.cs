@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -9,6 +9,7 @@ namespace Warzone.Combat
         {
             List<BattleSquadSnapshot> squads = new List<BattleSquadSnapshot>();
             List<BattleMemberSnapshot> members = new List<BattleMemberSnapshot>();
+            List<BattleEnemySnapshot> enemies = new List<BattleEnemySnapshot>();
 
             if (battleState != null)
             {
@@ -46,9 +47,24 @@ namespace Warzone.Combat
                         memberState.Health,
                         memberState.MaxHealth,
                         memberState.IsAlive,
+                        memberState.WeaponId,
+                        memberState.CurrentTargetEnemyId,
+                        memberState.AttackCooldownRemaining,
                         memberState.CurrentIntent != null ? memberState.CurrentIntent.IntentType.ToString() : "None",
-                        memberState.CurrentIntent != null ? memberState.CurrentIntent.TargetPosition : (Vector2?)null,
+                        memberState.CurrentIntent != null ? memberState.CurrentIntent.TargetPosition : (Vec2?)null,
                         memberState.CurrentIntent != null && memberState.CurrentIntent.IsCompleted));
+                }
+
+                foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
+                {
+                    enemies.Add(new BattleEnemySnapshot(
+                        enemyState.EnemyId,
+                        enemyState.DefinitionId,
+                        enemyState.FactionId,
+                        enemyState.Position,
+                        enemyState.Health,
+                        enemyState.MaxHealth,
+                        enemyState.IsAlive));
                 }
             }
 
@@ -56,7 +72,9 @@ namespace Warzone.Combat
                 battleState != null ? battleState.BattleId : string.Empty,
                 battleState != null ? battleState.ElapsedTimeSeconds : 0f,
                 squads,
-                members);
+                members,
+                enemies,
+                battleState != null ? new List<BattleEventRecord>(battleState.RecentEvents) : new List<BattleEventRecord>());
         }
     }
 }

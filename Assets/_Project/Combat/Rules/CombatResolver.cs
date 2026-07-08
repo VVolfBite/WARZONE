@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Content;
 using Warzone.Content.Definitions;
 
@@ -157,7 +157,7 @@ namespace Warzone.Combat
 
         public static float GetDistance(BattleSquadState squadA, BattleSquadState squadB)
         {
-            return Vector2.Distance(squadA.Position, squadB.Position);
+            return Vec2.Distance(squadA.Position, squadB.Position);
         }
 
         private UnitDefinition GetDefinition(string definitionId)
@@ -166,7 +166,7 @@ namespace Warzone.Combat
             return _contentCatalog.Units.TryGetValue(definitionId, out definition) ? definition : null;
         }
 
-        private float GetTerrainMoveModifier(Vector2 position)
+        private float GetTerrainMoveModifier(Vec2 position)
         {
             if (_terrainMap == null)
             {
@@ -176,7 +176,7 @@ namespace Warzone.Combat
             return _terrainMap.GetMoveSpeedMultiplier(position);
         }
 
-        private float GetTerrainDefenseModifier(Vector2 position)
+        private float GetTerrainDefenseModifier(Vec2 position)
         {
             if (_terrainMap == null)
             {
@@ -209,4 +209,5 @@ namespace Warzone.Combat
         }
     }
 }
+
 

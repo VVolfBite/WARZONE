@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public enum AiDecision
     {
@@ -11,5 +11,6 @@
         UseAbility = 6,
     }
 }
+
 
 

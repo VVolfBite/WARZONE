@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -37,29 +37,29 @@ namespace Warzone.Combat
                 return;
             }
 
-            Vector2 direction = squadState.DesiredPosition - squadState.Position;
-            if (direction.LengthSquared() <= 0.0001f)
+            Vec2 direction = squadState.DesiredPosition - squadState.Position;
+            if (direction.LengthSquared <= 0.0001f)
             {
-                direction = new Vector2(0f, 1f);
+                direction = new Vec2(0f, 1f);
             }
             else
             {
-                direction = Vector2.Normalize(direction);
+                direction = Vec2.Normalize(direction);
             }
 
-            Vector2 right = new Vector2(-direction.Y, direction.X);
+            Vec2 right = new Vec2(-direction.Y, direction.X);
             float halfWidth = (livingMembers.Count - 1) * squadState.FormationSpacing * 0.5f;
 
             for (int i = 0; i < livingMembers.Count; i++)
             {
                 BattleMemberState memberState = livingMembers[i];
-                Vector2 target = squadState.DesiredPosition + (right * ((i * squadState.FormationSpacing) - halfWidth));
+                Vec2 target = squadState.DesiredPosition + (right * ((i * squadState.FormationSpacing) - halfWidth));
                 ApplyIntent(memberState, target);
-                battleState.EventBuffer.Add(new BattleEventRecord("MemberIntentAssigned", squadState.SquadId, memberState.MemberId, target.ToString()));
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberIntentAssigned, squadState.SquadId, memberState.MemberId, target.ToString()));
             }
         }
 
-        private static void ApplyIntent(BattleMemberState memberState, Vector2 targetPosition)
+        private static void ApplyIntent(BattleMemberState memberState, Vec2 targetPosition)
         {
             if (memberState.CurrentIntent == null)
             {
@@ -73,11 +73,13 @@ namespace Warzone.Combat
                 return;
             }
 
-            Vector2 delta = memberState.CurrentIntent.TargetPosition - targetPosition;
-            if (delta.LengthSquared() > 0.0001f)
+            Vec2 delta = memberState.CurrentIntent.TargetPosition - targetPosition;
+            if (delta.LengthSquared > 0.0001f)
             {
                 memberState.CurrentIntent.UpdateTarget(targetPosition);
             }
         }
     }
 }
+
+

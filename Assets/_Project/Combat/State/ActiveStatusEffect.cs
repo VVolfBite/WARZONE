@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public sealed class ActiveStatusEffect
     {
@@ -16,4 +16,5 @@
         public int StackCount { get; set; }
     }
 }
+
 

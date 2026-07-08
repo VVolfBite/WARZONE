@@ -1,4 +1,4 @@
-﻿namespace Warzone.Content.Definitions
+namespace Warzone.Content.Definitions
 {
     public sealed class UnitDefinition
     {
@@ -26,6 +26,9 @@
             ArmorType = armorType;
             DefaultStatusEffectId = defaultStatusEffectId;
             ActiveAbilityId = activeAbilityId;
+            DetectionRange = aggroRange;
+            AttackRange = weapon != null ? weapon.Range : 0f;
+            Accuracy = weapon != null ? weapon.Accuracy : 1f;
         }
 
         public string Id { get; private set; }
@@ -39,8 +42,8 @@
         public ArmorType ArmorType { get; private set; }
         public string DefaultStatusEffectId { get; private set; }
         public string ActiveAbilityId { get; private set; }
+        public float DetectionRange { get; private set; }
+        public float AttackRange { get; private set; }
+        public float Accuracy { get; private set; }
     }
 }
-
-
-

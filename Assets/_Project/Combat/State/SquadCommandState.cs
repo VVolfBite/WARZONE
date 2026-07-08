@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public enum SquadCommandState
     {
@@ -7,5 +7,6 @@
         Attacking = 2,
     }
 }
+
 
 

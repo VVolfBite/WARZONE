@@ -11,3 +11,4 @@ namespace Warzone.Combat
         public abstract string Name { get; }
     }
 }
+

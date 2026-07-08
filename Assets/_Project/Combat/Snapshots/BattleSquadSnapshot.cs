@@ -1,4 +1,4 @@
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -8,8 +8,8 @@ namespace Warzone.Combat
         public BattleSquadSnapshot(
             int squadId,
             FactionId factionId,
-            Vector2 position,
-            Vector2 desiredPosition,
+            Vec2 position,
+            Vec2 desiredPosition,
             string currentCommand,
             SquadStance stance,
             int memberCount,
@@ -29,8 +29,8 @@ namespace Warzone.Combat
 
         public int SquadId { get; private set; }
         public FactionId FactionId { get; private set; }
-        public Vector2 Position { get; private set; }
-        public Vector2 DesiredPosition { get; private set; }
+        public Vec2 Position { get; private set; }
+        public Vec2 DesiredPosition { get; private set; }
         public string CurrentCommand { get; private set; }
         public SquadStance Stance { get; private set; }
         public int MemberCount { get; private set; }
@@ -38,3 +38,4 @@ namespace Warzone.Combat
         public float FormationSpacing { get; private set; }
     }
 }
+

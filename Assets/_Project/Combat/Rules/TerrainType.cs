@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public enum TerrainType
     {
@@ -9,5 +9,6 @@
         Water = 4
     }
 }
+
 
 

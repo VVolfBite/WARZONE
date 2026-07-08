@@ -1,4 +1,4 @@
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -41,24 +41,24 @@ namespace Warzone.Combat
                 return;
             }
 
-            Vector2 delta = memberState.CurrentIntent.TargetPosition - memberState.Position;
-            float distance = delta.Length();
+            Vec2 delta = memberState.CurrentIntent.TargetPosition - memberState.Position;
+            float distance = delta.Magnitude;
             if (distance <= _arrivalThreshold)
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 memberState.CurrentIntent.MarkCompleted();
-                battleState.EventBuffer.Add(new BattleEventRecord("MemberReachedTarget", memberState.SquadId, memberState.MemberId));
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
 
-            Vector2 direction = Vector2.Normalize(delta);
+            Vec2 direction = Vec2.Normalize(delta);
             float stepDistance = memberState.MovementSpeed * deltaTimeSeconds;
             if (stepDistance >= distance)
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 memberState.CurrentIntent.MarkCompleted();
                 memberState.UpdateFacing(direction);
-                battleState.EventBuffer.Add(new BattleEventRecord("MemberReachedTarget", memberState.SquadId, memberState.MemberId));
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace Warzone.Combat
 
         private static void UpdateSquadCenter(BattleState battleState, BattleSquadState squadState)
         {
-            Vector2 center = Vector2.Zero;
+            Vec2 center = Vec2.Zero;
             int aliveCount = 0;
 
             for (int i = 0; i < squadState.MemberIds.Count; i++)
@@ -115,3 +115,5 @@ namespace Warzone.Combat
         }
     }
 }
+
+

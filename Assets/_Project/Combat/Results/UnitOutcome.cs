@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public sealed class UnitOutcome
     {
@@ -14,6 +14,7 @@
         public bool Survived { get; private set; }
     }
 }
+
 
 
 

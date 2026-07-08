@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public sealed class AiProfile
     {
@@ -14,6 +14,7 @@
         public float LeashRadius { get; private set; }
     }
 }
+
 
 
 

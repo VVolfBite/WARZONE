@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -10,10 +10,16 @@ namespace Warzone.Combat
             string battleId,
             int squadId,
             FactionId factionId,
-            Vector2 rallyPosition,
+            Vec2 rallyPosition,
             int memberCount,
             float formationSpacing,
-            int startingMemberId = 1)
+            int startingMemberId = 1,
+            string memberDefinitionId = "sandbox.rifleman",
+            string weaponId = "sandbox.rifle",
+            int memberHealth = 100,
+            float movementSpeed = 4f,
+            float detectionRange = 12f,
+            float attackRange = 10f)
         {
             BattleState battleState = new BattleState(battleId);
             List<BattleEntityId> memberIds = new List<BattleEntityId>(memberCount);
@@ -22,17 +28,19 @@ namespace Warzone.Combat
             for (int i = 0; i < memberCount; i++)
             {
                 BattleEntityId memberId = new BattleEntityId(startingMemberId + i);
-                Vector2 offset = new Vector2((i % 2) * formationSpacing, -(i / 2) * formationSpacing);
+                Vec2 offset = new Vec2((i % 2) * formationSpacing, -(i / 2) * formationSpacing);
                 BattleMemberState memberState = new BattleMemberState(
                     memberId,
                     squadId,
                     factionId,
                     rallyPosition + offset,
-                    100,
-                    100,
-                    4f,
-                    weaponId: "sandbox.rifle",
-                    definitionId: "sandbox.rifleman");
+                    memberHealth,
+                    memberHealth,
+                    movementSpeed,
+                    weaponId,
+                    memberDefinitionId,
+                    detectionRange,
+                    attackRange);
                 battleState.AddMember(memberState);
                 memberIds.Add(memberId);
             }
@@ -41,6 +49,28 @@ namespace Warzone.Combat
             battleState.AddSquad(squadState);
             battleState.AddTacticalNode(new TacticalNodeState(1, rallyPosition, 1.5f));
             return battleState;
+        }
+
+        public BattleEnemyState CreateEnemy(
+            int enemyId,
+            string definitionId,
+            FactionId factionId,
+            Vec2 position,
+            int health,
+            float movementSpeed,
+            float detectionRange,
+            float attackRange = 0f)
+        {
+            return new BattleEnemyState(
+                new BattleEntityId(enemyId),
+                definitionId,
+                factionId,
+                position,
+                health,
+                health,
+                movementSpeed,
+                detectionRange,
+                attackRange);
         }
     }
 }

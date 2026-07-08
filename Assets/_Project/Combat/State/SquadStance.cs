@@ -7,3 +7,4 @@ namespace Warzone.Combat
         Defending = 2
     }
 }
+

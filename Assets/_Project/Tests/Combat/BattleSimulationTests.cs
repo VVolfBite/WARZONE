@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Combat;
 using Warzone.Content.Definitions;
 
@@ -11,7 +11,7 @@ namespace Warzone.Tests.Combat
         public void BattleStateFactory_CreatesSquadWithMembers()
         {
             BattleStateFactory factory = new BattleStateFactory();
-            BattleState battleState = factory.CreateMemberSquadBattle("test", 1, FactionId.Player, Vector2.Zero, 4, 1.5f);
+            BattleState battleState = factory.CreateMemberSquadBattle("test", 1, FactionId.Player, Vec2.Zero, 4, 1.5f);
 
             Assert.That(battleState.SquadsById.Count, Is.EqualTo(1));
             Assert.That(battleState.MembersById.Count, Is.EqualTo(4));
@@ -23,7 +23,7 @@ namespace Warzone.Tests.Combat
         {
             BattleState battleState = CreateBattleState();
             CommandSystem commandSystem = new CommandSystem();
-            commandSystem.Enqueue(battleState, new MoveSquadCommand(1, new Vector2(10f, 2f)));
+            commandSystem.Enqueue(battleState, new MoveSquadCommand(1, new Vec2(10f, 2f)));
 
             BattleCommandProcessResult result = commandSystem.Process(battleState);
 
@@ -37,7 +37,7 @@ namespace Warzone.Tests.Combat
         {
             BattleState battleState = CreateBattleState();
             CommandSystem commandSystem = new CommandSystem();
-            commandSystem.Enqueue(battleState, new MoveSquadCommand(99, new Vector2(10f, 2f)));
+            commandSystem.Enqueue(battleState, new MoveSquadCommand(99, new Vec2(10f, 2f)));
 
             BattleCommandProcessResult result = commandSystem.Process(battleState);
 
@@ -50,7 +50,7 @@ namespace Warzone.Tests.Combat
         {
             BattleState battleState = CreateBattleState();
             BattleSimulation simulation = new BattleSimulation();
-            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vector2(6f, 0f)));
+            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vec2(6f, 0f)));
 
             simulation.Tick(battleState, 0f);
 
@@ -65,12 +65,12 @@ namespace Warzone.Tests.Combat
         {
             BattleState battleState = CreateBattleState();
             BattleSimulation simulation = new BattleSimulation();
-            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vector2(8f, 0f)));
+            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vec2(8f, 0f)));
 
             simulation.Tick(battleState, 0f);
 
-            Vector2 first = battleState.MembersById[battleState.SquadsById[1].MemberIds[0]].CurrentIntent.TargetPosition;
-            Vector2 second = battleState.MembersById[battleState.SquadsById[1].MemberIds[1]].CurrentIntent.TargetPosition;
+            Vec2 first = battleState.MembersById[battleState.SquadsById[1].MemberIds[0]].CurrentIntent.TargetPosition;
+            Vec2 second = battleState.MembersById[battleState.SquadsById[1].MemberIds[1]].CurrentIntent.TargetPosition;
             Assert.That(first, Is.Not.EqualTo(second));
         }
 
@@ -80,8 +80,8 @@ namespace Warzone.Tests.Combat
             BattleState battleState = CreateBattleState();
             BattleSimulation simulation = new BattleSimulation();
             BattleMemberState firstMember = battleState.MembersById[battleState.SquadsById[1].MemberIds[0]];
-            Vector2 start = firstMember.Position;
-            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vector2(8f, 0f)));
+            Vec2 start = firstMember.Position;
+            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vec2(8f, 0f)));
 
             simulation.Tick(battleState, 0.5f);
 
@@ -93,7 +93,7 @@ namespace Warzone.Tests.Combat
         {
             BattleState battleState = CreateBattleState();
             BattleSimulation simulation = new BattleSimulation();
-            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vector2(4f, 0f)));
+            simulation.Enqueue(battleState, new MoveSquadCommand(1, new Vec2(4f, 0f)));
 
             simulation.Tick(battleState, 0.25f);
             BattleSnapshot snapshot = simulation.LatestSnapshot;
@@ -101,13 +101,14 @@ namespace Warzone.Tests.Combat
             Assert.That(snapshot, Is.Not.Null);
             Assert.That(snapshot.Squads.Count, Is.EqualTo(1));
             Assert.That(snapshot.Members.Count, Is.EqualTo(4));
-            Assert.That(snapshot.Members[0].Position, Is.Not.EqualTo(Vector2.Zero));
+            Assert.That(snapshot.Members[0].Position, Is.Not.EqualTo(Vec2.Zero));
         }
 
         private static BattleState CreateBattleState()
         {
             BattleStateFactory factory = new BattleStateFactory();
-            return factory.CreateMemberSquadBattle("test", 1, FactionId.Player, Vector2.Zero, 4, 1.5f);
+            return factory.CreateMemberSquadBattle("test", 1, FactionId.Player, Vec2.Zero, 4, 1.5f);
         }
     }
 }
+

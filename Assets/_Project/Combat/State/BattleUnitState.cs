@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -158,4 +158,5 @@ namespace Warzone.Combat
         }
     }
 }
+
 

@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public sealed class StatusEffectDefinition
     {
@@ -24,6 +24,7 @@
         public float RangeMultiplier { get; private set; }
     }
 }
+
 
 
 

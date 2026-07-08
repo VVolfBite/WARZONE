@@ -1,5 +1,6 @@
 using UnityEngine;
 using Warzone.Combat;
+using Warzone.Core.Math;
 
 namespace Warzone.Sandbox.BattleSandbox
 {
@@ -62,9 +63,10 @@ namespace Warzone.Sandbox.BattleSandbox
             GUILayout.EndArea();
         }
 
-        private static string FormatVector(System.Numerics.Vector2 vector)
+        private static string FormatVector(Vec2 vector)
         {
             return "(" + vector.X.ToString("F2") + ", " + vector.Y.ToString("F2") + ")";
         }
     }
 }
+

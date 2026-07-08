@@ -2,6 +2,7 @@
     "name": "Warzone.Tests.Combat",
     "rootNamespace": "Warzone.Tests.Combat",
     "references": [
+        "Warzone.Core",
         "Warzone.Combat",
         "Warzone.Content"
     ],

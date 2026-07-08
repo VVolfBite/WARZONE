@@ -1,4 +1,4 @@
-using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Combat;
 using Warzone.Content.Definitions;
 
@@ -13,14 +13,15 @@ namespace Warzone.Sandbox.BattleSandbox
                 "sandbox.m1.member-squad",
                 squadId: 1,
                 factionId: FactionId.Player,
-                rallyPosition: new Vector2(-6f, -4f),
+                rallyPosition: new Vec2(-6f, -4f),
                 memberCount: 4,
                 formationSpacing: 1.4f,
                 startingMemberId: 100);
 
-            battleState.AddEnemy(new BattleEnemyState(new BattleEntityId(9001), FactionId.Enemy, new Vector2(8f, 6f), 50));
-            battleState.AddTacticalNode(new TacticalNodeState(2, new Vector2(2f, 2f), 2f));
+            battleState.AddEnemy(battleStateFactory.CreateEnemy(9001, "sandbox.target", FactionId.Enemy, new Vec2(8f, 6f), 50, 0f, 0f));
+            battleState.AddTacticalNode(new TacticalNodeState(2, new Vec2(2f, 2f), 2f));
             return battleState;
         }
     }
 }
+

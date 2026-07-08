@@ -12,3 +12,4 @@ namespace Warzone.Combat
         public int RejectedCount { get; private set; }
     }
 }
+

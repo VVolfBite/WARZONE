@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public enum CommandType
     {
@@ -12,5 +12,6 @@
         UseAbility = 7,
     }
 }
+
 
 

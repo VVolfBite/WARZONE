@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Warzone.Content;
 using Warzone.Content.Definitions;
 
@@ -124,5 +124,6 @@ namespace Warzone.Combat
         }
     }
 }
+
 
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Warzone.Combat
 {
@@ -28,6 +28,7 @@ namespace Warzone.Combat
         public int Seed { get; private set; }
     }
 }
+
 
 
 

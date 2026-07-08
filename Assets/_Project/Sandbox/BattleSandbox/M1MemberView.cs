@@ -36,3 +36,4 @@ namespace Warzone.Sandbox.BattleSandbox
         }
     }
 }
+

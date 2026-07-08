@@ -101,3 +101,21 @@ Editor 是 Unity 编辑器工具层，不进入正式游戏包。它负责内容
 Tests 按被测模块组织，包含 Core.Tests、Content.Tests、Combat.Tests、Campaign.Tests、Application.Tests、Runtime.EditMode.Tests、Runtime.PlayMode.Tests、Architecture.Tests。
 
 Architecture.Tests 是必需品，用于保证依赖方向不被破坏。模块改名或删除时，对应测试必须同步调整，不允许测试目录长期堆积过期文件。
+
+## 12. M2 Tick Order
+
+M2 expands the new combat path from movement-only into a minimal combat slice.
+The current intended order inside `BattleSimulation` is:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `PerceptionSystem`
+6. `TargetSelectionSystem`
+7. `FireSystem`
+8. `DamageSystem`
+9. `DeathCleanupSystem`
+10. `BattleSnapshotFactory`
+
+This remains a small technical slice. It is not the final combat model and it does not replace the legacy prototype resolver path yet.

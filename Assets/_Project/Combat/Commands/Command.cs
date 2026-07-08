@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -8,8 +8,8 @@ namespace Warzone.Combat
             CommandType commandType,
             int sourceSquadId,
             int? targetSquadId = null,
-            Vector2? destination = null,
-            Vector2? secondaryDestination = null,
+            Vec2? destination = null,
+            Vec2? secondaryDestination = null,
             string abilityId = null,
             bool queue = false)
         {
@@ -25,12 +25,13 @@ namespace Warzone.Combat
         public CommandType CommandType { get; private set; }
         public int SourceSquadId { get; private set; }
         public int? TargetSquadId { get; private set; }
-        public Vector2? Destination { get; private set; }
-        public Vector2? SecondaryDestination { get; private set; }
+        public Vec2? Destination { get; private set; }
+        public Vec2? SecondaryDestination { get; private set; }
         public string AbilityId { get; private set; }
         public bool Queue { get; private set; }
     }
 }
+
 
 
 

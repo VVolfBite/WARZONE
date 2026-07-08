@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public sealed class BattleStatistics
     {
@@ -12,6 +12,7 @@
         public int EnemyUnitsRemaining { get; private set; }
     }
 }
+
 
 
 

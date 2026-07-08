@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Content.Definitions;
+using Warzone.Core.Math;
 
 namespace Warzone.Tests.Combat
 {
@@ -43,8 +44,8 @@ namespace Warzone.Tests.Combat
             BattleSession session = new BattleSession(
                 new List<BattleSquadState>
                 {
-                    new BattleSquadState(1, FactionId.Player, new System.Numerics.Vector2(0f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(1), "unit.player", FactionId.Player, 10) }),
-                    new BattleSquadState(2, FactionId.Enemy, new System.Numerics.Vector2(3f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(101), "unit.rpg", FactionId.Enemy, 14) })
+                    new BattleSquadState(1, FactionId.Player, new Vec2(0f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(1), "unit.player", FactionId.Player, 10) }),
+                    new BattleSquadState(2, FactionId.Enemy, new Vec2(3f, 0f), new List<BattleUnitState>{ new BattleUnitState(new BattleEntityId(101), "unit.rpg", FactionId.Enemy, 14) })
                 },
                 new CommandProcessor(),
                 new CombatResolver(catalog, TerrainMap.CreateDefault()),
@@ -64,7 +65,7 @@ namespace Warzone.Tests.Combat
                 new BattleSquadState(
                     1,
                     FactionId.Player,
-                    new System.Numerics.Vector2(-2f, 0f),
+                    new Vec2(-2f, 0f),
                     new List<BattleUnitState>
                     {
                         new BattleUnitState(new BattleEntityId(1), "unit.player", FactionId.Player, 10)
@@ -72,7 +73,7 @@ namespace Warzone.Tests.Combat
                 new BattleSquadState(
                     2,
                     FactionId.Enemy,
-                    new System.Numerics.Vector2(2f, 0f),
+                    new Vec2(2f, 0f),
                     new List<BattleUnitState>
                     {
                         new BattleUnitState(new BattleEntityId(101), "unit.enemy", FactionId.Enemy, 6)
@@ -95,5 +96,6 @@ namespace Warzone.Tests.Combat
         }
     }
 }
+
 
 

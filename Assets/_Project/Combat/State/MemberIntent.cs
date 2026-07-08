@@ -1,10 +1,10 @@
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
     public sealed class MemberIntent
     {
-        public MemberIntent(MemberIntentType intentType, Vector2 targetPosition, bool isCompleted = false)
+        public MemberIntent(MemberIntentType intentType, Vec2 targetPosition, bool isCompleted = false)
         {
             IntentType = intentType;
             TargetPosition = targetPosition;
@@ -12,10 +12,10 @@ namespace Warzone.Combat
         }
 
         public MemberIntentType IntentType { get; private set; }
-        public Vector2 TargetPosition { get; private set; }
+        public Vec2 TargetPosition { get; private set; }
         public bool IsCompleted { get; private set; }
 
-        public void UpdateTarget(Vector2 targetPosition)
+        public void UpdateTarget(Vec2 targetPosition)
         {
             TargetPosition = targetPosition;
             IsCompleted = false;
@@ -27,3 +27,4 @@ namespace Warzone.Combat
         }
     }
 }
+

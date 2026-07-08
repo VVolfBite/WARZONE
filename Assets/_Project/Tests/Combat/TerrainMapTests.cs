@@ -1,5 +1,6 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using Warzone.Combat;
+using Warzone.Core.Math;
 
 namespace Warzone.Tests.Combat
 {
@@ -10,10 +11,11 @@ namespace Warzone.Tests.Combat
         {
             TerrainMap map = TerrainMap.CreateDefault();
 
-            Assert.That(map.GetTerrainAt(new System.Numerics.Vector2(-6f, 7f)), Is.EqualTo(TerrainType.Forest));
-            Assert.That(map.BlocksLineOfSight(new System.Numerics.Vector2(-10f, 7f), new System.Numerics.Vector2(-2f, 7f)), Is.True);
+            Assert.That(map.GetTerrainAt(new Vec2(-6f, 7f)), Is.EqualTo(TerrainType.Forest));
+            Assert.That(map.BlocksLineOfSight(new Vec2(-10f, 7f), new Vec2(-2f, 7f)), Is.True);
         }
     }
 }
+
 
 

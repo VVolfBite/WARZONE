@@ -1,4 +1,4 @@
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -34,15 +34,15 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                Vector2 center = CalculateCurrentCenter(battleState, squadState);
+                Vec2 center = CalculateCurrentCenter(battleState, squadState);
                 squadState.UpdatePosition(center);
                 squadState.SetDesiredPosition(center);
             }
         }
 
-        private static Vector2 CalculateCurrentCenter(BattleState battleState, BattleSquadState squadState)
+        private static Vec2 CalculateCurrentCenter(BattleState battleState, BattleSquadState squadState)
         {
-            Vector2 center = Vector2.Zero;
+            Vec2 center = Vec2.Zero;
             int aliveCount = 0;
 
             for (int i = 0; i < squadState.MemberIds.Count; i++)
@@ -66,3 +66,4 @@ namespace Warzone.Combat
         }
     }
 }
+

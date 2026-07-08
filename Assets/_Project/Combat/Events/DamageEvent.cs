@@ -1,4 +1,4 @@
-﻿namespace Warzone.Combat
+namespace Warzone.Combat
 {
     public struct DamageEvent
     {
@@ -30,6 +30,7 @@
         public bool DidKillTarget { get { return _didKillTarget; } }
     }
 }
+
 
 
 

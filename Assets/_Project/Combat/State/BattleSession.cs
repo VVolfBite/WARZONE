@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+using System.Collections.Generic;
+using Warzone.Core.Math;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -375,17 +375,17 @@ namespace Warzone.Combat
             }
         }
 
-        private void MoveTowardDestination(BattleSquadState squad, Vector2 destination, float deltaTimeSeconds)
+        private void MoveTowardDestination(BattleSquadState squad, Vec2 destination, float deltaTimeSeconds)
         {
-            Vector2 toDestination = destination - squad.Position;
-            float distance = toDestination.Length();
+            Vec2 toDestination = destination - squad.Position;
+            float distance = toDestination.Magnitude;
             if (distance <= 0.05f)
             {
                 squad.Stop();
                 return;
             }
 
-            Vector2 direction = Vector2.Normalize(toDestination);
+            Vec2 direction = Vec2.Normalize(toDestination);
             float moveDistance = _combatResolver.GetMoveSpeed(squad) * deltaTimeSeconds;
             if (moveDistance >= distance)
             {
@@ -462,4 +462,6 @@ namespace Warzone.Combat
         }
     }
 }
+
+
 

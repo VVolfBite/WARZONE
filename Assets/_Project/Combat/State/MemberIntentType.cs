@@ -7,3 +7,4 @@ namespace Warzone.Combat
         HoldPosition = 2
     }
 }
+

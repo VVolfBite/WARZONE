@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Warzone.Combat
 {
@@ -18,6 +18,7 @@ namespace Warzone.Combat
         public IReadOnlyList<BattleSquadState> Squads { get; private set; }
     }
 }
+
 
 
 

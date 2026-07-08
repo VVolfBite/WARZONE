@@ -1,10 +1,10 @@
-using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
     public sealed class MoveSquadCommand : BattleCommand
     {
-        public MoveSquadCommand(int squadId, Vector2 destination)
+        public MoveSquadCommand(int squadId, Vec2 destination)
             : base(squadId)
         {
             Destination = destination;
@@ -15,6 +15,7 @@ namespace Warzone.Combat
             get { return "MoveSquad"; }
         }
 
-        public Vector2 Destination { get; private set; }
+        public Vec2 Destination { get; private set; }
     }
 }
+

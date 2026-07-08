@@ -97,7 +97,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 return;
             }
 
-            _battleSimulation.Enqueue(_battleState, new MoveSquadCommand(_selectedSquadId, new System.Numerics.Vector2(hit.point.x, hit.point.z)));
+            _battleSimulation.Enqueue(_battleState, new MoveSquadCommand(_selectedSquadId, new Vec2(hit.point.x, hit.point.z)));
         }
 
         private void BuildViews()
@@ -215,3 +215,4 @@ namespace Warzone.Sandbox.BattleSandbox
         }
     }
 }
+

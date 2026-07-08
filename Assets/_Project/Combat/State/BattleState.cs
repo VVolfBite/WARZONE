@@ -8,6 +8,8 @@ namespace Warzone.Combat
         private readonly Dictionary<BattleEntityId, BattleMemberState> _membersById = new Dictionary<BattleEntityId, BattleMemberState>();
         private readonly Dictionary<BattleEntityId, BattleEnemyState> _enemiesById = new Dictionary<BattleEntityId, BattleEnemyState>();
         private readonly Dictionary<int, TacticalNodeState> _tacticalNodesById = new Dictionary<int, TacticalNodeState>();
+        private readonly List<PendingDamageRequest> _pendingDamageRequests = new List<PendingDamageRequest>();
+        private readonly List<BattleEventRecord> _recentEvents = new List<BattleEventRecord>();
 
         public BattleState(string battleId)
         {
@@ -39,6 +41,16 @@ namespace Warzone.Combat
         public IReadOnlyDictionary<int, TacticalNodeState> TacticalNodesById
         {
             get { return _tacticalNodesById; }
+        }
+
+        public IReadOnlyList<PendingDamageRequest> PendingDamageRequests
+        {
+            get { return _pendingDamageRequests; }
+        }
+
+        public IReadOnlyList<BattleEventRecord> RecentEvents
+        {
+            get { return _recentEvents; }
         }
 
         public void AdvanceTime(float deltaTimeSeconds)
@@ -95,5 +107,41 @@ namespace Warzone.Combat
         {
             return _membersById.TryGetValue(memberId, out memberState);
         }
+
+        public bool TryGetEnemy(BattleEntityId enemyId, out BattleEnemyState enemyState)
+        {
+            return _enemiesById.TryGetValue(enemyId, out enemyState);
+        }
+
+        public void EnqueueDamage(PendingDamageRequest damageRequest)
+        {
+            if (damageRequest == null)
+            {
+                return;
+            }
+
+            _pendingDamageRequests.Add(damageRequest);
+        }
+
+        public void ClearPendingDamageRequests()
+        {
+            _pendingDamageRequests.Clear();
+        }
+
+        public void AddEvent(BattleEventRecord battleEvent)
+        {
+            if (battleEvent == null)
+            {
+                return;
+            }
+
+            EventBuffer.Add(battleEvent);
+            _recentEvents.Add(battleEvent);
+            if (_recentEvents.Count > 24)
+            {
+                _recentEvents.RemoveAt(0);
+            }
+        }
     }
 }
+

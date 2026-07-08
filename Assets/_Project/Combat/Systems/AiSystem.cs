@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using Warzone.Core.Math;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Combat
@@ -83,12 +83,12 @@ namespace Warzone.Combat
                     battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.TargetPosition));
                     break;
                 case AiDecision.Retreat:
-                    Vector2 retreatDirection = Vector2.Normalize(blackboard.SelfPosition - blackboard.TargetPosition);
+                    Vec2 retreatDirection = Vec2.Normalize(blackboard.SelfPosition - blackboard.TargetPosition);
                     battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.SelfPosition + (retreatDirection * 6f)));
                     break;
                 case AiDecision.Strafe:
-                    Vector2 offset = blackboard.TargetPosition - blackboard.SelfPosition;
-                    Vector2 strafeDirection = Vector2.Normalize(new Vector2(-offset.Y, offset.X));
+                    Vec2 offset = blackboard.TargetPosition - blackboard.SelfPosition;
+                    Vec2 strafeDirection = Vec2.Normalize(new Vec2(-offset.Y, offset.X));
                     battleSession.ExecuteCommand(new Command(CommandType.Move, squad.SquadId, destination: blackboard.TargetPosition + (strafeDirection * 5f)));
                     break;
                 case AiDecision.UseAbility:
@@ -139,7 +139,7 @@ namespace Warzone.Combat
                 blackboard.TargetSquadId = nearest.SquadId;
                 blackboard.TargetPosition = nearest.Position;
                 blackboard.DistanceToTarget = nearestDistance;
-                blackboard.CurrentLeashDistance = Vector2.Distance(sourceSquad.Position, nearest.Position);
+                blackboard.CurrentLeashDistance = Vec2.Distance(sourceSquad.Position, nearest.Position);
             }
 
             return blackboard;
@@ -163,5 +163,6 @@ namespace Warzone.Combat
         }
     }
 }
+
 
 

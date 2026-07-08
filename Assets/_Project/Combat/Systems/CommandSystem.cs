@@ -29,13 +29,13 @@ namespace Warzone.Combat
                 if (!battleState.TryGetSquad(command.SquadId, out squadState))
                 {
                     rejectedCount++;
-                    battleState.EventBuffer.Add(new BattleEventRecord("CommandRejected", command.SquadId, message: command.Name));
+                    battleState.AddEvent(new BattleEventRecord(BattleEventTypes.CommandRejected, command.SquadId, message: command.Name));
                     continue;
                 }
 
                 ApplyCommand(battleState, squadState, command);
                 acceptedCount++;
-                battleState.EventBuffer.Add(new BattleEventRecord("CommandAccepted", squadState.SquadId, message: command.Name));
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.CommandAccepted, squadState.SquadId, message: command.Name));
             }
 
             return new BattleCommandProcessResult(acceptedCount, rejectedCount);
@@ -79,3 +79,4 @@ namespace Warzone.Combat
         }
     }
 }
+

@@ -1,10 +1,10 @@
-﻿using System.Numerics;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
     public sealed class TerrainSample
     {
-        public TerrainSample(Vector2 center, float radius, TerrainType terrainType, float speedMultiplier, float rangeMultiplier, bool blocksLineOfSight)
+        public TerrainSample(Vec2 center, float radius, TerrainType terrainType, float speedMultiplier, float rangeMultiplier, bool blocksLineOfSight)
         {
             Center = center;
             Radius = radius;
@@ -14,19 +14,20 @@ namespace Warzone.Combat
             BlocksLineOfSight = blocksLineOfSight;
         }
 
-        public Vector2 Center { get; private set; }
+        public Vec2 Center { get; private set; }
         public float Radius { get; private set; }
         public TerrainType TerrainType { get; private set; }
         public float SpeedMultiplier { get; private set; }
         public float RangeMultiplier { get; private set; }
         public bool BlocksLineOfSight { get; private set; }
 
-        public bool Contains(Vector2 point)
+        public bool Contains(Vec2 point)
         {
-            return Vector2.DistanceSquared(Center, point) <= Radius * Radius;
+            return Vec2.DistanceSquared(Center, point) <= Radius * Radius;
         }
     }
 }
+
 
 
 
