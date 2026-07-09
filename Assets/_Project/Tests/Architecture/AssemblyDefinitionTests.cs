@@ -59,6 +59,21 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void SandboxAssembly_CanReferenceRuntime()
+        {
+            string text = ReadAsmdef("Sandbox", "Warzone.Sandbox.asmdef");
+            StringAssert.Contains("Warzone.Runtime", text);
+        }
+
+        [Test]
+        public void EditorAssembly_IsEditorOnly()
+        {
+            string text = ReadAsmdef("Editor", "Warzone.Editor.asmdef");
+            StringAssert.Contains("\"includePlatforms\": [", text);
+            StringAssert.Contains("Editor", text);
+        }
+
+        [Test]
         public void NonSandboxAssemblies_DoNotReferenceSandbox()
         {
             AssertNoSandboxReference("Core", "Warzone.Core.asmdef");

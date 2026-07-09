@@ -7,6 +7,7 @@ using Warzone.Core.Math;
 
 namespace Warzone.Sandbox.BattleSandbox
 {
+    // Compatibility entry kept for legacy M3 verification. M5 uses BattleSandboxLauncher as the unified sandbox entry.
     public sealed class M3TacticalMissionSandboxBootstrap : MonoBehaviour
     {
         private readonly Dictionary<BattleEntityId, M1MemberView> _memberViews = new Dictionary<BattleEntityId, M1MemberView>();

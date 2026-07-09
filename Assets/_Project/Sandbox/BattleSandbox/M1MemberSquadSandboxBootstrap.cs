@@ -5,7 +5,7 @@ using Warzone.Combat;
 
 namespace Warzone.Sandbox.BattleSandbox
 {
-    // Sandbox-only bootstrap. Formal flow ownership can move into Application once M1 combat entry stabilizes.
+    // Compatibility entry kept for legacy M1 verification. M5 uses BattleSandboxLauncher as the unified sandbox entry.
     public sealed class M1MemberSquadSandboxBootstrap : MonoBehaviour
     {
         private readonly Dictionary<BattleEntityId, M1MemberView> _memberViews = new Dictionary<BattleEntityId, M1MemberView>();

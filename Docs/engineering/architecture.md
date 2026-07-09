@@ -177,3 +177,18 @@ M4 also adds first-order spatial combat abstractions:
 
 This is still a bounded technical slice. It is not the final combat model, does not
 include interior navigation, and does not replace the legacy prototype resolver path.
+
+## 15. M5 Sandbox Integration
+
+M5 does not add a new combat rules layer. It consolidates the Unity sandbox path.
+
+Current direction:
+
+- `BattleSandboxLauncher` is the preferred entry instead of attaching per-milestone bootstrap scripts by hand
+- `M1` to `M4` bootstrap classes remain as compatibility entries for prior verification paths
+- `M5IntegratedSandboxBootstrap` uses a shared runtime context, input controller, view presenter, and debug panel
+- sandbox view objects consume `BattleSnapshot` data only and do not mutate Combat state directly
+- command input is routed through `TacticalCommandService`
+
+This keeps the engineering sandbox stable without moving Unity concerns back into
+Combat or Application.

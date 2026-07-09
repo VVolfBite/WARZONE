@@ -20,6 +20,10 @@ Warzone validation is split into four different checks. They are not interchange
    - Unity imports the project and compiles all assemblies
    - this verifies Unity-side integration, asmdef wiring, and editor/runtime references
 
+5. Sandbox manual run status:
+   - whether the sandbox entry was manually opened in Unity and visually checked
+   - this is separate from compile and automated test signals
+
 Final reports must state these separately.
 
 ## 2. Preferred Order
@@ -54,6 +58,33 @@ Current behavior:
 - checks `UnityEngine` does not appear in domain layers
 - checks legacy namespaces do not reappear outside architecture tests
 
+### All-in-one validation pass
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check_warzone_all.ps1
+```
+
+Current behavior:
+
+- runs text-boundary checks
+- runs domain compile and test-source compile checks
+- attempts Unity EditMode execution if Unity CLI is available
+- reports explicit `OK`, `FAIL`, or `SKIPPED` states
+
+### Unity EditMode entry
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check_unity_editmode.ps1
+```
+
+Current behavior:
+
+- looks for `Unity.exe`
+- if missing, reports a stable `SKIPPED`
+- if found, runs batchmode EditMode tests and writes:
+  - `artifacts/logs/unity_editmode_M5.log`
+  - `artifacts/test-results/editmode_M5.xml`
+
 ## 4. Current Environment Constraints
 
 - Unity CLI is not currently available in this environment
@@ -63,3 +94,11 @@ Current behavior:
   - local `nunit.framework.dll` from Unity package cache
 
 This is enough for domain compile and test-source compile, but not enough for actual Unity test execution.
+
+Every milestone report must explicitly distinguish:
+
+- domain compile
+- test source compile
+- actual test execution
+- Unity Editor compile
+- sandbox manual run status

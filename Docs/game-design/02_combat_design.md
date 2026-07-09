@@ -82,3 +82,9 @@ pathfinding.
 This slice intentionally stops before smoke, night fighting, structural destruction,
 ballistic penetration, and full building interiors. Those remain later expansions on
 top of the current obstacle, node, and mission-result skeleton.
+
+## 10. M5 Engineering Sandbox Addendum
+
+M5 is an integration and validation milestone. It does not add a new combat mechanic.
+The current work is focused on launcher consolidation, view/input cleanup, reset flow,
+and Unity-side sandbox reliability around the existing M1-M4 combat slice.
