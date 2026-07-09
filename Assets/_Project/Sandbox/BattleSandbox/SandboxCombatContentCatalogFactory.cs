@@ -82,5 +82,45 @@ namespace Warzone.Sandbox.BattleSandbox
                 new Dictionary<string, WeaponDefinition> { { rifle.Id, rifle } },
                 new Dictionary<string, EnemyDefinition> { { raider.Id, raider } });
         }
+
+        public static ContentCatalog CreateSpatialCombatCatalog()
+        {
+            WeaponDefinition rifle = new WeaponDefinition(
+                "sandbox.rifle",
+                "Sandbox Rifle",
+                WeaponCategory.Rifle,
+                AmmoCategory.Rifle,
+                FireMode.Automatic,
+                12f,
+                0.45f,
+                18,
+                1f,
+                1,
+                0f,
+                16f,
+                DamageType.Kinetic);
+
+            EnemyDefinition raider = new EnemyDefinition("sandbox.raider", "Raider", 60, 2.75f, 14f, 8f, FactionId.Enemy, 12, 0.95f);
+            UnitDefinition rifleman = new UnitDefinition("sandbox.rifleman", "Rifleman", FactionId.Player, 100, 4f, rifle, 12f, 0.5f, ArmorType.Light);
+
+            MissionDefinition mission = new MissionDefinition(
+                "sandbox.m4.spatial-combat",
+                "Spatial Combat Slice",
+                1,
+                1,
+                new[]
+                {
+                    new MissionObjectiveDefinition(MissionObjectiveType.SearchPoint, "search.main", 1),
+                    new MissionObjectiveDefinition(MissionObjectiveType.EliminateEnemies, "enemy.all", 5),
+                    new MissionObjectiveDefinition(MissionObjectiveType.ExtractSquad, "extract.alpha", 1)
+                });
+
+            return new ContentCatalog(
+                new Dictionary<string, UnitDefinition> { { rifleman.Id, rifleman } },
+                new Dictionary<string, MissionDefinition> { { mission.Id, mission } },
+                null,
+                new Dictionary<string, WeaponDefinition> { { rifle.Id, rifle } },
+                new Dictionary<string, EnemyDefinition> { { raider.Id, raider } });
+        }
     }
 }

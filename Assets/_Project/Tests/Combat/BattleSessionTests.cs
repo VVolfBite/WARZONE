@@ -63,8 +63,8 @@ namespace Warzone.Tests.Combat
             return new ContentCatalog(
                 new Dictionary<string, UnitDefinition>
                 {
-                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium, "effect.support.heal"),
-                    ["unit.enemy"] = new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f, ArmorType.Light, "effect.zombie.toxic")
+                    { "unit.player", new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium, "effect.support.heal") },
+                    { "unit.enemy", new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f, ArmorType.Light, "effect.zombie.toxic") }
                 },
                 new Dictionary<string, MissionDefinition>());
         }

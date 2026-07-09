@@ -34,6 +34,12 @@ namespace Warzone.Combat
                         continue;
                     }
 
+                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, enemyState.Position, memberState.Position);
+                    if (!lineOfSight.HasLineOfSight)
+                    {
+                        continue;
+                    }
+
                     nearestDistance = distance;
                     nearestMember = memberState;
                 }

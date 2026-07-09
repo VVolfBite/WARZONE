@@ -21,14 +21,26 @@ namespace Warzone.Combat
                         continue;
                     }
 
-                    memberState.ApplyDamage(damageRequest.DamageAmount);
+                    int appliedDamage = DamageModifierRule.Apply(damageRequest.DamageAmount, damageRequest.DamageMultiplier);
+                    memberState.ApplyDamage(appliedDamage);
                     battleState.AddEvent(new BattleEventRecord(
                         BattleEventTypes.DamageApplied,
                         memberState.SquadId,
                         damageRequest.SourceId,
                         damageRequest.WeaponId,
                         damageRequest.TargetId,
-                        damageRequest.DamageAmount));
+                        appliedDamage));
+
+                    if (damageRequest.DamageMultiplier < 1f)
+                    {
+                        battleState.AddEvent(new BattleEventRecord(
+                            BattleEventTypes.CoverReducedDamage,
+                            memberState.SquadId,
+                            damageRequest.TargetId,
+                            damageRequest.CoverObstacleId.HasValue ? damageRequest.CoverObstacleId.Value.ToString() : "Cover",
+                            null,
+                            damageRequest.DamageAmount - appliedDamage));
+                    }
 
                     if (!memberState.IsAlive)
                     {
@@ -49,14 +61,26 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                enemyState.ApplyDamage(damageRequest.DamageAmount);
+                int modifiedDamage = DamageModifierRule.Apply(damageRequest.DamageAmount, damageRequest.DamageMultiplier);
+                enemyState.ApplyDamage(modifiedDamage);
                 battleState.AddEvent(new BattleEventRecord(
                     BattleEventTypes.DamageApplied,
                     null,
                     damageRequest.SourceId,
                     damageRequest.WeaponId,
                     damageRequest.TargetId,
-                    damageRequest.DamageAmount));
+                    modifiedDamage));
+
+                if (damageRequest.DamageMultiplier < 1f)
+                {
+                    battleState.AddEvent(new BattleEventRecord(
+                        BattleEventTypes.CoverReducedDamage,
+                        null,
+                        damageRequest.TargetId,
+                        damageRequest.CoverObstacleId.HasValue ? damageRequest.CoverObstacleId.Value.ToString() : "Cover",
+                        null,
+                        damageRequest.DamageAmount - modifiedDamage));
+                }
 
                 if (!enemyState.IsAlive)
                 {

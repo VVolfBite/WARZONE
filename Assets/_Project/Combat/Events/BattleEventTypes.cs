@@ -18,6 +18,10 @@ namespace Warzone.Combat
         public const string SquadExtracted = "SquadExtracted";
         public const string TacticalNodeReserved = "TacticalNodeReserved";
         public const string DefensivePositionAssigned = "DefensivePositionAssigned";
+        public const string LineOfSightBlocked = "LineOfSightBlocked";
+        public const string ShotBlocked = "ShotBlocked";
+        public const string CoverReducedDamage = "CoverReducedDamage";
+        public const string BattleCompleted = "BattleCompleted";
     }
 }
 

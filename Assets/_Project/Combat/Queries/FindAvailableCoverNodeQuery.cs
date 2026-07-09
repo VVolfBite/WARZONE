@@ -21,7 +21,9 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                if (nodeState.NodeType != TacticalNodeType.Cover && nodeState.NodeType != TacticalNodeType.DefensivePosition)
+                if (nodeState.NodeType != TacticalNodeType.Cover &&
+                    nodeState.NodeType != TacticalNodeType.DefensivePosition &&
+                    nodeState.NodeType != TacticalNodeType.Window)
                 {
                     continue;
                 }

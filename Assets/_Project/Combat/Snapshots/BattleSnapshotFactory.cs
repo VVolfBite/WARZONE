@@ -11,6 +11,8 @@ namespace Warzone.Combat
             List<BattleMemberSnapshot> members = new List<BattleMemberSnapshot>();
             List<BattleEnemySnapshot> enemies = new List<BattleEnemySnapshot>();
             List<TacticalNodeSnapshot> tacticalNodes = new List<TacticalNodeSnapshot>();
+            List<TacticalObstacleSnapshot> obstacles = new List<TacticalObstacleSnapshot>();
+            List<BuildingSnapshot> buildings = new List<BuildingSnapshot>();
 
             if (battleState != null)
             {
@@ -49,6 +51,7 @@ namespace Warzone.Combat
                         memberState.MaxHealth,
                         memberState.IsAlive,
                         memberState.IsExtracted,
+                        memberState.OccupiedTacticalNodeId,
                         memberState.WeaponId,
                         memberState.CurrentTargetEnemyId,
                         memberState.AttackCooldownRemaining,
@@ -67,6 +70,7 @@ namespace Warzone.Combat
                         enemyState.Health,
                         enemyState.MaxHealth,
                         enemyState.IsAlive,
+                        enemyState.OccupiedTacticalNodeId,
                         enemyState.CurrentTargetMemberId,
                         enemyState.AttackCooldownRemaining));
                 }
@@ -84,6 +88,30 @@ namespace Warzone.Combat
                         nodeState.RequiredSearchSeconds,
                         nodeState.OccupyingMemberId));
                 }
+
+                foreach (TacticalObstacleState obstacleState in battleState.ObstaclesById.Values)
+                {
+                    obstacles.Add(new TacticalObstacleSnapshot(
+                        obstacleState.ObstacleId,
+                        obstacleState.ObstacleType,
+                        obstacleState.Position,
+                        obstacleState.Radius,
+                        obstacleState.BlocksLineOfSight,
+                        obstacleState.BlocksFire,
+                        obstacleState.ProvidesCover,
+                        obstacleState.DamageReductionFactor,
+                        obstacleState.IsDestroyed));
+                }
+
+                foreach (BuildingState buildingState in battleState.BuildingsById.Values)
+                {
+                    buildings.Add(new BuildingSnapshot(
+                        buildingState.BuildingId,
+                        buildingState.Position,
+                        buildingState.Radius,
+                        buildingState.IsEnterable,
+                        new List<int>(buildingState.TacticalNodeIds)));
+                }
             }
 
             return new BattleSnapshot(
@@ -93,69 +121,11 @@ namespace Warzone.Combat
                 members,
                 enemies,
                 tacticalNodes,
-                CreateMissionStatus(battleState),
+                obstacles,
+                buildings,
+                battleState != null ? battleState.CurrentMissionStatus : new BattleMissionStatusSnapshot(0, 0, 0, 0, 0, 0, false, false, false, false, false, BattleCompletionType.Partial, 0),
+                battleState != null ? battleState.CurrentBattleResult : null,
                 battleState != null ? new List<BattleEventRecord>(battleState.RecentEvents) : new List<BattleEventRecord>());
-        }
-
-        private static BattleMissionStatusSnapshot CreateMissionStatus(BattleState battleState)
-        {
-            if (battleState == null)
-            {
-                return new BattleMissionStatusSnapshot(0, 0, 0, 0, 0, 0, false);
-            }
-
-            int aliveEnemyCount = 0;
-            int searchedPointCount = 0;
-            int totalSearchPointCount = 0;
-            int extractedMemberCount = 0;
-            int totalAliveMemberCount = 0;
-
-            foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
-            {
-                if (enemyState.IsAlive)
-                {
-                    aliveEnemyCount++;
-                }
-            }
-
-            foreach (BattleMemberState memberState in battleState.MembersById.Values)
-            {
-                if (memberState.IsAlive)
-                {
-                    totalAliveMemberCount++;
-                }
-
-                if (memberState.IsExtracted)
-                {
-                    extractedMemberCount++;
-                }
-            }
-
-            foreach (TacticalNodeState nodeState in battleState.TacticalNodesById.Values)
-            {
-                if (nodeState.NodeType != TacticalNodeType.SearchPoint)
-                {
-                    continue;
-                }
-
-                totalSearchPointCount++;
-                if (nodeState.IsSearched)
-                {
-                    searchedPointCount++;
-                }
-            }
-
-            bool allSearchesDone = totalSearchPointCount == 0 || searchedPointCount >= totalSearchPointCount;
-            bool allEnemiesEliminated = aliveEnemyCount == 0;
-            bool allAliveMembersExtracted = totalAliveMemberCount == 0 || extractedMemberCount >= totalAliveMemberCount;
-            return new BattleMissionStatusSnapshot(
-                aliveEnemyCount,
-                battleState.EnemiesById.Count,
-                searchedPointCount,
-                totalSearchPointCount,
-                extractedMemberCount,
-                totalAliveMemberCount,
-                allSearchesDone && allEnemiesEliminated && allAliveMembersExtracted);
         }
     }
 }

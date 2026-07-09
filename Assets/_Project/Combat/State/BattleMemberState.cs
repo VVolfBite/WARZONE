@@ -55,6 +55,7 @@ namespace Warzone.Combat
         public float AttackCooldownRemaining { get; private set; }
         public BattleEntityId? CurrentTargetEnemyId { get; private set; }
         public bool IsExtracted { get; private set; }
+        public int? OccupiedTacticalNodeId { get; private set; }
 
         public bool IsAlive
         {
@@ -64,6 +65,11 @@ namespace Warzone.Combat
         public bool CanAct
         {
             get { return IsAlive && !IsExtracted; }
+        }
+
+        public bool HasAssignedCover
+        {
+            get { return OccupiedTacticalNodeId.HasValue; }
         }
 
         public IReadOnlyList<BattleEntityId> VisibleEnemyIds
@@ -164,6 +170,17 @@ namespace Warzone.Combat
             ClearIntent();
             SetCurrentTargetEnemy(null);
             SetVisibleEnemies(null);
+            ClearOccupiedTacticalNode();
+        }
+
+        public void SetOccupiedTacticalNode(int? nodeId)
+        {
+            OccupiedTacticalNodeId = nodeId;
+        }
+
+        public void ClearOccupiedTacticalNode()
+        {
+            OccupiedTacticalNodeId = null;
         }
     }
 }

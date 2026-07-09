@@ -18,13 +18,13 @@ namespace Warzone.Tests.Combat
             ContentCatalog catalog = new ContentCatalog(
                 new Dictionary<string, UnitDefinition>
                 {
-                    ["unit.support"] = new UnitDefinition("unit.support", "Support", FactionId.Player, 12, 4f, rifle, 8f, 0.65f, ArmorType.Light, activeAbilityId: "ability.medkit"),
-                    ["unit.friend"] = new UnitDefinition("unit.friend", "Friend", FactionId.Player, 12, 4f, rifle, 8f, 0.65f, ArmorType.Light)
+                    { "unit.support", new UnitDefinition("unit.support", "Support", FactionId.Player, 12, 4f, rifle, 8f, 0.65f, ArmorType.Light, activeAbilityId: "ability.medkit") },
+                    { "unit.friend", new UnitDefinition("unit.friend", "Friend", FactionId.Player, 12, 4f, rifle, 8f, 0.65f, ArmorType.Light) }
                 },
                 new Dictionary<string, MissionDefinition>(),
                 new Dictionary<string, AbilityDefinition>
                 {
-                    [medkit.Id] = medkit
+                    { medkit.Id, medkit }
                 });
 
             BattleSquadState support = new BattleSquadState(

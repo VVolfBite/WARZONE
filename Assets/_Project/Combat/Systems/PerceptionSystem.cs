@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Warzone.Core.Math;
 
 namespace Warzone.Combat
 {
@@ -27,6 +28,33 @@ namespace Warzone.Combat
                 }
 
                 memberState.SetVisibleEnemies(visibleEnemyIds);
+                if (visibleEnemyIds.Count == 0)
+                {
+                    foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
+                    {
+                        if (enemyState == null || !enemyState.IsAlive)
+                        {
+                            continue;
+                        }
+
+                        if (Vec2.Distance(memberState.Position, enemyState.Position) > memberState.DetectionRange)
+                        {
+                            continue;
+                        }
+
+                        LineOfSightResult blockedLine = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position);
+                        if (!blockedLine.HasLineOfSight)
+                        {
+                            battleState.AddEvent(new BattleEventRecord(
+                                BattleEventTypes.LineOfSightBlocked,
+                                memberState.SquadId,
+                                memberState.MemberId,
+                                blockedLine.BlockingObstacleType.HasValue ? blockedLine.BlockingObstacleType.Value.ToString() : "Obstacle",
+                                enemyState.EnemyId));
+                            break;
+                        }
+                    }
+                }
             }
         }
     }

@@ -36,8 +36,8 @@ namespace Warzone.Tests.Combat
             ContentCatalog catalog = new ContentCatalog(
                 new Dictionary<string, UnitDefinition>
                 {
-                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium),
-                    ["unit.rpg"] = new UnitDefinition("unit.rpg", "RPG", FactionId.Enemy, 14, 2.5f, enemyWeapon, 16f, 0.5f, ArmorType.Light)
+                    { "unit.player", new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium) },
+                    { "unit.rpg", new UnitDefinition("unit.rpg", "RPG", FactionId.Enemy, 14, 2.5f, enemyWeapon, 16f, 0.5f, ArmorType.Light) }
                 },
                 new Dictionary<string, MissionDefinition>());
 
@@ -89,8 +89,8 @@ namespace Warzone.Tests.Combat
             return new ContentCatalog(
                 new Dictionary<string, UnitDefinition>
                 {
-                    ["unit.player"] = new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium),
-                    ["unit.enemy"] = new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f, ArmorType.Light)
+                    { "unit.player", new UnitDefinition("unit.player", "Player", FactionId.Player, 10, 4f, playerWeapon, 8f, 0.65f, ArmorType.Medium) },
+                    { "unit.enemy", new UnitDefinition("unit.enemy", "Enemy", FactionId.Enemy, 6, 3f, enemyWeapon, 6f, 0.65f, ArmorType.Light) }
                 },
                 new Dictionary<string, MissionDefinition>());
         }

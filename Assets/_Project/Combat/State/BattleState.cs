@@ -8,6 +8,8 @@ namespace Warzone.Combat
         private readonly Dictionary<BattleEntityId, BattleMemberState> _membersById = new Dictionary<BattleEntityId, BattleMemberState>();
         private readonly Dictionary<BattleEntityId, BattleEnemyState> _enemiesById = new Dictionary<BattleEntityId, BattleEnemyState>();
         private readonly Dictionary<int, TacticalNodeState> _tacticalNodesById = new Dictionary<int, TacticalNodeState>();
+        private readonly Dictionary<int, TacticalObstacleState> _obstaclesById = new Dictionary<int, TacticalObstacleState>();
+        private readonly Dictionary<int, BuildingState> _buildingsById = new Dictionary<int, BuildingState>();
         private readonly List<PendingDamageRequest> _pendingDamageRequests = new List<PendingDamageRequest>();
         private readonly List<BattleEventRecord> _recentEvents = new List<BattleEventRecord>();
 
@@ -20,8 +22,11 @@ namespace Warzone.Combat
 
         public string BattleId { get; private set; }
         public float ElapsedTimeSeconds { get; private set; }
+        public string MissionDefinitionId { get; private set; }
         public BattleCommandQueue CommandQueue { get; private set; }
         public BattleEventBuffer EventBuffer { get; private set; }
+        public BattleMissionStatusSnapshot CurrentMissionStatus { get; private set; }
+        public BattleResult CurrentBattleResult { get; private set; }
 
         public IReadOnlyDictionary<int, BattleSquadState> SquadsById
         {
@@ -41,6 +46,16 @@ namespace Warzone.Combat
         public IReadOnlyDictionary<int, TacticalNodeState> TacticalNodesById
         {
             get { return _tacticalNodesById; }
+        }
+
+        public IReadOnlyDictionary<int, TacticalObstacleState> ObstaclesById
+        {
+            get { return _obstaclesById; }
+        }
+
+        public IReadOnlyDictionary<int, BuildingState> BuildingsById
+        {
+            get { return _buildingsById; }
         }
 
         public IReadOnlyList<PendingDamageRequest> PendingDamageRequests
@@ -98,6 +113,26 @@ namespace Warzone.Combat
             _tacticalNodesById[nodeState.NodeId] = nodeState;
         }
 
+        public void AddObstacle(TacticalObstacleState obstacleState)
+        {
+            if (obstacleState == null)
+            {
+                return;
+            }
+
+            _obstaclesById[obstacleState.ObstacleId] = obstacleState;
+        }
+
+        public void AddBuilding(BuildingState buildingState)
+        {
+            if (buildingState == null)
+            {
+                return;
+            }
+
+            _buildingsById[buildingState.BuildingId] = buildingState;
+        }
+
         public bool TryGetSquad(int squadId, out BattleSquadState squadState)
         {
             return _squadsById.TryGetValue(squadId, out squadState);
@@ -116,6 +151,16 @@ namespace Warzone.Combat
         public bool TryGetTacticalNode(int nodeId, out TacticalNodeState nodeState)
         {
             return _tacticalNodesById.TryGetValue(nodeId, out nodeState);
+        }
+
+        public bool TryGetObstacle(int obstacleId, out TacticalObstacleState obstacleState)
+        {
+            return _obstaclesById.TryGetValue(obstacleId, out obstacleState);
+        }
+
+        public bool TryGetBuilding(int buildingId, out BuildingState buildingState)
+        {
+            return _buildingsById.TryGetValue(buildingId, out buildingState);
         }
 
         public void EnqueueDamage(PendingDamageRequest damageRequest)
@@ -146,6 +191,21 @@ namespace Warzone.Combat
             {
                 _recentEvents.RemoveAt(0);
             }
+        }
+
+        public void SetMissionDefinitionId(string missionDefinitionId)
+        {
+            MissionDefinitionId = missionDefinitionId;
+        }
+
+        public void SetMissionStatus(BattleMissionStatusSnapshot missionStatus)
+        {
+            CurrentMissionStatus = missionStatus;
+        }
+
+        public void SetBattleResult(BattleResult battleResult)
+        {
+            CurrentBattleResult = battleResult;
         }
     }
 }

@@ -4,7 +4,8 @@
     "references": [
         "Warzone.Core",
         "Warzone.Combat",
-        "Warzone.Content"
+        "Warzone.Content",
+        "Warzone.Sandbox"
     ],
     "includePlatforms": [
         "Editor"

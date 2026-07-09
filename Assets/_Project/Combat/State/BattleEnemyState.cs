@@ -38,6 +38,7 @@ namespace Warzone.Combat
         public float AttackRange { get; private set; }
         public BattleEntityId? CurrentTargetMemberId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
+        public int? OccupiedTacticalNodeId { get; private set; }
 
         public bool IsAlive
         {
@@ -85,6 +86,11 @@ namespace Warzone.Combat
         public void ResetAttackCooldown(float cooldownSeconds)
         {
             AttackCooldownRemaining = cooldownSeconds < 0f ? 0f : cooldownSeconds;
+        }
+
+        public void SetOccupiedTacticalNode(int? nodeId)
+        {
+            OccupiedTacticalNodeId = nodeId;
         }
     }
 }

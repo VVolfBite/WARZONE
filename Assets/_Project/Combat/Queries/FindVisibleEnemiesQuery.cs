@@ -28,7 +28,11 @@ namespace Warzone.Combat
                 float distance = Vec2.Distance(memberState.Position, enemyState.Position);
                 if (distance <= memberState.DetectionRange)
                 {
-                    visibleEnemies.Add(enemyState);
+                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position);
+                    if (lineOfSight.HasLineOfSight)
+                    {
+                        visibleEnemies.Add(enemyState);
+                    }
                 }
             }
 

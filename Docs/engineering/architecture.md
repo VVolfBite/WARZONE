@@ -143,3 +143,37 @@ The current intended order inside `BattleSimulation` is:
 15. `BattleSnapshotFactory`
 
 This is still a technical slice, not the final tactical combat architecture.
+
+## 14. M4 Tick Order
+
+M4 extends the slice from tactical nodes into first-order spatial combat rules.
+The current intended order inside `BattleSimulation` is:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `SearchSystem`
+6. `ExtractionSystem`
+7. `EnemyAwarenessSystem`
+8. `EnemyBehaviorSystem`
+9. `PerceptionSystem`
+10. `TargetSelectionSystem`
+11. `FireSystem`
+12. `EnemyFireSystem`
+13. `DamageSystem`
+14. `DeathCleanupSystem`
+15. `BattleResultSystem.UpdateMissionStatus`
+16. `BattleResultSystem.UpdateBattleResult`
+17. `BattleSnapshotFactory`
+
+M4 also adds first-order spatial combat abstractions:
+
+- `TacticalObstacleState` for low cover, high cover, walls, windows, doors, and building blockers
+- `LineOfSightRule` to gate perception on distance plus obstacle blocking
+- `FireLineRule` to gate shots on obstacle blocking and expose cover-based damage modifiers
+- `BuildingState` plus `Window` / `Doorway` tactical nodes as a simple building-facing abstraction
+- `BattleResult` closure for search, eliminate, and extract objectives without coupling Combat back to Campaign
+
+This is still a bounded technical slice. It is not the final combat model, does not
+include interior navigation, and does not replace the legacy prototype resolver path.

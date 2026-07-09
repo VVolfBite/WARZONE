@@ -13,6 +13,7 @@ namespace Warzone.Combat
             int maxHealth,
             bool isAlive,
             bool isExtracted,
+            int? occupiedTacticalNodeId,
             string weaponId,
             BattleEntityId? currentTargetEnemyId,
             float attackCooldownRemaining,
@@ -28,6 +29,7 @@ namespace Warzone.Combat
             MaxHealth = maxHealth;
             IsAlive = isAlive;
             IsExtracted = isExtracted;
+            OccupiedTacticalNodeId = occupiedTacticalNodeId;
             WeaponId = weaponId;
             CurrentTargetEnemyId = currentTargetEnemyId;
             AttackCooldownRemaining = attackCooldownRemaining;
@@ -44,6 +46,7 @@ namespace Warzone.Combat
         public int MaxHealth { get; private set; }
         public bool IsAlive { get; private set; }
         public bool IsExtracted { get; private set; }
+        public int? OccupiedTacticalNodeId { get; private set; }
         public string WeaponId { get; private set; }
         public BattleEntityId? CurrentTargetEnemyId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }

@@ -19,9 +19,11 @@ namespace Warzone.Combat
             int memberHealth = 100,
             float movementSpeed = 4f,
             float detectionRange = 12f,
-            float attackRange = 10f)
+            float attackRange = 10f,
+            string missionDefinitionId = null)
         {
             BattleState battleState = new BattleState(battleId);
+            battleState.SetMissionDefinitionId(missionDefinitionId);
             List<BattleEntityId> memberIds = new List<BattleEntityId>(memberCount);
             BattleSquadState squadState = new BattleSquadState(squadId, factionId, rallyPosition, memberIds, formationSpacing);
 
@@ -58,9 +60,10 @@ namespace Warzone.Combat
             float radius,
             bool isEnabled = true,
             float requiredSearchSeconds = 3f,
-            int? extractionOwnerSquadId = null)
+            int? extractionOwnerSquadId = null,
+            int? buildingId = null)
         {
-            return new TacticalNodeState(nodeId, nodeType, position, radius, isEnabled, requiredSearchSeconds, extractionOwnerSquadId);
+            return new TacticalNodeState(nodeId, nodeType, position, radius, isEnabled, requiredSearchSeconds, extractionOwnerSquadId, buildingId);
         }
 
         public BattleEnemyState CreateEnemy(
@@ -83,6 +86,36 @@ namespace Warzone.Combat
                 movementSpeed,
                 detectionRange,
                 attackRange);
+        }
+
+        public TacticalObstacleState CreateObstacle(
+            int obstacleId,
+            TacticalObstacleType obstacleType,
+            Vec2 position,
+            float radius,
+            bool blocksMovement,
+            bool blocksLineOfSight,
+            bool blocksFire,
+            bool providesCover,
+            float damageReductionFactor,
+            float accuracyPenaltyAgainstOccupant)
+        {
+            return new TacticalObstacleState(
+                obstacleId,
+                obstacleType,
+                position,
+                radius,
+                blocksMovement,
+                blocksLineOfSight,
+                blocksFire,
+                providesCover,
+                damageReductionFactor,
+                accuracyPenaltyAgainstOccupant);
+        }
+
+        public BuildingState CreateBuilding(int buildingId, Vec2 position, float radius, bool isEnterable, IReadOnlyList<int> tacticalNodeIds)
+        {
+            return new BuildingState(buildingId, position, radius, isEnterable, tacticalNodeIds);
         }
     }
 }

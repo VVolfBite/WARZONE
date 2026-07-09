@@ -34,5 +34,10 @@ namespace Warzone.Content
         {
             return Enemies.TryGetValue(enemyId, out definition);
         }
+
+        public bool TryGetMission(string missionId, out MissionDefinition definition)
+        {
+            return Missions.TryGetValue(missionId, out definition);
+        }
     }
 }

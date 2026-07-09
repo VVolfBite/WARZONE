@@ -11,7 +11,8 @@ namespace Warzone.Combat
             float radius,
             bool isEnabled = true,
             float requiredSearchSeconds = 3f,
-            int? extractionOwnerSquadId = null)
+            int? extractionOwnerSquadId = null,
+            int? buildingId = null)
         {
             NodeId = nodeId;
             NodeType = nodeType;
@@ -20,6 +21,7 @@ namespace Warzone.Combat
             IsEnabled = isEnabled;
             RequiredSearchSeconds = requiredSearchSeconds < 0f ? 0f : requiredSearchSeconds;
             ExtractionOwnerSquadId = extractionOwnerSquadId;
+            BuildingId = buildingId;
         }
 
         public int NodeId { get; private set; }
@@ -35,6 +37,7 @@ namespace Warzone.Combat
         public bool LootDiscovered { get; private set; }
         public float RequiredSearchSeconds { get; private set; }
         public int? ExtractionOwnerSquadId { get; private set; }
+        public int? BuildingId { get; private set; }
 
         public bool IsAvailable
         {

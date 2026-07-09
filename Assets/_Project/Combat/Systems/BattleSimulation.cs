@@ -18,6 +18,7 @@ namespace Warzone.Combat
         private readonly EnemyFireSystem _enemyFireSystem;
         private readonly DamageSystem _damageSystem;
         private readonly DeathCleanupSystem _deathCleanupSystem;
+        private readonly BattleResultSystem _battleResultSystem;
 
         public BattleSimulation()
             : this(new ContentCatalog(null, null))
@@ -39,7 +40,8 @@ namespace Warzone.Combat
             FireSystem fireSystem = null,
             EnemyFireSystem enemyFireSystem = null,
             DamageSystem damageSystem = null,
-            DeathCleanupSystem deathCleanupSystem = null)
+            DeathCleanupSystem deathCleanupSystem = null,
+            BattleResultSystem battleResultSystem = null)
         {
             _commandSystem = commandSystem ?? new CommandSystem();
             _squadPlanningSystem = squadPlanningSystem ?? new SquadPlanningSystem();
@@ -55,6 +57,7 @@ namespace Warzone.Combat
             _enemyFireSystem = enemyFireSystem ?? new EnemyFireSystem(contentCatalog);
             _damageSystem = damageSystem ?? new DamageSystem();
             _deathCleanupSystem = deathCleanupSystem ?? new DeathCleanupSystem();
+            _battleResultSystem = battleResultSystem ?? new BattleResultSystem(contentCatalog);
         }
 
         public BattleSnapshot LatestSnapshot { get; private set; }
@@ -81,6 +84,8 @@ namespace Warzone.Combat
             _damageSystem.Execute(battleState);
             _deathCleanupSystem.Execute(battleState);
             battleState.AdvanceTime(deltaTimeSeconds);
+            _battleResultSystem.UpdateMissionStatus(battleState);
+            _battleResultSystem.UpdateBattleResult(battleState);
             LatestSnapshot = BattleSnapshotFactory.Create(battleState);
             return commandResult;
         }

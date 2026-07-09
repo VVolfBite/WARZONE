@@ -38,6 +38,7 @@ namespace Warzone.Combat
 
             if (memberState.CurrentIntent.IntentType == MemberIntentType.HoldPosition)
             {
+                UpdateOccupiedNode(memberState);
                 return;
             }
 
@@ -55,6 +56,7 @@ namespace Warzone.Combat
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 CompleteIntent(memberState);
+                UpdateOccupiedNode(memberState);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
@@ -66,10 +68,12 @@ namespace Warzone.Combat
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 CompleteIntent(memberState);
                 memberState.UpdateFacing(direction);
+                UpdateOccupiedNode(memberState);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
 
+            memberState.ClearOccupiedTacticalNode();
             memberState.UpdatePosition(memberState.Position + (direction * stepDistance));
             memberState.UpdateFacing(direction);
         }
@@ -83,6 +87,19 @@ namespace Warzone.Combat
             }
 
             memberState.CurrentIntent.MarkCompleted();
+        }
+
+        private static void UpdateOccupiedNode(BattleMemberState memberState)
+        {
+            if (memberState.CurrentIntent != null &&
+                memberState.CurrentIntent.IsCompleted &&
+                memberState.CurrentIntent.TacticalNodeId.HasValue)
+            {
+                memberState.SetOccupiedTacticalNode(memberState.CurrentIntent.TacticalNodeId.Value);
+                return;
+            }
+
+            memberState.ClearOccupiedTacticalNode();
         }
 
         private static void UpdateSquadCenter(BattleState battleState, BattleSquadState squadState)

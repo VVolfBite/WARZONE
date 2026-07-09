@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Warzone.Content;
 using Warzone.Content.Definitions;
+using Warzone.Sandbox.BattleSandbox;
 
 namespace Warzone.Tests.Combat
 {
@@ -91,6 +92,16 @@ namespace Warzone.Tests.Combat
                 {
                     { raider.Id, raider }
                 });
+        }
+
+        public static M4SpatialCombatScenario CreateSpatialScenario()
+        {
+            return M4SpatialCombatScenarioFactory.CreateScenario();
+        }
+
+        public static ContentCatalog CreateSpatialCombatCatalog()
+        {
+            return SandboxCombatContentCatalogFactory.CreateSpatialCombatCatalog();
         }
     }
 }

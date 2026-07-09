@@ -58,12 +58,26 @@ namespace Warzone.Combat
                 return;
             }
 
+            FireLineResult fireLine = FireLineRule.Evaluate(battleState, enemyState.Position, memberState.Position);
+            if (!fireLine.CanFire)
+            {
+                battleState.AddEvent(new BattleEventRecord(
+                    BattleEventTypes.ShotBlocked,
+                    null,
+                    enemyState.EnemyId,
+                    fireLine.BlockingObstacleType.HasValue ? fireLine.BlockingObstacleType.Value.ToString() : "Obstacle",
+                    memberState.MemberId));
+                return;
+            }
+
             battleState.EnqueueDamage(new PendingDamageRequest(
                 enemyState.EnemyId,
                 memberState.MemberId,
                 enemyDefinition.AttackDamage,
                 enemyState.DefinitionId,
-                true));
+                true,
+                fireLine.DamageMultiplier,
+                fireLine.CoverObstacleId));
 
             enemyState.ResetAttackCooldown(enemyDefinition.AttackIntervalSeconds);
             battleState.AddEvent(new BattleEventRecord(

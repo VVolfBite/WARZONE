@@ -15,6 +15,7 @@ namespace Warzone.Combat
                 {
                     memberState.ClearIntent();
                     memberState.SetCurrentTargetEnemy(null);
+                    memberState.ClearOccupiedTacticalNode();
                     continue;
                 }
 
