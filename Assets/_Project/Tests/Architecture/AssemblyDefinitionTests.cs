@@ -66,6 +66,13 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void SandboxAssembly_ExplicitlyReferencesInputSystem()
+        {
+            string text = ReadAsmdef("Sandbox", "Warzone.Sandbox.asmdef");
+            StringAssert.Contains("Unity.InputSystem", text);
+        }
+
+        [Test]
         public void EditorAssembly_IsEditorOnly()
         {
             string text = ReadAsmdef("Editor", "Warzone.Editor.asmdef");
@@ -202,6 +209,23 @@ namespace Warzone.Tests.Architecture
             AssertDirectoryDoesNotContain(Path.Combine("Assets", "_Project", "Sandbox"), adaptersUsing);
             AssertDirectoryDoesNotContain(Path.Combine("Assets", "_Project", "Sandbox"), controlsUsing);
             AssertDirectoryDoesNotContain(Path.Combine("Assets", "_Project", "Sandbox"), presentationUsing);
+        }
+
+        [Test]
+        public void CombatTestsAssembly_DoesNotReferenceSandboxOrRuntime()
+        {
+            string text = File.ReadAllText(Path.Combine("Assets", "_Project", "Tests", "Combat", "Warzone.Tests.Combat.asmdef"));
+            StringAssert.DoesNotContain("Warzone.Sandbox", text);
+            StringAssert.DoesNotContain("Warzone.Runtime", text);
+        }
+
+        [Test]
+        public void SandboxTestsAssembly_CanReferenceSandbox()
+        {
+            string asmdefPath = Path.Combine("Assets", "_Project", "Tests", "Sandbox", "Warzone.Tests.Sandbox.asmdef");
+            Assert.That(File.Exists(asmdefPath), Is.True, "Missing asmdef: " + asmdefPath);
+            string text = File.ReadAllText(asmdefPath);
+            StringAssert.Contains("Warzone.Sandbox", text);
         }
 
         private static void AssertNoSandboxReference(string folder, string fileName)

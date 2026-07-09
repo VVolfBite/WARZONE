@@ -8,7 +8,7 @@ namespace Warzone.Combat
         public static List<BattleEnemyState> Execute(BattleState battleState, BattleMemberState memberState)
         {
             List<BattleEnemyState> visibleEnemies = new List<BattleEnemyState>();
-            if (battleState == null || memberState == null || !memberState.CanAct)
+            if (battleState == null || memberState == null || !memberState.CanFight)
             {
                 return visibleEnemies;
             }

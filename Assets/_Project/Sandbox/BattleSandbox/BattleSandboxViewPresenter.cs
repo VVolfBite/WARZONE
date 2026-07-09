@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Warzone.Combat;
+using Warzone.Core.Math;
 
 namespace Warzone.Sandbox.BattleSandbox
 {
@@ -20,45 +21,51 @@ namespace Warzone.Sandbox.BattleSandbox
             EnsureSupportComponents();
         }
 
-        public void Rebuild(BattleState battleState)
+        public void RebuildFromSnapshot(BattleSnapshot snapshot)
         {
             EnsureSupportComponents();
             ClearViews();
 
-            if (battleState == null)
+            if (snapshot == null)
             {
                 return;
             }
 
-            foreach (BuildingState buildingState in battleState.BuildingsById.Values)
+            for (int i = 0; i < snapshot.Buildings.Count; i++)
             {
-                CreateBuildingView(buildingState);
+                CreateBuildingView(snapshot.Buildings[i]);
             }
 
-            foreach (TacticalObstacleState obstacleState in battleState.ObstaclesById.Values)
+            for (int i = 0; i < snapshot.Obstacles.Count; i++)
             {
-                CreateObstacleView(obstacleState);
+                CreateObstacleView(snapshot.Obstacles[i]);
             }
 
-            foreach (BattleSquadState squadState in battleState.SquadsById.Values)
+            for (int i = 0; i < snapshot.Squads.Count; i++)
             {
-                CreateSelectionMarkerView(squadState);
+                CreateSelectionMarkerView(snapshot.Squads[i]);
             }
 
-            foreach (BattleMemberState memberState in battleState.MembersById.Values)
+            for (int i = 0; i < snapshot.Members.Count; i++)
             {
-                CreateMemberView(memberState);
+                CreateMemberView(snapshot.Members[i]);
             }
 
-            foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
+            for (int i = 0; i < snapshot.Enemies.Count; i++)
             {
-                CreateEnemyView(enemyState);
+                CreateEnemyView(snapshot.Enemies[i]);
             }
 
-            foreach (TacticalNodeState nodeState in battleState.TacticalNodesById.Values)
+            for (int i = 0; i < snapshot.TacticalNodes.Count; i++)
             {
-                CreateNodeView(nodeState);
+                CreateNodeView(snapshot.TacticalNodes[i]);
             }
+        }
+
+        [System.Obsolete("Use RebuildFromSnapshot for snapshot-only view rebuilding.")]
+        internal void Rebuild(BattleState battleState)
+        {
+            RebuildFromSnapshot(battleState != null ? BattleSnapshotFactory.Create(battleState) : null);
         }
 
         public void Refresh(BattleSnapshot snapshot, int selectedSquadId, bool showFireLines)
@@ -86,7 +93,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 if (_memberViews.TryGetValue(member.MemberId, out memberView) && memberView != null)
                 {
                     memberView.transform.position = new Vector3(member.Position.X, member.IsAlive ? 0.6f : 0.15f, member.Position.Y);
-                    memberView.ApplyState(member.SquadId == selectedSquadId, !member.IsAlive, member.IsExtracted);
+                    memberView.ApplyState(member.SquadId == selectedSquadId, !member.IsAlive, member.IsExtracted, member.IsSuppressed, member.IsBroken || member.IsRetreating);
                 }
             }
 
@@ -145,6 +152,32 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void CreateMemberView(BattleMemberState memberState)
         {
+            CreateMemberView(new BattleMemberSnapshot(
+                memberState.MemberId,
+                memberState.SquadId,
+                memberState.Position,
+                memberState.Facing,
+                memberState.Health,
+                memberState.MaxHealth,
+                memberState.IsAlive,
+                memberState.IsExtracted,
+                memberState.OccupiedTacticalNodeId,
+                memberState.WeaponId,
+                memberState.CurrentTargetEnemyId,
+                memberState.AttackCooldownRemaining,
+                memberState.CurrentIntent != null ? memberState.CurrentIntent.IntentType.ToString() : "None",
+                memberState.CurrentIntent != null ? (Vec2?)memberState.CurrentIntent.TargetPosition : null,
+                memberState.CurrentIntent != null && memberState.CurrentIntent.IsCompleted,
+                memberState.Pressure,
+                memberState.MaxPressure,
+                memberState.IsSuppressed,
+                memberState.IsBroken,
+                memberState.IsRetreating,
+                memberState.RetreatTargetPosition));
+        }
+
+        private void CreateMemberView(BattleMemberSnapshot memberState)
+        {
             GameObject root = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             root.name = "SandboxMember_" + memberState.MemberId.Value;
             root.transform.SetParent(transform, false);
@@ -159,6 +192,20 @@ namespace Warzone.Sandbox.BattleSandbox
         }
 
         private void CreateSelectionMarkerView(BattleSquadState squadState)
+        {
+            CreateSelectionMarkerView(new BattleSquadSnapshot(
+                squadState.SquadId,
+                squadState.FactionId,
+                squadState.Position,
+                squadState.DesiredPosition,
+                squadState.CurrentOrder != null ? squadState.CurrentOrder.Name : "None",
+                squadState.Stance,
+                squadState.MemberIds.Count,
+                squadState.MemberIds.Count,
+                squadState.FormationSpacing));
+        }
+
+        private void CreateSelectionMarkerView(BattleSquadSnapshot squadState)
         {
             GameObject root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             root.name = "SandboxSquad_" + squadState.SquadId;
@@ -175,6 +222,21 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void CreateEnemyView(BattleEnemyState enemyState)
         {
+            CreateEnemyView(new BattleEnemySnapshot(
+                enemyState.EnemyId,
+                enemyState.DefinitionId,
+                enemyState.FactionId,
+                enemyState.Position,
+                enemyState.Health,
+                enemyState.MaxHealth,
+                enemyState.IsAlive,
+                enemyState.OccupiedTacticalNodeId,
+                enemyState.CurrentTargetMemberId,
+                enemyState.AttackCooldownRemaining));
+        }
+
+        private void CreateEnemyView(BattleEnemySnapshot enemyState)
+        {
             GameObject root = GameObject.CreatePrimitive(PrimitiveType.Cube);
             root.name = "SandboxEnemy_" + enemyState.EnemyId.Value;
             root.transform.SetParent(transform, false);
@@ -189,6 +251,20 @@ namespace Warzone.Sandbox.BattleSandbox
         }
 
         private void CreateNodeView(TacticalNodeState nodeState)
+        {
+            CreateNodeView(new TacticalNodeSnapshot(
+                nodeState.NodeId,
+                nodeState.NodeType,
+                nodeState.Position,
+                nodeState.Radius,
+                nodeState.IsEnabled,
+                nodeState.IsSearched,
+                nodeState.SearchProgress,
+                nodeState.RequiredSearchSeconds,
+                nodeState.OccupyingMemberId));
+        }
+
+        private void CreateNodeView(TacticalNodeSnapshot nodeState)
         {
             PrimitiveType primitiveType = PrimitiveType.Cube;
             Vector3 scale = new Vector3(0.8f, 0.4f, 0.8f);
@@ -226,6 +302,20 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void CreateObstacleView(TacticalObstacleState obstacleState)
         {
+            CreateObstacleView(new TacticalObstacleSnapshot(
+                obstacleState.ObstacleId,
+                obstacleState.ObstacleType,
+                obstacleState.Position,
+                obstacleState.Radius,
+                obstacleState.BlocksLineOfSight,
+                obstacleState.BlocksFire,
+                obstacleState.ProvidesCover,
+                obstacleState.DamageReductionFactor,
+                obstacleState.IsDestroyed));
+        }
+
+        private void CreateObstacleView(TacticalObstacleSnapshot obstacleState)
+        {
             PrimitiveType primitiveType = obstacleState.ObstacleType == TacticalObstacleType.Window ? PrimitiveType.Cylinder : PrimitiveType.Cube;
             GameObject root = GameObject.CreatePrimitive(primitiveType);
             root.name = "SandboxObstacle_" + obstacleState.ObstacleId;
@@ -246,6 +336,16 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void CreateBuildingView(BuildingState buildingState)
         {
+            CreateBuildingView(new BuildingSnapshot(
+                buildingState.BuildingId,
+                buildingState.Position,
+                buildingState.Radius,
+                buildingState.IsEnterable,
+                buildingState.TacticalNodeIds));
+        }
+
+        private void CreateBuildingView(BuildingSnapshot buildingState)
+        {
             GameObject root = GameObject.CreatePrimitive(PrimitiveType.Cube);
             root.name = "SandboxBuilding_" + buildingState.BuildingId;
             root.transform.SetParent(transform, false);
@@ -263,7 +363,14 @@ namespace Warzone.Sandbox.BattleSandbox
             {
                 if (view != null)
                 {
-                    DestroyImmediate(view.gameObject);
+                    if (Application.isPlaying)
+                    {
+                        Destroy(view.gameObject);
+                    }
+                    else
+                    {
+                        DestroyImmediate(view.gameObject);
+                    }
                 }
             }
         }

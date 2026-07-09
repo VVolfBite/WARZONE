@@ -45,7 +45,8 @@ namespace Warzone.Combat
             if (memberState.CurrentIntent.IntentType != MemberIntentType.MoveToPosition &&
                 memberState.CurrentIntent.IntentType != MemberIntentType.SearchPoint &&
                 memberState.CurrentIntent.IntentType != MemberIntentType.Extract &&
-                memberState.CurrentIntent.IntentType != MemberIntentType.TakeCover)
+                memberState.CurrentIntent.IntentType != MemberIntentType.TakeCover &&
+                memberState.CurrentIntent.IntentType != MemberIntentType.Retreat)
             {
                 return;
             }
@@ -62,7 +63,7 @@ namespace Warzone.Combat
             }
 
             Vec2 direction = Vec2.Normalize(delta);
-            float stepDistance = memberState.MovementSpeed * deltaTimeSeconds;
+            float stepDistance = SuppressionRule.ApplyMovementPenalty(memberState.MovementSpeed, memberState.IsSuppressed) * deltaTimeSeconds;
             if (stepDistance >= distance)
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);

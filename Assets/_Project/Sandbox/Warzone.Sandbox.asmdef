@@ -7,7 +7,8 @@
         "Warzone.Combat",
         "Warzone.Campaign",
         "Warzone.Content",
-        "Warzone.Core"
+        "Warzone.Core",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

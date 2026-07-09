@@ -20,7 +20,8 @@ namespace Warzone.Combat
             string definitionId = null,
             float detectionRange = 12f,
             float attackRange = 10f,
-            float accuracyModifier = 1f)
+            float accuracyModifier = 1f,
+            float maxPressure = 100f)
         {
             MemberId = memberId;
             SquadId = squadId;
@@ -35,6 +36,7 @@ namespace Warzone.Combat
             DetectionRange = detectionRange;
             AttackRange = attackRange;
             AccuracyModifier = accuracyModifier;
+            MaxPressure = maxPressure > 0f ? maxPressure : 100f;
         }
 
         public BattleEntityId MemberId { get; private set; }
@@ -46,6 +48,14 @@ namespace Warzone.Combat
         public int MaxHealth { get; private set; }
         public float MovementSpeed { get; private set; }
         public float Pressure { get; private set; }
+        public float MaxPressure { get; private set; }
+        public float Suppression { get; private set; }
+        public bool IsSuppressed { get; private set; }
+        public bool IsBroken { get; private set; }
+        public bool IsRetreating { get; private set; }
+        public Vec2? RetreatTargetPosition { get; private set; }
+        public BattleEntityId? LastDamageSourceEnemyId { get; private set; }
+        public float RecentIncomingFireSeconds { get; private set; }
         public string WeaponId { get; private set; }
         public string DefinitionId { get; private set; }
         public MemberIntent CurrentIntent { get; private set; }
@@ -65,6 +75,16 @@ namespace Warzone.Combat
         public bool CanAct
         {
             get { return IsAlive && !IsExtracted; }
+        }
+
+        public bool CanReceiveOrders
+        {
+            get { return CanAct && !IsRetreating; }
+        }
+
+        public bool CanFight
+        {
+            get { return CanAct && !IsRetreating; }
         }
 
         public bool HasAssignedCover
@@ -118,7 +138,96 @@ namespace Warzone.Combat
 
         public void SetPressure(float pressure)
         {
-            Pressure = pressure < 0f ? 0f : pressure;
+            if (pressure < 0f)
+            {
+                Pressure = 0f;
+                return;
+            }
+
+            Pressure = pressure > MaxPressure ? MaxPressure : pressure;
+        }
+
+        public void AddPressure(float pressure)
+        {
+            if (pressure <= 0f || !IsAlive || IsExtracted)
+            {
+                return;
+            }
+
+            SetPressure(Pressure + pressure);
+        }
+
+        public void ReducePressure(float pressure)
+        {
+            if (pressure <= 0f)
+            {
+                return;
+            }
+
+            SetPressure(Pressure - pressure);
+        }
+
+        public void SetSuppression(float suppression)
+        {
+            if (suppression < 0f)
+            {
+                Suppression = 0f;
+                return;
+            }
+
+            Suppression = suppression > 1f ? 1f : suppression;
+        }
+
+        public void SetSuppressed(bool suppressed)
+        {
+            IsSuppressed = suppressed;
+        }
+
+        public void SetBroken(bool broken)
+        {
+            IsBroken = broken;
+        }
+
+        public void BeginRetreat(Vec2 retreatTargetPosition)
+        {
+            IsRetreating = true;
+            RetreatTargetPosition = retreatTargetPosition;
+        }
+
+        public void ClearRetreat()
+        {
+            IsRetreating = false;
+            IsBroken = false;
+            RetreatTargetPosition = null;
+        }
+
+        public void SetRetreatTargetPosition(Vec2? retreatTargetPosition)
+        {
+            RetreatTargetPosition = retreatTargetPosition;
+        }
+
+        public void SetLastDamageSourceEnemy(BattleEntityId? enemyId)
+        {
+            LastDamageSourceEnemyId = enemyId;
+        }
+
+        public void SetRecentIncomingFire(float seconds)
+        {
+            RecentIncomingFireSeconds = seconds < 0f ? 0f : seconds;
+        }
+
+        public void TickIncomingFire(float deltaTimeSeconds)
+        {
+            if (RecentIncomingFireSeconds <= 0f)
+            {
+                return;
+            }
+
+            RecentIncomingFireSeconds -= deltaTimeSeconds;
+            if (RecentIncomingFireSeconds < 0f)
+            {
+                RecentIncomingFireSeconds = 0f;
+            }
         }
 
         public void TickCooldown(float deltaTimeSeconds)
@@ -171,6 +280,7 @@ namespace Warzone.Combat
             SetCurrentTargetEnemy(null);
             SetVisibleEnemies(null);
             ClearOccupiedTacticalNode();
+            ClearRetreat();
         }
 
         public void SetOccupiedTacticalNode(int? nodeId)

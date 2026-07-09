@@ -16,6 +16,8 @@ namespace Warzone.Sandbox.BattleSandbox
                     return "M4 Spatial Combat";
                 case BattleSandboxMode.M5IntegratedSandbox:
                     return "M5 Integrated Sandbox";
+                case BattleSandboxMode.M6PressureRetreat:
+                    return "M6 Pressure Retreat";
                 default:
                     return mode.ToString();
             }
@@ -23,7 +25,8 @@ namespace Warzone.Sandbox.BattleSandbox
 
         public static bool IsCompatibilityEntry(BattleSandboxMode mode)
         {
-            return mode != BattleSandboxMode.M5IntegratedSandbox;
+            return mode != BattleSandboxMode.M5IntegratedSandbox &&
+                   mode != BattleSandboxMode.M6PressureRetreat;
         }
 
         public static int GetDefaultSelectedSquadId(BattleSandboxMode mode)

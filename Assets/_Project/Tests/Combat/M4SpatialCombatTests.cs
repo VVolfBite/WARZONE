@@ -2,7 +2,6 @@ using NUnit.Framework;
 using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Core.Math;
-using Warzone.Sandbox.BattleSandbox;
 
 namespace Warzone.Tests.Combat
 {
@@ -206,17 +205,17 @@ namespace Warzone.Tests.Combat
         [Test]
         public void M4ScenarioFactory_CreatesSquadMembersEnemiesNodesObstaclesAndObjectives()
         {
-            M4SpatialCombatScenario scenario = TestCombatContentFactory.CreateSpatialScenario();
+            BattleState battleState = CreateBattleState();
 
-            Assert.That(scenario.BattleState.SquadsById.Count, Is.EqualTo(1));
-            Assert.That(scenario.BattleState.MembersById.Count, Is.EqualTo(4));
-            Assert.That(scenario.BattleState.EnemiesById.Count, Is.GreaterThanOrEqualTo(5));
-            Assert.That(scenario.BattleState.TacticalNodesById.Count, Is.GreaterThan(0));
-            Assert.That(scenario.BattleState.ObstaclesById.Count, Is.GreaterThan(0));
-            Assert.That(scenario.BattleState.BuildingsById.Count, Is.GreaterThan(0));
+            Assert.That(battleState.SquadsById.Count, Is.EqualTo(1));
+            Assert.That(battleState.MembersById.Count, Is.EqualTo(4));
+            Assert.That(battleState.EnemiesById.Count, Is.GreaterThanOrEqualTo(5));
+            Assert.That(battleState.TacticalNodesById.Count, Is.GreaterThan(0));
+            Assert.That(battleState.ObstaclesById.Count, Is.GreaterThan(0));
+            Assert.That(battleState.BuildingsById.Count, Is.GreaterThan(0));
 
-            Assert.That(ContainsNodeType(scenario.BattleState, TacticalNodeType.SearchPoint), Is.True);
-            Assert.That(ContainsNodeType(scenario.BattleState, TacticalNodeType.ExtractionPoint), Is.True);
+            Assert.That(ContainsNodeType(battleState, TacticalNodeType.SearchPoint), Is.True);
+            Assert.That(ContainsNodeType(battleState, TacticalNodeType.ExtractionPoint), Is.True);
         }
 
         private static BattleSimulation CreateSimulation()
@@ -231,7 +230,7 @@ namespace Warzone.Tests.Combat
 
         private static BattleState CreateBattleState()
         {
-            return TestCombatContentFactory.CreateSpatialScenario().BattleState;
+            return TestCombatContentFactory.CreateSpatialBattleState();
         }
 
         private static bool ContainsEvent(BattleState battleState, string eventType)

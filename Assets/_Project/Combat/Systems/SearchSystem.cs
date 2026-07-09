@@ -13,7 +13,7 @@ namespace Warzone.Combat
 
             foreach (BattleMemberState memberState in battleState.MembersById.Values)
             {
-                if (memberState == null || !memberState.CanAct || memberState.CurrentIntent == null)
+                if (memberState == null || !memberState.CanReceiveOrders || memberState.CurrentIntent == null)
                 {
                     continue;
                 }

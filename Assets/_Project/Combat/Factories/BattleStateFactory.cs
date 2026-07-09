@@ -20,7 +20,8 @@ namespace Warzone.Combat
             float movementSpeed = 4f,
             float detectionRange = 12f,
             float attackRange = 10f,
-            string missionDefinitionId = null)
+            string missionDefinitionId = null,
+            float maxPressure = 100f)
         {
             BattleState battleState = new BattleState(battleId);
             battleState.SetMissionDefinitionId(missionDefinitionId);
@@ -42,7 +43,9 @@ namespace Warzone.Combat
                     weaponId,
                     memberDefinitionId,
                     detectionRange,
-                    attackRange);
+                    attackRange,
+                    1f,
+                    maxPressure);
                 battleState.AddMember(memberState);
                 memberIds.Add(memberId);
             }

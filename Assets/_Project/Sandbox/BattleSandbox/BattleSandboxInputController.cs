@@ -11,12 +11,29 @@ namespace Warzone.Sandbox.BattleSandbox
         private BattleSandboxRuntimeContext _context;
         private Camera _mainCamera;
         private Action _resetAction;
+        private Action _applyPressureAction;
+        private Action _clearPressureAction;
+        private Action _emitIncomingFireAction;
 
         public void Initialize(BattleSandboxRuntimeContext context, Camera mainCamera, Action resetAction)
+        {
+            Initialize(context, mainCamera, resetAction, null, null, null);
+        }
+
+        public void Initialize(
+            BattleSandboxRuntimeContext context,
+            Camera mainCamera,
+            Action resetAction,
+            Action applyPressureAction,
+            Action clearPressureAction,
+            Action emitIncomingFireAction)
         {
             _context = context;
             _mainCamera = mainCamera;
             _resetAction = resetAction;
+            _applyPressureAction = applyPressureAction;
+            _clearPressureAction = clearPressureAction;
+            _emitIncomingFireAction = emitIncomingFireAction;
         }
 
         private void Update()
@@ -29,6 +46,7 @@ namespace Warzone.Sandbox.BattleSandbox
             HandlePauseToggle();
             HandleReset();
             HandleDebugLineToggle();
+            HandleDebugPressureKeys();
             HandleSelection();
             HandleCommandInput();
         }
@@ -57,6 +75,30 @@ namespace Warzone.Sandbox.BattleSandbox
             if (keyboard != null && keyboard.cKey.wasPressedThisFrame)
             {
                 _context.ToggleFireLines();
+            }
+        }
+
+        private void HandleDebugPressureKeys()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.tKey.wasPressedThisFrame && _applyPressureAction != null)
+            {
+                _applyPressureAction();
+            }
+
+            if (keyboard.yKey.wasPressedThisFrame && _clearPressureAction != null)
+            {
+                _clearPressureAction();
+            }
+
+            if (keyboard.gKey.wasPressedThisFrame && _emitIncomingFireAction != null)
+            {
+                _emitIncomingFireAction();
             }
         }
 

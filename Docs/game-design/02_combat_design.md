@@ -88,3 +88,18 @@ top of the current obstacle, node, and mission-result skeleton.
 M5 is an integration and validation milestone. It does not add a new combat mechanic.
 The current work is focused on launcher consolidation, view/input cleanup, reset flow,
 and Unity-side sandbox reliability around the existing M1-M4 combat slice.
+
+## 11. M6 Pressure / Retreat Addendum
+
+M6 adds first-order battlefield stress feedback:
+
+- `Pressure` rises from incoming fire and direct damage.
+- `Suppression` is a threshold state that slows movement and stretches fire cadence.
+- `Broken` members switch into retreat behavior and stop accepting normal squad orders.
+
+This is not a full psychology system. It does not model panic contagion across the
+entire force, complex morale recovery trees, or narrative trauma states.
+
+Retreat is intended as a clear tactical risk signal. In the current slice it is hard
+to override, and normal move / defend / search assignment should not immediately pull
+a broken member back into formation.

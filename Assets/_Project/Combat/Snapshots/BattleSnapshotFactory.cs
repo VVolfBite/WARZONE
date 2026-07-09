@@ -57,7 +57,13 @@ namespace Warzone.Combat
                         memberState.AttackCooldownRemaining,
                         memberState.CurrentIntent != null ? memberState.CurrentIntent.IntentType.ToString() : "None",
                         memberState.CurrentIntent != null ? memberState.CurrentIntent.TargetPosition : (Vec2?)null,
-                        memberState.CurrentIntent != null && memberState.CurrentIntent.IsCompleted));
+                        memberState.CurrentIntent != null && memberState.CurrentIntent.IsCompleted,
+                        memberState.Pressure,
+                        memberState.MaxPressure,
+                        memberState.IsSuppressed,
+                        memberState.IsBroken,
+                        memberState.IsRetreating,
+                        memberState.RetreatTargetPosition));
                 }
 
                 foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)

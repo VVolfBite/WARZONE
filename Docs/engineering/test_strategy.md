@@ -2,38 +2,55 @@
 
 ## 1. Validation Layers
 
-Warzone validation is split into four different checks. They are not interchangeable.
+Warzone validation is reported in separate layers. They are not interchangeable.
 
-1. Source compile:
-   - domain assemblies compile as plain C# sources
-   - this verifies type wiring and dependency boundaries
+1. Domain compile
+   - Plain C# source compile for `Core`, `Content`, `Combat`, `Campaign`, and `Application`.
+   - Verifies type wiring and dependency boundaries in domain code.
 
-2. Test source compile:
-   - test sources compile against `nunit.framework.dll`
-   - this verifies the tests themselves are syntactically valid in the current environment
+2. Test source compile
+   - Test sources compile against `nunit.framework.dll`.
+   - Reported separately for:
+     - `ARCH_TEST_SOURCE_COMPILE`
+     - `COMBAT_TEST_SOURCE_COMPILE`
+     - `SANDBOX_TEST_SOURCE_COMPILE`
 
-3. Test execution:
-   - tests actually run through Unity EditMode or another supported runner
-   - this verifies behavior, not just type wiring
+3. Actual test execution
+   - NUnit or Unity EditMode tests actually run.
+   - This is behavioral verification, not just syntax verification.
 
-4. Unity Editor compile:
-   - Unity imports the project and compiles all assemblies
-   - this verifies Unity-side integration, asmdef wiring, and editor/runtime references
+4. Unity Editor compile
+   - Unity imports the project and compiles asmdefs.
+   - This is the only reliable signal for Unity-side runtime/editor integration.
 
-5. Sandbox manual run status:
-   - whether the sandbox entry was manually opened in Unity and visually checked
-   - this is separate from compile and automated test signals
+5. Sandbox manual run status
+   - Whether a sandbox entry was actually opened in Unity and visually checked.
+   - This remains separate from automated compile and automated tests.
 
-Final reports must state these separately.
+Final milestone reports must state these separately.
 
-## 2. Preferred Order
+## 2. Test Assembly Boundaries
+
+- `Warzone.Tests.Combat` may reference only:
+  - `Warzone.Core`
+  - `Warzone.Content`
+  - `Warzone.Combat`
+- `Warzone.Tests.Combat` must not reference:
+  - `Warzone.Sandbox`
+  - `Warzone.Runtime`
+  - `Unity.InputSystem`
+- `Warzone.Tests.Sandbox` is the separate assembly for sandbox scenario and registry tests.
+- Unity-facing tests must not be mixed into pure Combat tests.
+
+## 3. Preferred Order
 
 1. Unity EditMode tests, if Unity CLI is available
-2. Test source compile with a newer compiler, if `dotnet` or `msbuild` is available
-3. Domain compile and text-boundary checks
-4. Manual sandbox bootstrap verification notes
+2. Test source compile with `dotnet` or `msbuild`, if available
+3. Framework `csc.exe` domain compile and test source compile
+4. Text boundary checks
+5. Manual sandbox verification notes
 
-## 3. Repository Scripts
+## 4. Repository Scripts
 
 ### Domain and test source compile
 
@@ -44,8 +61,9 @@ powershell -ExecutionPolicy Bypass -File scripts/check_domain_compile.ps1
 Current behavior:
 
 - compiles domain sources into `Temp\Warzone.DomainValidation.dll`
-- compiles `Architecture` test sources against local NUnit
-- compiles `Combat` test sources against local NUnit and the M4 sandbox scenario factory sources needed by factory tests
+- compiles `Architecture` tests against local NUnit
+- compiles `Combat` tests against local NUnit without pulling in Sandbox sources
+- compiles `Sandbox` tests separately against the pure C# scenario and registry sources they need
 
 ### Text boundaries
 
@@ -82,10 +100,10 @@ Current behavior:
 - looks for `Unity.exe`
 - if missing, reports a stable `SKIPPED`
 - if found, runs batchmode EditMode tests and writes:
-  - `artifacts/logs/unity_editmode_M5.log`
-  - `artifacts/test-results/editmode_M5.xml`
+  - `artifacts/logs/unity_editmode_M6.log`
+  - `artifacts/test-results/editmode_M6.xml`
 
-## 4. Current Environment Constraints
+## 5. Current Environment Constraints
 
 - Unity CLI is not currently available in this environment
 - `dotnet` is not currently available in this environment
@@ -93,7 +111,7 @@ Current behavior:
   - legacy .NET Framework `csc.exe`
   - local `nunit.framework.dll` from Unity package cache
 
-This is enough for domain compile and test-source compile, but not enough for actual Unity test execution.
+This is enough for domain compile and test source compile, but not enough for actual Unity test execution.
 
 Every milestone report must explicitly distinguish:
 

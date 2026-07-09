@@ -103,6 +103,13 @@ namespace Warzone.Combat
                     if (battleState.TryGetMember(squadState.MemberIds[i], out memberState))
                     {
                         memberState.ClearIntent();
+                        if (memberState.IsRetreating)
+                        {
+                            memberState.ClearRetreat();
+                            memberState.SetPressure(BreakRetreatRule.GetClearOverridePressure(memberState.MaxPressure));
+                            memberState.SetSuppressed(false);
+                            memberState.SetSuppression(0f);
+                        }
                     }
                 }
             }

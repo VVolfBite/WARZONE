@@ -2,7 +2,7 @@ using NUnit.Framework;
 using Warzone.Combat;
 using Warzone.Sandbox.BattleSandbox;
 
-namespace Warzone.Tests.Combat
+namespace Warzone.Tests.Sandbox
 {
     public sealed class M5IntegratedSandboxTests
     {

@@ -36,7 +36,7 @@ namespace Warzone.Combat
             for (int i = 0; i < squadState.MemberIds.Count; i++)
             {
                 BattleMemberState memberState;
-                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.CanAct)
+                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.CanReceiveOrders)
                 {
                     continue;
                 }

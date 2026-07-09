@@ -14,7 +14,7 @@ namespace Warzone.Combat
 
             foreach (BattleMemberState memberState in battleState.MembersById.Values)
             {
-                if (!memberState.CanAct)
+                if (!memberState.CanFight)
                 {
                     memberState.SetVisibleEnemies(null);
                     continue;

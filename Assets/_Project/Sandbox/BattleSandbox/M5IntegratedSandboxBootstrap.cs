@@ -59,7 +59,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 tacticalCommandService,
                 BattleSandboxScenarioRegistry.GetDefaultSelectedSquadId(BattleSandboxMode.M5IntegratedSandbox));
 
-            _viewPresenter.Rebuild(scenario.BattleState);
+            _viewPresenter.RebuildFromSnapshot(_context.GetSnapshot());
             _inputController.Initialize(_context, _mainCamera, RebuildScenario);
             PublishSnapshot();
         }

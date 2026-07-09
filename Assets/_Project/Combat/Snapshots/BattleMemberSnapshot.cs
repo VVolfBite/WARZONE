@@ -19,7 +19,13 @@ namespace Warzone.Combat
             float attackCooldownRemaining,
             string currentIntent,
             Vec2? moveTarget,
-            bool hasReachedTarget)
+            bool hasReachedTarget,
+            float pressure,
+            float maxPressure,
+            bool isSuppressed,
+            bool isBroken,
+            bool isRetreating,
+            Vec2? retreatTargetPosition)
         {
             MemberId = memberId;
             SquadId = squadId;
@@ -36,6 +42,12 @@ namespace Warzone.Combat
             CurrentIntent = currentIntent;
             MoveTarget = moveTarget;
             HasReachedTarget = hasReachedTarget;
+            Pressure = pressure;
+            MaxPressure = maxPressure;
+            IsSuppressed = isSuppressed;
+            IsBroken = isBroken;
+            IsRetreating = isRetreating;
+            RetreatTargetPosition = retreatTargetPosition;
         }
 
         public BattleEntityId MemberId { get; private set; }
@@ -53,5 +65,11 @@ namespace Warzone.Combat
         public string CurrentIntent { get; private set; }
         public Vec2? MoveTarget { get; private set; }
         public bool HasReachedTarget { get; private set; }
+        public float Pressure { get; private set; }
+        public float MaxPressure { get; private set; }
+        public bool IsSuppressed { get; private set; }
+        public bool IsBroken { get; private set; }
+        public bool IsRetreating { get; private set; }
+        public Vec2? RetreatTargetPosition { get; private set; }
     }
 }

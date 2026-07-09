@@ -18,6 +18,8 @@ namespace Warzone.Combat
         private readonly EnemyFireSystem _enemyFireSystem;
         private readonly DamageSystem _damageSystem;
         private readonly DeathCleanupSystem _deathCleanupSystem;
+        private readonly PressureSystem _pressureSystem;
+        private readonly RetreatSystem _retreatSystem;
         private readonly BattleResultSystem _battleResultSystem;
 
         public BattleSimulation()
@@ -41,6 +43,8 @@ namespace Warzone.Combat
             EnemyFireSystem enemyFireSystem = null,
             DamageSystem damageSystem = null,
             DeathCleanupSystem deathCleanupSystem = null,
+            PressureSystem pressureSystem = null,
+            RetreatSystem retreatSystem = null,
             BattleResultSystem battleResultSystem = null)
         {
             _commandSystem = commandSystem ?? new CommandSystem();
@@ -57,6 +61,8 @@ namespace Warzone.Combat
             _enemyFireSystem = enemyFireSystem ?? new EnemyFireSystem(contentCatalog);
             _damageSystem = damageSystem ?? new DamageSystem();
             _deathCleanupSystem = deathCleanupSystem ?? new DeathCleanupSystem();
+            _pressureSystem = pressureSystem ?? new PressureSystem();
+            _retreatSystem = retreatSystem ?? new RetreatSystem();
             _battleResultSystem = battleResultSystem ?? new BattleResultSystem(contentCatalog);
         }
 
@@ -83,6 +89,8 @@ namespace Warzone.Combat
             _enemyFireSystem.Execute(battleState, deltaTimeSeconds);
             _damageSystem.Execute(battleState);
             _deathCleanupSystem.Execute(battleState);
+            _pressureSystem.Execute(battleState, deltaTimeSeconds);
+            _retreatSystem.Execute(battleState);
             battleState.AdvanceTime(deltaTimeSeconds);
             _battleResultSystem.UpdateMissionStatus(battleState);
             _battleResultSystem.UpdateBattleResult(battleState);

@@ -22,6 +22,11 @@ namespace Warzone.Combat
         public const string ShotBlocked = "ShotBlocked";
         public const string CoverReducedDamage = "CoverReducedDamage";
         public const string BattleCompleted = "BattleCompleted";
+        public const string PressureChanged = "PressureChanged";
+        public const string MemberSuppressed = "MemberSuppressed";
+        public const string MemberBroken = "MemberBroken";
+        public const string MemberStartedRetreat = "MemberStartedRetreat";
+        public const string MemberRecoveredSuppression = "MemberRecoveredSuppression";
     }
 }
 

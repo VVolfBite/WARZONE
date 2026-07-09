@@ -192,3 +192,40 @@ Current direction:
 
 This keeps the engineering sandbox stable without moving Unity concerns back into
 Combat or Application.
+
+## 16. M6 Pressure / Retreat Extension
+
+M6 keeps the M5 Unity integration path and extends the Combat tick with a minimal
+pressure, suppression, and retreat layer.
+
+Current intended order inside `BattleSimulation` is:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `SearchSystem`
+6. `ExtractionSystem`
+7. `EnemyAwarenessSystem`
+8. `EnemyBehaviorSystem`
+9. `PerceptionSystem`
+10. `TargetSelectionSystem`
+11. `FireSystem`
+12. `EnemyFireSystem`
+13. `DamageSystem`
+14. `DeathCleanupSystem`
+15. `PressureSystem`
+16. `RetreatSystem`
+17. `BattleResultSystem.UpdateMissionStatus`
+18. `BattleResultSystem.UpdateBattleResult`
+19. `BattleSnapshotFactory`
+
+M6 rules remain first-order abstractions:
+
+- pressure rises from incoming fire, damage, and nearby friendly losses
+- suppression applies light movement and fire penalties
+- broken members retreat to a rally or extraction point when possible
+- retreat is a local member response, not a full-squad chain-collapse model
+
+This is still a bounded combat slice. It does not add smoke, night battle,
+vehicles, or Campaign settlement.

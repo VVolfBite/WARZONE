@@ -1,10 +1,13 @@
 {
-    "name": "Warzone.Tests.Combat",
-    "rootNamespace": "Warzone.Tests.Combat",
+    "name": "Warzone.Tests.Sandbox",
+    "rootNamespace": "Warzone.Tests.Sandbox",
     "references": [
         "Warzone.Core",
+        "Warzone.Content",
         "Warzone.Combat",
-        "Warzone.Content"
+        "Warzone.Application",
+        "Warzone.Sandbox",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

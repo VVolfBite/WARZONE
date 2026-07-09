@@ -35,6 +35,10 @@ function Get-DomainFiles {
 }
 
 function Get-CombatTestExtraFiles {
+    return @()
+}
+
+function Get-SandboxTestExtraFiles {
     return @(
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/SandboxCombatContentCatalogFactory.cs')
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/BattleSandboxMode.cs')
@@ -44,6 +48,8 @@ function Get-CombatTestExtraFiles {
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M4SpatialCombatScenarioFactory.cs')
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M5IntegratedSandboxScenario.cs')
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M5IntegratedSandboxScenarioFactory.cs')
+        (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M6PressureRetreatScenario.cs')
+        (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M6PressureRetreatScenarioFactory.cs')
     )
 }
 
@@ -89,7 +95,7 @@ $nunitPath = Get-NUnitPath
 if (-not $nunitPath) {
     Write-Output "ARCH_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
     Write-Output "COMBAT_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
-    Write-Output "SANDBOX_SOURCE_COMPILE: SKIPPED (UnityEngine assemblies not available for offline framework csc validation)"
+    Write-Output "SANDBOX_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
     exit 0
 }
 
@@ -115,7 +121,21 @@ if ($combatExitCode -eq 0) {
     $hasFailure = $true
 }
 
-Write-Output "SANDBOX_SOURCE_COMPILE: SKIPPED (UnityEngine assemblies not available for offline framework csc validation)"
+$sandboxTestFiles = @(Get-ChildItem Assets/_Project/Tests/Sandbox -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+if ($sandboxTestFiles.Count -eq 0) {
+    Write-Output "SANDBOX_TEST_SOURCE_COMPILE: SKIPPED (no sandbox tests found)"
+} else {
+    $sandboxExtraFiles = Get-SandboxTestExtraFiles
+    $sandboxOutput = Join-Path $root 'Temp\Warzone.SandboxTestsValidation.dll'
+    $sandboxExitCode = Invoke-Compile -CompilerPath $compilerPath -OutputPath $sandboxOutput -Files ($sandboxTestFiles + $sandboxExtraFiles) -References @($domainOutput, $nunitPath)
+    if ($sandboxExitCode -eq 0) {
+        Write-Output "SANDBOX_TEST_SOURCE_COMPILE: OK"
+    } else {
+        Write-Output "SANDBOX_TEST_SOURCE_COMPILE: FAILED"
+        $hasFailure = $true
+    }
+}
+
 if ($hasFailure) {
     exit 1
 }

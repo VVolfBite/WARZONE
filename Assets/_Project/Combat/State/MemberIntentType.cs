@@ -7,7 +7,8 @@ namespace Warzone.Combat
         HoldPosition = 2,
         SearchPoint = 3,
         Extract = 4,
-        TakeCover = 5
+        TakeCover = 5,
+        Retreat = 6
     }
 }
 

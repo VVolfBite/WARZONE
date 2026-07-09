@@ -28,7 +28,7 @@ namespace Warzone.Combat
 
         private void ExecuteForMember(BattleState battleState, BattleMemberState memberState, float deltaTimeSeconds)
         {
-            if (memberState == null || !memberState.CanAct)
+            if (memberState == null || !memberState.CanFight)
             {
                 return;
             }
@@ -80,7 +80,7 @@ namespace Warzone.Combat
                 fireLine.DamageMultiplier,
                 fireLine.CoverObstacleId));
 
-            memberState.ResetAttackCooldown(weaponDefinition.FireIntervalSeconds);
+            memberState.ResetAttackCooldown(SuppressionRule.ApplyAttackCooldownPenalty(weaponDefinition.FireIntervalSeconds, memberState.IsSuppressed));
             battleState.AddEvent(new BattleEventRecord(
                 BattleEventTypes.WeaponFired,
                 memberState.SquadId,
