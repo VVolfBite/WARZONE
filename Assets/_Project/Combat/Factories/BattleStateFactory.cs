@@ -47,8 +47,20 @@ namespace Warzone.Combat
 
             squadState.SyncMemberIds(memberIds);
             battleState.AddSquad(squadState);
-            battleState.AddTacticalNode(new TacticalNodeState(1, rallyPosition, 1.5f));
+            battleState.AddTacticalNode(new TacticalNodeState(1, TacticalNodeType.RallyPoint, rallyPosition, 1.5f));
             return battleState;
+        }
+
+        public TacticalNodeState CreateTacticalNode(
+            int nodeId,
+            TacticalNodeType nodeType,
+            Vec2 position,
+            float radius,
+            bool isEnabled = true,
+            float requiredSearchSeconds = 3f,
+            int? extractionOwnerSquadId = null)
+        {
+            return new TacticalNodeState(nodeId, nodeType, position, radius, isEnabled, requiredSearchSeconds, extractionOwnerSquadId);
         }
 
         public BattleEnemyState CreateEnemy(

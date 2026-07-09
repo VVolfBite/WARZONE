@@ -29,7 +29,7 @@ namespace Warzone.Sandbox.BattleSandbox
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9101, "sandbox.raider", FactionId.Enemy, new Vec2(6f, 0f), 45, 0f, 10f));
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9102, "sandbox.raider", FactionId.Enemy, new Vec2(9f, 2f), 45, 0f, 10f));
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9103, "sandbox.raider", FactionId.Enemy, new Vec2(8f, -3f), 45, 0f, 10f));
-            battleState.AddTacticalNode(new TacticalNodeState(2, new Vec2(2f, 1f), 2f));
+            battleState.AddTacticalNode(new TacticalNodeState(2, TacticalNodeType.RallyPoint, new Vec2(2f, 1f), 2f));
 
             return new M2CombatScenario(contentCatalog, battleState);
         }

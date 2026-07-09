@@ -64,6 +64,36 @@ namespace Warzone.Combat
                 return;
             }
 
+            SearchPointCommand searchPointCommand = command as SearchPointCommand;
+            if (searchPointCommand != null)
+            {
+                TacticalNodeState searchNode;
+                if (battleState.TryGetTacticalNode(searchPointCommand.NodeId, out searchNode))
+                {
+                    squadState.SetDesiredPosition(searchNode.Position);
+                }
+
+                squadState.Stop();
+                squadState.SetCurrentOrder(command);
+                squadState.SetStance(SquadStance.Defending);
+                return;
+            }
+
+            ExtractSquadCommand extractSquadCommand = command as ExtractSquadCommand;
+            if (extractSquadCommand != null)
+            {
+                TacticalNodeState extractionNode;
+                if (battleState.TryGetTacticalNode(extractSquadCommand.ExtractionNodeId, out extractionNode))
+                {
+                    squadState.SetDesiredPosition(extractionNode.Position);
+                }
+
+                squadState.Stop();
+                squadState.SetCurrentOrder(command);
+                squadState.SetStance(SquadStance.Moving);
+                return;
+            }
+
             if (command is ClearSquadOrderCommand)
             {
                 squadState.Stop();

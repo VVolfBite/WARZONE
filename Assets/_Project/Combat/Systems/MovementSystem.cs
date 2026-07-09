@@ -31,12 +31,20 @@ namespace Warzone.Combat
 
         private void MoveMember(BattleState battleState, BattleMemberState memberState, float deltaTimeSeconds)
         {
-            if (memberState == null || !memberState.IsAlive || memberState.CurrentIntent == null)
+            if (memberState == null || !memberState.CanAct || memberState.CurrentIntent == null)
             {
                 return;
             }
 
-            if (memberState.CurrentIntent.IntentType != MemberIntentType.MoveToPosition)
+            if (memberState.CurrentIntent.IntentType == MemberIntentType.HoldPosition)
+            {
+                return;
+            }
+
+            if (memberState.CurrentIntent.IntentType != MemberIntentType.MoveToPosition &&
+                memberState.CurrentIntent.IntentType != MemberIntentType.SearchPoint &&
+                memberState.CurrentIntent.IntentType != MemberIntentType.Extract &&
+                memberState.CurrentIntent.IntentType != MemberIntentType.TakeCover)
             {
                 return;
             }
@@ -46,7 +54,7 @@ namespace Warzone.Combat
             if (distance <= _arrivalThreshold)
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
-                memberState.CurrentIntent.MarkCompleted();
+                CompleteIntent(memberState);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
@@ -56,7 +64,7 @@ namespace Warzone.Combat
             if (stepDistance >= distance)
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
-                memberState.CurrentIntent.MarkCompleted();
+                CompleteIntent(memberState);
                 memberState.UpdateFacing(direction);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
@@ -66,29 +74,40 @@ namespace Warzone.Combat
             memberState.UpdateFacing(direction);
         }
 
+        private static void CompleteIntent(BattleMemberState memberState)
+        {
+            if (memberState.CurrentIntent.IntentType == MemberIntentType.TakeCover)
+            {
+                memberState.SetIntent(new MemberIntent(MemberIntentType.HoldPosition, memberState.CurrentIntent.TargetPosition, true, memberState.CurrentIntent.TacticalNodeId));
+                return;
+            }
+
+            memberState.CurrentIntent.MarkCompleted();
+        }
+
         private static void UpdateSquadCenter(BattleState battleState, BattleSquadState squadState)
         {
             Vec2 center = Vec2.Zero;
-            int aliveCount = 0;
+            int activeCount = 0;
 
             for (int i = 0; i < squadState.MemberIds.Count; i++)
             {
                 BattleMemberState memberState;
-                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.IsAlive)
+                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.IsAlive || memberState.IsExtracted)
                 {
                     continue;
                 }
 
                 center += memberState.Position;
-                aliveCount++;
+                activeCount++;
             }
 
-            if (aliveCount == 0)
+            if (activeCount == 0)
             {
                 return;
             }
 
-            squadState.UpdatePosition(center / aliveCount);
+            squadState.UpdatePosition(center / activeCount);
             if (AllMembersAtTargets(battleState, squadState))
             {
                 squadState.SetStance(squadState.CurrentOrder is DefendAreaCommand ? SquadStance.Defending : SquadStance.Default);
@@ -100,7 +119,7 @@ namespace Warzone.Combat
             for (int i = 0; i < squadState.MemberIds.Count; i++)
             {
                 BattleMemberState memberState;
-                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.IsAlive)
+                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.CanAct)
                 {
                     continue;
                 }
@@ -115,5 +134,3 @@ namespace Warzone.Combat
         }
     }
 }
-
-

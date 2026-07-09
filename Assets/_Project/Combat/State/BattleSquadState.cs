@@ -63,6 +63,7 @@ namespace Warzone.Combat
         public float FormationSpacing { get; private set; }
         public Vec2 DesiredPosition { get; private set; }
         public Vec2 RallyPosition { get; private set; }
+        public bool IsExtracted { get; private set; }
 
         public float AbilityCooldownRemaining
         {
@@ -138,6 +139,11 @@ namespace Warzone.Combat
             CommandState = SquadCommandState.Idle;
             CurrentOrder = null;
             Stance = SquadStance.Default;
+        }
+
+        public void MarkExtracted()
+        {
+            IsExtracted = true;
         }
 
         public void TickCooldown(float deltaTimeSeconds)

@@ -119,3 +119,27 @@ The current intended order inside `BattleSimulation` is:
 10. `BattleSnapshotFactory`
 
 This remains a small technical slice. It is not the final combat model and it does not replace the legacy prototype resolver path yet.
+
+## 13. M3 Tick Order
+
+M3 extends the slice from open-ground fire into a tactical mission loop with nodes,
+search, extraction, and enemy response.
+The current intended order inside `BattleSimulation` is:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `SearchSystem`
+6. `ExtractionSystem`
+7. `EnemyAwarenessSystem`
+8. `EnemyBehaviorSystem`
+9. `PerceptionSystem`
+10. `TargetSelectionSystem`
+11. `FireSystem`
+12. `EnemyFireSystem`
+13. `DamageSystem`
+14. `DeathCleanupSystem`
+15. `BattleSnapshotFactory`
+
+This is still a technical slice, not the final tactical combat architecture.

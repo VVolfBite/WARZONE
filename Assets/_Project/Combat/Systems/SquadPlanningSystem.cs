@@ -21,11 +21,37 @@ namespace Warzone.Combat
                     continue;
                 }
 
-                DefendAreaCommand defendAreaCommand = squadState.CurrentOrder as DefendAreaCommand;
-                if (defendAreaCommand != null)
+                DefendAreaCommand defendCommand = squadState.CurrentOrder as DefendAreaCommand;
+                if (defendCommand != null)
                 {
-                    squadState.SetDesiredPosition(defendAreaCommand.AreaCenter);
+                    squadState.SetDesiredPosition(defendCommand.AreaCenter);
                     squadState.SetStance(SquadStance.Defending);
+                    continue;
+                }
+
+                SearchPointCommand searchCommand = squadState.CurrentOrder as SearchPointCommand;
+                if (searchCommand != null)
+                {
+                    TacticalNodeState searchNode;
+                    if (battleState.TryGetTacticalNode(searchCommand.NodeId, out searchNode))
+                    {
+                        squadState.SetDesiredPosition(searchNode.Position);
+                    }
+
+                    squadState.SetStance(SquadStance.Defending);
+                    continue;
+                }
+
+                ExtractSquadCommand extractCommand = squadState.CurrentOrder as ExtractSquadCommand;
+                if (extractCommand != null)
+                {
+                    TacticalNodeState extractionNode;
+                    if (battleState.TryGetTacticalNode(extractCommand.ExtractionNodeId, out extractionNode))
+                    {
+                        squadState.SetDesiredPosition(extractionNode.Position);
+                    }
+
+                    squadState.SetStance(SquadStance.Moving);
                     continue;
                 }
 
@@ -43,27 +69,26 @@ namespace Warzone.Combat
         private static Vec2 CalculateCurrentCenter(BattleState battleState, BattleSquadState squadState)
         {
             Vec2 center = Vec2.Zero;
-            int aliveCount = 0;
+            int activeCount = 0;
 
             for (int i = 0; i < squadState.MemberIds.Count; i++)
             {
                 BattleMemberState memberState;
-                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.IsAlive)
+                if (!battleState.TryGetMember(squadState.MemberIds[i], out memberState) || !memberState.CanAct)
                 {
                     continue;
                 }
 
                 center += memberState.Position;
-                aliveCount++;
+                activeCount++;
             }
 
-            if (aliveCount == 0)
+            if (activeCount == 0)
             {
                 return squadState.Position;
             }
 
-            return center / aliveCount;
+            return center / activeCount;
         }
     }
 }
-

@@ -5,7 +5,16 @@ namespace Warzone.Combat
 {
     public sealed class BattleEnemySnapshot
     {
-        public BattleEnemySnapshot(BattleEntityId enemyId, string definitionId, FactionId factionId, Vec2 position, int health, int maxHealth, bool isAlive)
+        public BattleEnemySnapshot(
+            BattleEntityId enemyId,
+            string definitionId,
+            FactionId factionId,
+            Vec2 position,
+            int health,
+            int maxHealth,
+            bool isAlive,
+            BattleEntityId? currentTargetMemberId,
+            float attackCooldownRemaining)
         {
             EnemyId = enemyId;
             DefinitionId = definitionId;
@@ -14,6 +23,8 @@ namespace Warzone.Combat
             Health = health;
             MaxHealth = maxHealth;
             IsAlive = isAlive;
+            CurrentTargetMemberId = currentTargetMemberId;
+            AttackCooldownRemaining = attackCooldownRemaining;
         }
 
         public BattleEntityId EnemyId { get; private set; }
@@ -23,5 +34,7 @@ namespace Warzone.Combat
         public int Health { get; private set; }
         public int MaxHealth { get; private set; }
         public bool IsAlive { get; private set; }
+        public BattleEntityId? CurrentTargetMemberId { get; private set; }
+        public float AttackCooldownRemaining { get; private set; }
     }
 }

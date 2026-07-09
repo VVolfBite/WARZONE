@@ -37,6 +37,7 @@ namespace Warzone.Combat
         public float DetectionRange { get; private set; }
         public float AttackRange { get; private set; }
         public BattleEntityId? CurrentTargetMemberId { get; private set; }
+        public float AttackCooldownRemaining { get; private set; }
 
         public bool IsAlive
         {
@@ -65,6 +66,25 @@ namespace Warzone.Combat
         public void SetCurrentTargetMember(BattleEntityId? memberId)
         {
             CurrentTargetMemberId = memberId;
+        }
+
+        public void TickAttackCooldown(float deltaTimeSeconds)
+        {
+            if (AttackCooldownRemaining <= 0f)
+            {
+                return;
+            }
+
+            AttackCooldownRemaining -= deltaTimeSeconds;
+            if (AttackCooldownRemaining < 0f)
+            {
+                AttackCooldownRemaining = 0f;
+            }
+        }
+
+        public void ResetAttackCooldown(float cooldownSeconds)
+        {
+            AttackCooldownRemaining = cooldownSeconds < 0f ? 0f : cooldownSeconds;
         }
     }
 }

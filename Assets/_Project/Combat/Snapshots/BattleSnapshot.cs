@@ -10,6 +10,8 @@ namespace Warzone.Combat
             IReadOnlyList<BattleSquadSnapshot> squads,
             IReadOnlyList<BattleMemberSnapshot> members,
             IReadOnlyList<BattleEnemySnapshot> enemies,
+            IReadOnlyList<TacticalNodeSnapshot> tacticalNodes,
+            BattleMissionStatusSnapshot missionStatus,
             IReadOnlyList<BattleEventRecord> recentEvents)
         {
             BattleId = battleId;
@@ -17,6 +19,8 @@ namespace Warzone.Combat
             Squads = squads;
             Members = members;
             Enemies = enemies;
+            TacticalNodes = tacticalNodes;
+            MissionStatus = missionStatus;
             RecentEvents = recentEvents;
         }
 
@@ -25,6 +29,8 @@ namespace Warzone.Combat
         public IReadOnlyList<BattleSquadSnapshot> Squads { get; private set; }
         public IReadOnlyList<BattleMemberSnapshot> Members { get; private set; }
         public IReadOnlyList<BattleEnemySnapshot> Enemies { get; private set; }
+        public IReadOnlyList<TacticalNodeSnapshot> TacticalNodes { get; private set; }
+        public BattleMissionStatusSnapshot MissionStatus { get; private set; }
         public IReadOnlyList<BattleEventRecord> RecentEvents { get; private set; }
     }
 }

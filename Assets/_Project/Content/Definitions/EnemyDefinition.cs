@@ -9,7 +9,9 @@ namespace Warzone.Content.Definitions
             float movementSpeed,
             float detectionRange,
             float attackRange,
-            FactionId factionId)
+            FactionId factionId,
+            int attackDamage = 10,
+            float attackIntervalSeconds = 0.9f)
         {
             Id = id;
             DisplayName = displayName;
@@ -18,6 +20,8 @@ namespace Warzone.Content.Definitions
             DetectionRange = detectionRange;
             AttackRange = attackRange;
             FactionId = factionId;
+            AttackDamage = attackDamage;
+            AttackIntervalSeconds = attackIntervalSeconds;
         }
 
         public string Id { get; private set; }
@@ -27,5 +31,7 @@ namespace Warzone.Content.Definitions
         public float DetectionRange { get; private set; }
         public float AttackRange { get; private set; }
         public FactionId FactionId { get; private set; }
+        public int AttackDamage { get; private set; }
+        public float AttackIntervalSeconds { get; private set; }
     }
 }

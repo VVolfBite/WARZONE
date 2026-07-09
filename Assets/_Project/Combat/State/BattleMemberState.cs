@@ -54,10 +54,16 @@ namespace Warzone.Combat
         public float AccuracyModifier { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
         public BattleEntityId? CurrentTargetEnemyId { get; private set; }
+        public bool IsExtracted { get; private set; }
 
         public bool IsAlive
         {
             get { return Health > 0; }
+        }
+
+        public bool CanAct
+        {
+            get { return IsAlive && !IsExtracted; }
         }
 
         public IReadOnlyList<BattleEntityId> VisibleEnemyIds
@@ -92,7 +98,7 @@ namespace Warzone.Combat
 
         public void ApplyDamage(int damage)
         {
-            if (damage <= 0 || !IsAlive)
+            if (damage <= 0 || !IsAlive || IsExtracted)
             {
                 return;
             }
@@ -145,6 +151,19 @@ namespace Warzone.Combat
             {
                 _visibleEnemyIds.Add(enemyIds[i]);
             }
+        }
+
+        public void MarkExtracted()
+        {
+            if (IsExtracted)
+            {
+                return;
+            }
+
+            IsExtracted = true;
+            ClearIntent();
+            SetCurrentTargetEnemy(null);
+            SetVisibleEnemies(null);
         }
     }
 }

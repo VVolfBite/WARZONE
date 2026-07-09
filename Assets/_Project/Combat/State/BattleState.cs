@@ -113,6 +113,11 @@ namespace Warzone.Combat
             return _enemiesById.TryGetValue(enemyId, out enemyState);
         }
 
+        public bool TryGetTacticalNode(int nodeId, out TacticalNodeState nodeState)
+        {
+            return _tacticalNodesById.TryGetValue(nodeId, out nodeState);
+        }
+
         public void EnqueueDamage(PendingDamageRequest damageRequest)
         {
             if (damageRequest == null)

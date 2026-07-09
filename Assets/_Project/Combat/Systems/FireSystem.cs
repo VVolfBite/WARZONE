@@ -28,7 +28,7 @@ namespace Warzone.Combat
 
         private void ExecuteForMember(BattleState battleState, BattleMemberState memberState, float deltaTimeSeconds)
         {
-            if (memberState == null || !memberState.IsAlive)
+            if (memberState == null || !memberState.CanAct)
             {
                 return;
             }
@@ -63,7 +63,8 @@ namespace Warzone.Combat
                 memberState.MemberId,
                 enemyState.EnemyId,
                 weaponDefinition.Damage,
-                weaponDefinition.Id));
+                weaponDefinition.Id,
+                false));
 
             memberState.ResetAttackCooldown(weaponDefinition.FireIntervalSeconds);
             battleState.AddEvent(new BattleEventRecord(
