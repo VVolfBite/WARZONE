@@ -10,10 +10,22 @@ namespace Warzone.Editor.SandboxTools
     public static class SandboxSceneCreateMenu
     {
         private const string SceneDirectory = "Assets/Scenes/Sandbox";
-        private const string ScenePath = "Assets/Scenes/Sandbox/Sandbox_M5_Integrated.unity";
+        private const string M5ScenePath = "Assets/Scenes/Sandbox/Sandbox_M5_Integrated.unity";
+        private const string M6ScenePath = "Assets/Scenes/Sandbox/Sandbox_M6_PressureRetreat.unity";
 
         [MenuItem("Warzone/Sandbox/Create M5 Integrated Sandbox Scene")]
         public static void CreateM5IntegratedSandboxScene()
+        {
+            CreateSandboxScene("M5 Sandbox Launcher", BattleSandboxMode.M5IntegratedSandbox, M5ScenePath);
+        }
+
+        [MenuItem("Warzone/Sandbox/Create M6 Pressure Retreat Sandbox Scene")]
+        public static void CreateM6PressureRetreatSandboxScene()
+        {
+            CreateSandboxScene("M6 Sandbox Launcher", BattleSandboxMode.M6PressureRetreat, M6ScenePath);
+        }
+
+        private static void CreateSandboxScene(string launcherName, BattleSandboxMode mode, string scenePath)
         {
             if (!Directory.Exists(SceneDirectory))
             {
@@ -22,13 +34,13 @@ namespace Warzone.Editor.SandboxTools
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
-            GameObject launcherObject = new GameObject("M5 Sandbox Launcher");
+            GameObject launcherObject = new GameObject(launcherName);
             BattleSandboxLauncher launcher = launcherObject.AddComponent<BattleSandboxLauncher>();
-            launcher.Mode = BattleSandboxMode.M5IntegratedSandbox;
+            launcher.Mode = mode;
 
-            EditorSceneManager.SaveScene(scene, ScenePath);
+            EditorSceneManager.SaveScene(scene, scenePath);
             Selection.activeGameObject = launcherObject;
-            EditorUtility.DisplayDialog("Warzone", "Created " + ScenePath, "OK");
+            EditorUtility.DisplayDialog("Warzone", "Created " + scenePath, "OK");
         }
     }
 }

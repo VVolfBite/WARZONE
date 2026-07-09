@@ -92,6 +92,9 @@ Runtime behavior:
   - `T` apply pressure
   - `Y` clear pressure
   - `G` simulate incoming fire
+- Unity Editor scene helpers:
+  - `Warzone/Sandbox/Create M5 Integrated Sandbox Scene`
+  - `Warzone/Sandbox/Create M6 Pressure Retreat Sandbox Scene`
 
 ## 6. Validation Commands And Results
 
@@ -192,3 +195,12 @@ The next useful closure is Unity-side validation on a machine with `Unity.exe` a
 1. create or open the M5/M6 sandbox scene through the Editor menu
 2. run EditMode tests
 3. confirm launcher mode switching, reset flow, and pressure debug controls in Play Mode
+
+Manual Unity path for M6:
+
+1. Open Unity Editor
+2. Run `Warzone/Sandbox/Create M6 Pressure Retreat Sandbox Scene`
+3. Open `Assets/Scenes/Sandbox/Sandbox_M6_PressureRetreat.unity`
+4. Enter Play Mode
+5. Verify launcher mode is `M6PressureRetreat`
+6. Use `T / Y / G` to verify pressure debug flow
