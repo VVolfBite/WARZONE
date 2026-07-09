@@ -18,6 +18,7 @@ namespace Warzone.Combat
             BattleId = battleId;
             CommandQueue = new BattleCommandQueue();
             EventBuffer = new BattleEventBuffer();
+            EnvironmentState = new BattleEnvironmentState();
         }
 
         public string BattleId { get; private set; }
@@ -25,6 +26,7 @@ namespace Warzone.Combat
         public string MissionDefinitionId { get; private set; }
         public BattleCommandQueue CommandQueue { get; private set; }
         public BattleEventBuffer EventBuffer { get; private set; }
+        public BattleEnvironmentState EnvironmentState { get; private set; }
         public BattleMissionStatusSnapshot CurrentMissionStatus { get; private set; }
         public BattleResult CurrentBattleResult { get; private set; }
 
@@ -191,6 +193,11 @@ namespace Warzone.Combat
             {
                 _recentEvents.RemoveAt(0);
             }
+        }
+
+        public void ClearFrameEvents()
+        {
+            EventBuffer.Clear();
         }
 
         public void SetMissionDefinitionId(string missionDefinitionId)

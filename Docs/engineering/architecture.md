@@ -229,3 +229,44 @@ M6 rules remain first-order abstractions:
 
 This is still a bounded combat slice. It does not add smoke, night battle,
 vehicles, or Campaign settlement.
+
+## 17. M7 Environment Layer
+
+M7 extends the combat slice with first-order environmental combat effects.
+
+Current intended order inside `BattleSimulation` is:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `EnvironmentalZoneSystem`
+6. `SearchSystem`
+7. `ExtractionSystem`
+8. `EnemyAwarenessSystem`
+9. `EnemyBehaviorSystem`
+10. `PerceptionSystem`
+11. `TargetSelectionSystem`
+12. `FireSystem`
+13. `EnemyFireSystem`
+14. `DamageSystem`
+15. `DeathCleanupSystem`
+16. `PressureSystem`
+17. `RetreatSystem`
+18. `BattleResultSystem.UpdateMissionStatus`
+19. `BattleResultSystem.UpdateBattleResult`
+20. `BattleSnapshotFactory`
+
+M7 adds:
+
+- `BattleEnvironmentState`
+- `EnvironmentalZoneState` for smoke, fire, toxic, light, and darkness zones
+- visibility rules that combine:
+  - tactical obstacles
+  - smoke line blocking
+  - night visibility modifiers
+  - light/darkness zone modifiers
+- environmental damage and environmental pressure as lightweight combat hazards
+
+This remains a technical slice. It is not a full weather system, not a real-time
+lighting model, and not a physically simulated smoke solution.

@@ -41,5 +41,29 @@ namespace Warzone.Tests.Combat
             Assert.That(found, Is.False);
             Assert.That(weaponDefinition, Is.Null);
         }
+
+        [Test]
+        public void EnvironmentCatalog_CanReturnEnvironmentalZoneDefinition()
+        {
+            ContentCatalog catalog = TestCombatContentFactory.CreateEnvironmentCombatCatalog();
+            EnvironmentalZoneDefinition zoneDefinition;
+
+            bool found = catalog.TryGetEnvironmentalZoneDefinition("sandbox.smoke", out zoneDefinition);
+
+            Assert.That(found, Is.True);
+            Assert.That(zoneDefinition.ZoneType, Is.EqualTo(Warzone.Combat.EnvironmentalZoneType.Smoke));
+        }
+
+        [Test]
+        public void EnvironmentCatalog_CanReturnVisionEquipmentDefinition()
+        {
+            ContentCatalog catalog = TestCombatContentFactory.CreateEnvironmentCombatCatalog();
+            VisionEquipmentDefinition visionEquipmentDefinition;
+
+            bool found = catalog.TryGetVisionEquipmentDefinition("sandbox.nvg.basic", out visionEquipmentDefinition);
+
+            Assert.That(found, Is.True);
+            Assert.That(visionEquipmentDefinition.NightVisionLevel, Is.EqualTo(1));
+        }
     }
 }

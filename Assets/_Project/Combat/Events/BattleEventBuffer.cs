@@ -11,6 +11,11 @@ namespace Warzone.Combat
             get { return _events; }
         }
 
+        public IReadOnlyList<BattleEventRecord> Peek()
+        {
+            return _events;
+        }
+
         public void Add(BattleEventRecord battleEvent)
         {
             if (battleEvent == null)
@@ -21,6 +26,12 @@ namespace Warzone.Combat
             _events.Add(battleEvent);
         }
 
+        public void Clear()
+        {
+            _events.Clear();
+        }
+
+        [System.Obsolete("Drain is reserved for lifecycle control paths. Systems should observe Events/Peek instead.")]
         public IReadOnlyList<BattleEventRecord> Drain()
         {
             if (_events.Count == 0)

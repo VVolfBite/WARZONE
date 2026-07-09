@@ -14,6 +14,11 @@ namespace Warzone.Sandbox.BattleSandbox
         private Action _applyPressureAction;
         private Action _clearPressureAction;
         private Action _emitIncomingFireAction;
+        private Action _toggleNightAction;
+        private Action _toggleVisionAction;
+        private Action<Vec2> _spawnSmokeAction;
+        private Action<Vec2> _spawnFireAction;
+        private Action<Vec2> _spawnLightAction;
 
         public void Initialize(BattleSandboxRuntimeContext context, Camera mainCamera, Action resetAction)
         {
@@ -26,7 +31,12 @@ namespace Warzone.Sandbox.BattleSandbox
             Action resetAction,
             Action applyPressureAction,
             Action clearPressureAction,
-            Action emitIncomingFireAction)
+            Action emitIncomingFireAction,
+            Action toggleNightAction = null,
+            Action toggleVisionAction = null,
+            Action<Vec2> spawnSmokeAction = null,
+            Action<Vec2> spawnFireAction = null,
+            Action<Vec2> spawnLightAction = null)
         {
             _context = context;
             _mainCamera = mainCamera;
@@ -34,6 +44,11 @@ namespace Warzone.Sandbox.BattleSandbox
             _applyPressureAction = applyPressureAction;
             _clearPressureAction = clearPressureAction;
             _emitIncomingFireAction = emitIncomingFireAction;
+            _toggleNightAction = toggleNightAction;
+            _toggleVisionAction = toggleVisionAction;
+            _spawnSmokeAction = spawnSmokeAction;
+            _spawnFireAction = spawnFireAction;
+            _spawnLightAction = spawnLightAction;
         }
 
         private void Update()
@@ -47,6 +62,7 @@ namespace Warzone.Sandbox.BattleSandbox
             HandleReset();
             HandleDebugLineToggle();
             HandleDebugPressureKeys();
+            HandleEnvironmentDebugKeys();
             HandleSelection();
             HandleCommandInput();
         }
@@ -99,6 +115,52 @@ namespace Warzone.Sandbox.BattleSandbox
             if (keyboard.gKey.wasPressedThisFrame && _emitIncomingFireAction != null)
             {
                 _emitIncomingFireAction();
+            }
+        }
+
+        private void HandleEnvironmentDebugKeys()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.nKey.wasPressedThisFrame && _toggleNightAction != null)
+            {
+                _toggleNightAction();
+            }
+
+            if (keyboard.vKey.wasPressedThisFrame && _toggleVisionAction != null)
+            {
+                _toggleVisionAction();
+            }
+
+            if (keyboard.bKey.wasPressedThisFrame && _spawnSmokeAction != null)
+            {
+                Vec2 position;
+                if (TryGetGroundPosition(out position))
+                {
+                    _spawnSmokeAction(position);
+                }
+            }
+
+            if (keyboard.fKey.wasPressedThisFrame && _spawnFireAction != null)
+            {
+                Vec2 position;
+                if (TryGetGroundPosition(out position))
+                {
+                    _spawnFireAction(position);
+                }
+            }
+
+            if (keyboard.lKey.wasPressedThisFrame && _spawnLightAction != null)
+            {
+                Vec2 position;
+                if (TryGetGroundPosition(out position))
+                {
+                    _spawnLightAction(position);
+                }
             }
         }
 
@@ -191,6 +253,19 @@ namespace Warzone.Sandbox.BattleSandbox
 
             Ray ray = _mainCamera.ScreenPointToRay(mouse.position.ReadValue());
             return Physics.Raycast(ray, out hit, 1000f);
+        }
+
+        private bool TryGetGroundPosition(out Vec2 position)
+        {
+            RaycastHit hit;
+            if (TryRaycast(out hit))
+            {
+                position = new Vec2(hit.point.x, hit.point.z);
+                return true;
+            }
+
+            position = Vec2.Zero;
+            return false;
         }
     }
 }

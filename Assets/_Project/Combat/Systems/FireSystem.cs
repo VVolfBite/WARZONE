@@ -53,6 +53,38 @@ namespace Warzone.Combat
                 return;
             }
 
+            float effectiveDetectionRange = EnvironmentalVisibilityRule.GetEffectiveDetectionRange(
+                battleState.EnvironmentState,
+                memberState.Position,
+                memberState.DetectionRange,
+                memberState.NightVisionLevel,
+                enemyState.Position,
+                enemyState.HasLightSource);
+            if (distance > effectiveDetectionRange)
+            {
+                battleState.AddEvent(new BattleEventRecord(
+                    BattleEventTypes.TargetLostToDarkness,
+                    memberState.SquadId,
+                    memberState.MemberId,
+                    "night",
+                    enemyState.EnemyId));
+                memberState.SetCurrentTargetEnemy(null);
+                return;
+            }
+
+            EnvironmentalZoneState blockingSmokeZone;
+            if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, memberState.Position, enemyState.Position, memberState.SmokeVisionLevel, out blockingSmokeZone))
+            {
+                battleState.AddEvent(new BattleEventRecord(
+                    BattleEventTypes.SmokeLineOfSightBlocked,
+                    memberState.SquadId,
+                    memberState.MemberId,
+                    blockingSmokeZone.ZoneId.ToString(),
+                    enemyState.EnemyId));
+                memberState.SetCurrentTargetEnemy(null);
+                return;
+            }
+
             WeaponDefinition weaponDefinition;
             if (!_contentCatalog.TryGetWeapon(memberState.WeaponId, out weaponDefinition))
             {

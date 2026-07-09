@@ -103,3 +103,22 @@ entire force, complex morale recovery trees, or narrative trauma states.
 Retreat is intended as a clear tactical risk signal. In the current slice it is hard
 to override, and normal move / defend / search assignment should not immediately pull
 a broken member back into formation.
+
+## 12. M7 Environment Addendum
+
+Smoke directly affects sight. It is not a magic damage-reduction field.
+In the current slice, dense smoke breaks visual acquisition and prevents aimed fire
+because the target is no longer considered visible.
+
+Night fighting is a risk layer. The first implementation expresses it through
+detection-range modifiers rather than full lighting simulation or perception cones.
+
+Light zones and night-vision capability reduce that risk. They are tools that soften
+visibility penalties, not hard binary gates.
+
+Fire and toxic zones are environmental hazard areas. The first implementation only
+applies lightweight damage and pressure over time. It does not yet model spread,
+secondary ignition, or long-term status illness.
+
+This still stops well short of a full weather system, advanced smoke diffusion,
+night-battle presentation, or vehicle/environment integration.

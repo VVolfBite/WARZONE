@@ -13,6 +13,7 @@ namespace Warzone.Combat
             List<TacticalNodeSnapshot> tacticalNodes = new List<TacticalNodeSnapshot>();
             List<TacticalObstacleSnapshot> obstacles = new List<TacticalObstacleSnapshot>();
             List<BuildingSnapshot> buildings = new List<BuildingSnapshot>();
+            List<EnvironmentalZoneSnapshot> zones = new List<EnvironmentalZoneSnapshot>();
 
             if (battleState != null)
             {
@@ -63,7 +64,12 @@ namespace Warzone.Combat
                         memberState.IsSuppressed,
                         memberState.IsBroken,
                         memberState.IsRetreating,
-                        memberState.RetreatTargetPosition));
+                        memberState.RetreatTargetPosition,
+                        memberState.NightVisionLevel,
+                        memberState.SmokeVisionLevel,
+                        memberState.HasLightSource,
+                        memberState.DetectionRange,
+                        memberState.EffectiveDetectionRange));
                 }
 
                 foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
@@ -78,7 +84,11 @@ namespace Warzone.Combat
                         enemyState.IsAlive,
                         enemyState.OccupiedTacticalNodeId,
                         enemyState.CurrentTargetMemberId,
-                        enemyState.AttackCooldownRemaining));
+                        enemyState.AttackCooldownRemaining,
+                        enemyState.NightVisionLevel,
+                        enemyState.HasLightSource,
+                        enemyState.DetectionRange,
+                        enemyState.EffectiveDetectionRange));
                 }
 
                 foreach (TacticalNodeState nodeState in battleState.TacticalNodesById.Values)
@@ -118,6 +128,21 @@ namespace Warzone.Combat
                         buildingState.IsEnterable,
                         new List<int>(buildingState.TacticalNodeIds)));
                 }
+
+                foreach (EnvironmentalZoneState zoneState in battleState.EnvironmentState.ZonesById.Values)
+                {
+                    zones.Add(new EnvironmentalZoneSnapshot(
+                        zoneState.ZoneId,
+                        zoneState.ZoneType,
+                        zoneState.Position,
+                        zoneState.Radius,
+                        zoneState.Intensity,
+                        zoneState.DurationRemaining,
+                        zoneState.IsActive,
+                        zoneState.VisionPenalty,
+                        zoneState.DamagePerSecond,
+                        zoneState.PressurePerSecond));
+                }
             }
 
             return new BattleSnapshot(
@@ -129,6 +154,11 @@ namespace Warzone.Combat
                 tacticalNodes,
                 obstacles,
                 buildings,
+                battleState != null ? new BattleEnvironmentSnapshot(
+                    battleState.EnvironmentState.IsNight,
+                    battleState.EnvironmentState.GlobalVisibilityMultiplier,
+                    battleState.EnvironmentState.AmbientLightLevel,
+                    zones) : new BattleEnvironmentSnapshot(false, 1f, 1f, zones),
                 battleState != null ? battleState.CurrentMissionStatus : new BattleMissionStatusSnapshot(0, 0, 0, 0, 0, 0, false, false, false, false, false, BattleCompletionType.Partial, 0),
                 battleState != null ? battleState.CurrentBattleResult : null,
                 battleState != null ? new List<BattleEventRecord>(battleState.RecentEvents) : new List<BattleEventRecord>());

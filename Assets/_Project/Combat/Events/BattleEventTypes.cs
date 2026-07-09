@@ -27,6 +27,10 @@ namespace Warzone.Combat
         public const string MemberBroken = "MemberBroken";
         public const string MemberStartedRetreat = "MemberStartedRetreat";
         public const string MemberRecoveredSuppression = "MemberRecoveredSuppression";
+        public const string SmokeLineOfSightBlocked = "SmokeLineOfSightBlocked";
+        public const string TargetLostToDarkness = "TargetLostToDarkness";
+        public const string FireDamageApplied = "FireDamageApplied";
+        public const string ToxicDamageApplied = "ToxicDamageApplied";
     }
 }
 

@@ -21,7 +21,10 @@ namespace Warzone.Combat
             float detectionRange = 12f,
             float attackRange = 10f,
             float accuracyModifier = 1f,
-            float maxPressure = 100f)
+            float maxPressure = 100f,
+            int nightVisionLevel = 0,
+            int smokeVisionLevel = 0,
+            bool hasLightSource = false)
         {
             MemberId = memberId;
             SquadId = squadId;
@@ -37,6 +40,10 @@ namespace Warzone.Combat
             AttackRange = attackRange;
             AccuracyModifier = accuracyModifier;
             MaxPressure = maxPressure > 0f ? maxPressure : 100f;
+            NightVisionLevel = nightVisionLevel;
+            SmokeVisionLevel = smokeVisionLevel;
+            HasLightSource = hasLightSource;
+            EffectiveDetectionRange = detectionRange;
         }
 
         public BattleEntityId MemberId { get; private set; }
@@ -60,8 +67,12 @@ namespace Warzone.Combat
         public string DefinitionId { get; private set; }
         public MemberIntent CurrentIntent { get; private set; }
         public float DetectionRange { get; private set; }
+        public float EffectiveDetectionRange { get; private set; }
         public float AttackRange { get; private set; }
         public float AccuracyModifier { get; private set; }
+        public int NightVisionLevel { get; private set; }
+        public int SmokeVisionLevel { get; private set; }
+        public bool HasLightSource { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
         public BattleEntityId? CurrentTargetEnemyId { get; private set; }
         public bool IsExtracted { get; private set; }
@@ -247,6 +258,26 @@ namespace Warzone.Combat
         public void ResetAttackCooldown(float cooldownSeconds)
         {
             AttackCooldownRemaining = cooldownSeconds < 0f ? 0f : cooldownSeconds;
+        }
+
+        public void SetNightVisionLevel(int nightVisionLevel)
+        {
+            NightVisionLevel = nightVisionLevel < 0 ? 0 : nightVisionLevel;
+        }
+
+        public void SetSmokeVisionLevel(int smokeVisionLevel)
+        {
+            SmokeVisionLevel = smokeVisionLevel < 0 ? 0 : smokeVisionLevel;
+        }
+
+        public void SetHasLightSource(bool hasLightSource)
+        {
+            HasLightSource = hasLightSource;
+        }
+
+        public void SetEffectiveDetectionRange(float effectiveDetectionRange)
+        {
+            EffectiveDetectionRange = effectiveDetectionRange < 0f ? 0f : effectiveDetectionRange;
         }
 
         public void SetCurrentTargetEnemy(BattleEntityId? enemyId)

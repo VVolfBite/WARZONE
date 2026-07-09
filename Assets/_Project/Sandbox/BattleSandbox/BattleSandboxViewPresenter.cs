@@ -13,6 +13,7 @@ namespace Warzone.Sandbox.BattleSandbox
         private readonly Dictionary<int, SandboxTacticalNodeView> _nodeViews = new Dictionary<int, SandboxTacticalNodeView>();
         private readonly Dictionary<int, SandboxObstacleView> _obstacleViews = new Dictionary<int, SandboxObstacleView>();
         private readonly Dictionary<int, SandboxBuildingView> _buildingViews = new Dictionary<int, SandboxBuildingView>();
+        private readonly Dictionary<int, SandboxEnvironmentalZoneView> _zoneViews = new Dictionary<int, SandboxEnvironmentalZoneView>();
 
         private SandboxFireLineView _fireLineView;
 
@@ -59,6 +60,14 @@ namespace Warzone.Sandbox.BattleSandbox
             for (int i = 0; i < snapshot.TacticalNodes.Count; i++)
             {
                 CreateNodeView(snapshot.TacticalNodes[i]);
+            }
+
+            if (snapshot.Environment != null)
+            {
+                for (int i = 0; i < snapshot.Environment.Zones.Count; i++)
+                {
+                    CreateZoneView(snapshot.Environment.Zones[i]);
+                }
             }
         }
 
@@ -118,6 +127,25 @@ namespace Warzone.Sandbox.BattleSandbox
                 }
             }
 
+            if (snapshot.Environment != null)
+            {
+                for (int i = 0; i < snapshot.Environment.Zones.Count; i++)
+                {
+                    EnvironmentalZoneSnapshot zone = snapshot.Environment.Zones[i];
+                    SandboxEnvironmentalZoneView zoneView;
+                    if (!_zoneViews.TryGetValue(zone.ZoneId, out zoneView) || zoneView == null)
+                    {
+                        CreateZoneView(zone);
+                        _zoneViews.TryGetValue(zone.ZoneId, out zoneView);
+                    }
+
+                    if (zoneView != null)
+                    {
+                        zoneView.ApplySnapshot(zone);
+                    }
+                }
+            }
+
             _fireLineView.Render(snapshot, _memberViews, _enemyViews, showFireLines);
         }
 
@@ -129,6 +157,7 @@ namespace Warzone.Sandbox.BattleSandbox
             DestroyAll(_nodeViews.Values);
             DestroyAll(_obstacleViews.Values);
             DestroyAll(_buildingViews.Values);
+            DestroyAll(_zoneViews.Values);
 
             _memberViews.Clear();
             _selectionMarkerViews.Clear();
@@ -136,6 +165,7 @@ namespace Warzone.Sandbox.BattleSandbox
             _nodeViews.Clear();
             _obstacleViews.Clear();
             _buildingViews.Clear();
+            _zoneViews.Clear();
         }
 
         private void EnsureSupportComponents()
@@ -173,7 +203,12 @@ namespace Warzone.Sandbox.BattleSandbox
                 memberState.IsSuppressed,
                 memberState.IsBroken,
                 memberState.IsRetreating,
-                memberState.RetreatTargetPosition));
+                memberState.RetreatTargetPosition,
+                memberState.NightVisionLevel,
+                memberState.SmokeVisionLevel,
+                memberState.HasLightSource,
+                memberState.DetectionRange,
+                memberState.EffectiveDetectionRange));
         }
 
         private void CreateMemberView(BattleMemberSnapshot memberState)
@@ -232,7 +267,11 @@ namespace Warzone.Sandbox.BattleSandbox
                 enemyState.IsAlive,
                 enemyState.OccupiedTacticalNodeId,
                 enemyState.CurrentTargetMemberId,
-                enemyState.AttackCooldownRemaining));
+                enemyState.AttackCooldownRemaining,
+                enemyState.NightVisionLevel,
+                enemyState.HasLightSource,
+                enemyState.DetectionRange,
+                enemyState.EffectiveDetectionRange));
         }
 
         private void CreateEnemyView(BattleEnemySnapshot enemyState)
@@ -355,6 +394,21 @@ namespace Warzone.Sandbox.BattleSandbox
             SandboxBuildingView view = root.AddComponent<SandboxBuildingView>();
             view.Initialize(buildingState.BuildingId, renderer);
             _buildingViews[buildingState.BuildingId] = view;
+        }
+
+        private void CreateZoneView(EnvironmentalZoneSnapshot zoneState)
+        {
+            GameObject root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            root.name = "SandboxEnvironmentZone_" + zoneState.ZoneId + "_" + zoneState.ZoneType;
+            root.transform.SetParent(transform, false);
+            root.transform.position = new Vector3(zoneState.Position.X, 0.05f, zoneState.Position.Y);
+            root.transform.localScale = new Vector3(zoneState.Radius * 2f, 0.1f, zoneState.Radius * 2f);
+            Renderer renderer = root.GetComponent<Renderer>();
+
+            SandboxEnvironmentalZoneView view = root.AddComponent<SandboxEnvironmentalZoneView>();
+            view.Initialize(zoneState.ZoneId, zoneState.ZoneType, renderer);
+            view.ApplySnapshot(zoneState);
+            _zoneViews[zoneState.ZoneId] = view;
         }
 
         private static void DestroyAll<T>(ICollection<T> views) where T : Component

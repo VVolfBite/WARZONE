@@ -29,7 +29,21 @@ namespace Warzone.Combat
                     }
 
                     float distance = Vec2.Distance(enemyState.Position, memberState.Position);
-                    if (distance > enemyState.DetectionRange || distance >= nearestDistance)
+                    float effectiveDetectionRange = EnvironmentalVisibilityRule.GetEffectiveDetectionRange(
+                        battleState.EnvironmentState,
+                        enemyState.Position,
+                        enemyState.DetectionRange,
+                        enemyState.NightVisionLevel,
+                        memberState.Position,
+                        memberState.HasLightSource);
+                    enemyState.SetEffectiveDetectionRange(effectiveDetectionRange);
+                    if (distance > effectiveDetectionRange || distance >= nearestDistance)
+                    {
+                        continue;
+                    }
+
+                    EnvironmentalZoneState blockingSmokeZone;
+                    if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, enemyState.Position, memberState.Position, 0, out blockingSmokeZone))
                     {
                         continue;
                     }

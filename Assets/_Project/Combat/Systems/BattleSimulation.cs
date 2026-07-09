@@ -10,6 +10,7 @@ namespace Warzone.Combat
         private readonly MovementSystem _movementSystem;
         private readonly SearchSystem _searchSystem;
         private readonly ExtractionSystem _extractionSystem;
+        private readonly EnvironmentalZoneSystem _environmentalZoneSystem;
         private readonly EnemyAwarenessSystem _enemyAwarenessSystem;
         private readonly EnemyBehaviorSystem _enemyBehaviorSystem;
         private readonly PerceptionSystem _perceptionSystem;
@@ -35,6 +36,7 @@ namespace Warzone.Combat
             MovementSystem movementSystem = null,
             SearchSystem searchSystem = null,
             ExtractionSystem extractionSystem = null,
+            EnvironmentalZoneSystem environmentalZoneSystem = null,
             EnemyAwarenessSystem enemyAwarenessSystem = null,
             EnemyBehaviorSystem enemyBehaviorSystem = null,
             PerceptionSystem perceptionSystem = null,
@@ -53,6 +55,7 @@ namespace Warzone.Combat
             _movementSystem = movementSystem ?? new MovementSystem();
             _searchSystem = searchSystem ?? new SearchSystem();
             _extractionSystem = extractionSystem ?? new ExtractionSystem();
+            _environmentalZoneSystem = environmentalZoneSystem ?? new EnvironmentalZoneSystem();
             _enemyAwarenessSystem = enemyAwarenessSystem ?? new EnemyAwarenessSystem();
             _enemyBehaviorSystem = enemyBehaviorSystem ?? new EnemyBehaviorSystem();
             _perceptionSystem = perceptionSystem ?? new PerceptionSystem();
@@ -79,6 +82,7 @@ namespace Warzone.Combat
             _squadPlanningSystem.Execute(battleState);
             _formationSystem.Execute(battleState);
             _movementSystem.Execute(battleState, deltaTimeSeconds);
+            _environmentalZoneSystem.Execute(battleState, deltaTimeSeconds);
             _searchSystem.Execute(battleState, deltaTimeSeconds);
             _extractionSystem.Execute(battleState);
             _enemyAwarenessSystem.Execute(battleState);
@@ -95,6 +99,7 @@ namespace Warzone.Combat
             _battleResultSystem.UpdateMissionStatus(battleState);
             _battleResultSystem.UpdateBattleResult(battleState);
             LatestSnapshot = BattleSnapshotFactory.Create(battleState);
+            battleState.ClearFrameEvents();
             return commandResult;
         }
     }

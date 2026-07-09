@@ -17,7 +17,7 @@ namespace Warzone.Combat
 
         private static void ApplyEventPressure(BattleState battleState)
         {
-            var events = battleState.EventBuffer.Drain();
+            var events = battleState.EventBuffer.Events;
             for (int i = 0; i < events.Count; i++)
             {
                 BattleEventRecord battleEvent = events[i];

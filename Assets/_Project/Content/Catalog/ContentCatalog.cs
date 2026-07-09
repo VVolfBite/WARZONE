@@ -10,13 +10,17 @@ namespace Warzone.Content
             IReadOnlyDictionary<string, MissionDefinition> missions,
             IReadOnlyDictionary<string, AbilityDefinition> abilities = null,
             IReadOnlyDictionary<string, WeaponDefinition> weapons = null,
-            IReadOnlyDictionary<string, EnemyDefinition> enemies = null)
+            IReadOnlyDictionary<string, EnemyDefinition> enemies = null,
+            IReadOnlyDictionary<string, EnvironmentalZoneDefinition> environmentalZones = null,
+            IReadOnlyDictionary<string, VisionEquipmentDefinition> visionEquipment = null)
         {
             Units = units ?? new Dictionary<string, UnitDefinition>();
             Missions = missions ?? new Dictionary<string, MissionDefinition>();
             Abilities = abilities ?? new Dictionary<string, AbilityDefinition>();
             Weapons = weapons ?? new Dictionary<string, WeaponDefinition>();
             Enemies = enemies ?? new Dictionary<string, EnemyDefinition>();
+            EnvironmentalZones = environmentalZones ?? new Dictionary<string, EnvironmentalZoneDefinition>();
+            VisionEquipment = visionEquipment ?? new Dictionary<string, VisionEquipmentDefinition>();
         }
 
         public IReadOnlyDictionary<string, UnitDefinition> Units { get; private set; }
@@ -24,6 +28,8 @@ namespace Warzone.Content
         public IReadOnlyDictionary<string, AbilityDefinition> Abilities { get; private set; }
         public IReadOnlyDictionary<string, WeaponDefinition> Weapons { get; private set; }
         public IReadOnlyDictionary<string, EnemyDefinition> Enemies { get; private set; }
+        public IReadOnlyDictionary<string, EnvironmentalZoneDefinition> EnvironmentalZones { get; private set; }
+        public IReadOnlyDictionary<string, VisionEquipmentDefinition> VisionEquipment { get; private set; }
 
         public bool TryGetWeapon(string weaponId, out WeaponDefinition definition)
         {
@@ -38,6 +44,16 @@ namespace Warzone.Content
         public bool TryGetMission(string missionId, out MissionDefinition definition)
         {
             return Missions.TryGetValue(missionId, out definition);
+        }
+
+        public bool TryGetEnvironmentalZoneDefinition(string zoneId, out EnvironmentalZoneDefinition definition)
+        {
+            return EnvironmentalZones.TryGetValue(zoneId, out definition);
+        }
+
+        public bool TryGetVisionEquipmentDefinition(string equipmentId, out VisionEquipmentDefinition definition)
+        {
+            return VisionEquipment.TryGetValue(equipmentId, out definition);
         }
     }
 }

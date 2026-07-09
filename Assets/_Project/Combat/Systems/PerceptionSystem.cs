@@ -37,9 +37,40 @@ namespace Warzone.Combat
                             continue;
                         }
 
-                        if (Vec2.Distance(memberState.Position, enemyState.Position) > memberState.DetectionRange)
+                        float effectiveDetectionRange = EnvironmentalVisibilityRule.GetEffectiveDetectionRange(
+                            battleState.EnvironmentState,
+                            memberState.Position,
+                            memberState.DetectionRange,
+                            memberState.NightVisionLevel,
+                            enemyState.Position,
+                            enemyState.HasLightSource);
+                        float distance = Vec2.Distance(memberState.Position, enemyState.Position);
+                        if (distance > effectiveDetectionRange)
                         {
+                            if (distance <= memberState.DetectionRange)
+                            {
+                                battleState.AddEvent(new BattleEventRecord(
+                                    BattleEventTypes.TargetLostToDarkness,
+                                    memberState.SquadId,
+                                    memberState.MemberId,
+                                    "night",
+                                    enemyState.EnemyId));
+                                break;
+                            }
+
                             continue;
+                        }
+
+                        EnvironmentalZoneState blockingSmokeZone;
+                        if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, memberState.Position, enemyState.Position, memberState.SmokeVisionLevel, out blockingSmokeZone))
+                        {
+                            battleState.AddEvent(new BattleEventRecord(
+                                BattleEventTypes.SmokeLineOfSightBlocked,
+                                memberState.SquadId,
+                                memberState.MemberId,
+                                blockingSmokeZone.ZoneId.ToString(),
+                                enemyState.EnemyId));
+                            break;
                         }
 
                         LineOfSightResult blockedLine = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position);
@@ -49,10 +80,12 @@ namespace Warzone.Combat
                                 BattleEventTypes.LineOfSightBlocked,
                                 memberState.SquadId,
                                 memberState.MemberId,
-                                blockedLine.BlockingObstacleType.HasValue ? blockedLine.BlockingObstacleType.Value.ToString() : "Obstacle",
+                                blockedLine.BlockingObstacleType.HasValue ? blockedLine.BlockingObstacleType.Value.ToString() :
+                                blockedLine.BlockingZoneType.HasValue ? blockedLine.BlockingZoneType.Value.ToString() : "Obstacle",
                                 enemyState.EnemyId));
                             break;
                         }
+
                     }
                 }
             }

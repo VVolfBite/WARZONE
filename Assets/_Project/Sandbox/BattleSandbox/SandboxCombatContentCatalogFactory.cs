@@ -122,5 +122,34 @@ namespace Warzone.Sandbox.BattleSandbox
                 new Dictionary<string, WeaponDefinition> { { rifle.Id, rifle } },
                 new Dictionary<string, EnemyDefinition> { { raider.Id, raider } });
         }
+
+        public static ContentCatalog CreateEnvironmentCombatCatalog()
+        {
+            ContentCatalog baseCatalog = CreateSpatialCombatCatalog();
+
+            Dictionary<string, EnvironmentalZoneDefinition> zones = new Dictionary<string, EnvironmentalZoneDefinition>
+            {
+                { "sandbox.smoke", new EnvironmentalZoneDefinition("sandbox.smoke", "Smoke Zone", Warzone.Combat.EnvironmentalZoneType.Smoke, 2.8f, 0.85f, 18f, 0.55f, 0f, 0f) },
+                { "sandbox.fire", new EnvironmentalZoneDefinition("sandbox.fire", "Fire Zone", Warzone.Combat.EnvironmentalZoneType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f) },
+                { "sandbox.toxic", new EnvironmentalZoneDefinition("sandbox.toxic", "Toxic Zone", Warzone.Combat.EnvironmentalZoneType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f) },
+                { "sandbox.light", new EnvironmentalZoneDefinition("sandbox.light", "Light Zone", Warzone.Combat.EnvironmentalZoneType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f) },
+                { "sandbox.darkness", new EnvironmentalZoneDefinition("sandbox.darkness", "Darkness Zone", Warzone.Combat.EnvironmentalZoneType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f) }
+            };
+
+            Dictionary<string, VisionEquipmentDefinition> visionEquipment = new Dictionary<string, VisionEquipmentDefinition>
+            {
+                { "sandbox.nvg.basic", new VisionEquipmentDefinition("sandbox.nvg.basic", "Basic NVG", 1, 0) },
+                { "sandbox.nvg.advanced", new VisionEquipmentDefinition("sandbox.nvg.advanced", "Advanced NVG", 2, 1) }
+            };
+
+            return new ContentCatalog(
+                baseCatalog.Units,
+                baseCatalog.Missions,
+                baseCatalog.Abilities,
+                baseCatalog.Weapons,
+                baseCatalog.Enemies,
+                zones,
+                visionEquipment);
+        }
     }
 }

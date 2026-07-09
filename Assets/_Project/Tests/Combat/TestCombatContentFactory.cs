@@ -135,6 +135,29 @@ namespace Warzone.Tests.Combat
                 new Dictionary<string, EnemyDefinition> { { raider.Id, raider } });
         }
 
+        public static ContentCatalog CreateEnvironmentCombatCatalog()
+        {
+            ContentCatalog baseCatalog = CreateSpatialCombatCatalog();
+            return new ContentCatalog(
+                baseCatalog.Units,
+                baseCatalog.Missions,
+                baseCatalog.Abilities,
+                baseCatalog.Weapons,
+                baseCatalog.Enemies,
+                new Dictionary<string, EnvironmentalZoneDefinition>
+                {
+                    { "sandbox.smoke", new EnvironmentalZoneDefinition("sandbox.smoke", "Smoke Zone", EnvironmentalZoneType.Smoke, 2.8f, 0.85f, 18f, 0.55f, 0f, 0f) },
+                    { "sandbox.fire", new EnvironmentalZoneDefinition("sandbox.fire", "Fire Zone", EnvironmentalZoneType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f) },
+                    { "sandbox.toxic", new EnvironmentalZoneDefinition("sandbox.toxic", "Toxic Zone", EnvironmentalZoneType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f) },
+                    { "sandbox.light", new EnvironmentalZoneDefinition("sandbox.light", "Light Zone", EnvironmentalZoneType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f) },
+                    { "sandbox.darkness", new EnvironmentalZoneDefinition("sandbox.darkness", "Darkness Zone", EnvironmentalZoneType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f) }
+                },
+                new Dictionary<string, VisionEquipmentDefinition>
+                {
+                    { "sandbox.nvg.basic", new VisionEquipmentDefinition("sandbox.nvg.basic", "Basic NVG", 1, 0) }
+                });
+        }
+
         public static BattleState CreateSpatialBattleState()
         {
             BattleStateFactory battleStateFactory = new BattleStateFactory();
@@ -186,6 +209,40 @@ namespace Warzone.Tests.Combat
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9403, "sandbox.raider", FactionId.Enemy, new Vec2(6.5f, 2.4f), 60, 2.75f, 14f, 8f));
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9404, "sandbox.raider", FactionId.Enemy, new Vec2(8.5f, 2.4f), 60, 2.75f, 14f, 8f));
             battleState.AddEnemy(battleStateFactory.CreateEnemy(9405, "sandbox.raider", FactionId.Enemy, new Vec2(13.2f, 4.6f), 60, 2.75f, 14f, 8f));
+            return battleState;
+        }
+
+        public static BattleState CreateEnvironmentBattleState()
+        {
+            BattleState battleState = CreateSpatialBattleState();
+            BattleStateFactory battleStateFactory = new BattleStateFactory();
+
+            battleState.EnvironmentState.SetNight(true);
+            battleState.EnvironmentState.SetGlobalVisibilityMultiplier(0.55f);
+            battleState.EnvironmentState.SetAmbientLightLevel(0.35f);
+
+            foreach (BattleMemberState memberState in battleState.MembersById.Values)
+            {
+                memberState.SetNightVisionLevel(1);
+                memberState.SetSmokeVisionLevel(0);
+                memberState.SetHasLightSource(false);
+            }
+
+            bool assignedEnemyNightVision = false;
+            foreach (BattleEnemyState enemyState in battleState.EnemiesById.Values)
+            {
+                enemyState.SetNightVisionLevel(assignedEnemyNightVision ? 0 : 1);
+                enemyState.SetHasLightSource(false);
+                assignedEnemyNightVision = true;
+            }
+
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1000, EnvironmentalZoneType.Smoke, new Vec2(-1.5f, -2f), 2.8f, 0.85f, 18f, true, 0.55f, 0f, 0f));
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1001, EnvironmentalZoneType.Smoke, new Vec2(6.2f, 1.8f), 2.2f, 0.75f, 18f, true, 0.45f, 0f, 0f));
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1002, EnvironmentalZoneType.Fire, new Vec2(3.4f, -0.8f), 1.5f, 1f, 24f, true, 0f, 8f, 5f));
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1003, EnvironmentalZoneType.Toxic, new Vec2(10.2f, 1.2f), 2f, 1f, 30f, true, 0.15f, 4f, 7f));
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1004, EnvironmentalZoneType.Light, new Vec2(11.1f, 1.2f), 2.4f, 1f, 999f, true, 0f, 0f, 0f));
+            battleState.EnvironmentState.AddZone(battleStateFactory.CreateEnvironmentalZone(1005, EnvironmentalZoneType.Darkness, new Vec2(13.6f, 4.9f), 3f, 1f, 999f, true, 0.35f, 0f, 0f));
+
             return battleState;
         }
     }

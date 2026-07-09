@@ -14,7 +14,9 @@ namespace Warzone.Combat
             int maxHealth,
             float movementSpeed,
             float detectionRange,
-            float attackRange = 0f)
+            float attackRange = 0f,
+            int nightVisionLevel = 0,
+            bool hasLightSource = false)
         {
             EnemyId = enemyId;
             DefinitionId = definitionId;
@@ -25,6 +27,9 @@ namespace Warzone.Combat
             MovementSpeed = movementSpeed;
             DetectionRange = detectionRange;
             AttackRange = attackRange;
+            NightVisionLevel = nightVisionLevel;
+            HasLightSource = hasLightSource;
+            EffectiveDetectionRange = detectionRange;
         }
 
         public BattleEntityId EnemyId { get; private set; }
@@ -35,7 +40,10 @@ namespace Warzone.Combat
         public int MaxHealth { get; private set; }
         public float MovementSpeed { get; private set; }
         public float DetectionRange { get; private set; }
+        public float EffectiveDetectionRange { get; private set; }
         public float AttackRange { get; private set; }
+        public int NightVisionLevel { get; private set; }
+        public bool HasLightSource { get; private set; }
         public BattleEntityId? CurrentTargetMemberId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
         public int? OccupiedTacticalNodeId { get; private set; }
@@ -86,6 +94,21 @@ namespace Warzone.Combat
         public void ResetAttackCooldown(float cooldownSeconds)
         {
             AttackCooldownRemaining = cooldownSeconds < 0f ? 0f : cooldownSeconds;
+        }
+
+        public void SetNightVisionLevel(int nightVisionLevel)
+        {
+            NightVisionLevel = nightVisionLevel < 0 ? 0 : nightVisionLevel;
+        }
+
+        public void SetHasLightSource(bool hasLightSource)
+        {
+            HasLightSource = hasLightSource;
+        }
+
+        public void SetEffectiveDetectionRange(float effectiveDetectionRange)
+        {
+            EffectiveDetectionRange = effectiveDetectionRange < 0f ? 0f : effectiveDetectionRange;
         }
 
         public void SetOccupiedTacticalNode(int? nodeId)

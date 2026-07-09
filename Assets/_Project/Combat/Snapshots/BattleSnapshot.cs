@@ -13,6 +13,7 @@ namespace Warzone.Combat
             IReadOnlyList<TacticalNodeSnapshot> tacticalNodes,
             IReadOnlyList<TacticalObstacleSnapshot> obstacles,
             IReadOnlyList<BuildingSnapshot> buildings,
+            BattleEnvironmentSnapshot environment,
             BattleMissionStatusSnapshot missionStatus,
             BattleResult battleResult,
             IReadOnlyList<BattleEventRecord> recentEvents)
@@ -25,6 +26,7 @@ namespace Warzone.Combat
             TacticalNodes = tacticalNodes;
             Obstacles = obstacles;
             Buildings = buildings;
+            Environment = environment;
             MissionStatus = missionStatus;
             BattleResult = battleResult;
             RecentEvents = recentEvents;
@@ -38,6 +40,7 @@ namespace Warzone.Combat
         public IReadOnlyList<TacticalNodeSnapshot> TacticalNodes { get; private set; }
         public IReadOnlyList<TacticalObstacleSnapshot> Obstacles { get; private set; }
         public IReadOnlyList<BuildingSnapshot> Buildings { get; private set; }
+        public BattleEnvironmentSnapshot Environment { get; private set; }
         public BattleMissionStatusSnapshot MissionStatus { get; private set; }
         public BattleResult BattleResult { get; private set; }
         public IReadOnlyList<BattleEventRecord> RecentEvents { get; private set; }

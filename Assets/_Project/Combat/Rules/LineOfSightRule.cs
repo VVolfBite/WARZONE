@@ -19,6 +19,13 @@ namespace Warzone.Combat
                 return new LineOfSightResult(false, obstacleState.ObstacleId, obstacleState.ObstacleType);
             }
 
+            EnvironmentalZoneState blockingSmokeZone;
+            if (battleState != null &&
+                EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, origin, target, 0, out blockingSmokeZone))
+            {
+                return new LineOfSightResult(false, null, null, blockingSmokeZone.ZoneId, blockingSmokeZone.ZoneType);
+            }
+
             return new LineOfSightResult(true);
         }
     }

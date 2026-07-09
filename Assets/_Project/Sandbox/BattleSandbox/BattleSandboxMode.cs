@@ -7,6 +7,7 @@ namespace Warzone.Sandbox.BattleSandbox
         M3TacticalMission = 2,
         M4SpatialCombat = 3,
         M5IntegratedSandbox = 4,
-        M6PressureRetreat = 5
+        M6PressureRetreat = 5,
+        M7EnvironmentCombat = 6
     }
 }

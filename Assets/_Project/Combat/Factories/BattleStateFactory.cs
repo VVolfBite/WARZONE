@@ -21,7 +21,10 @@ namespace Warzone.Combat
             float detectionRange = 12f,
             float attackRange = 10f,
             string missionDefinitionId = null,
-            float maxPressure = 100f)
+            float maxPressure = 100f,
+            int nightVisionLevel = 0,
+            int smokeVisionLevel = 0,
+            bool hasLightSource = false)
         {
             BattleState battleState = new BattleState(battleId);
             battleState.SetMissionDefinitionId(missionDefinitionId);
@@ -45,7 +48,10 @@ namespace Warzone.Combat
                     detectionRange,
                     attackRange,
                     1f,
-                    maxPressure);
+                    maxPressure,
+                    nightVisionLevel,
+                    smokeVisionLevel,
+                    hasLightSource);
                 battleState.AddMember(memberState);
                 memberIds.Add(memberId);
             }
@@ -77,7 +83,9 @@ namespace Warzone.Combat
             int health,
             float movementSpeed,
             float detectionRange,
-            float attackRange = 0f)
+            float attackRange = 0f,
+            int nightVisionLevel = 0,
+            bool hasLightSource = false)
         {
             return new BattleEnemyState(
                 new BattleEntityId(enemyId),
@@ -88,7 +96,9 @@ namespace Warzone.Combat
                 health,
                 movementSpeed,
                 detectionRange,
-                attackRange);
+                attackRange,
+                nightVisionLevel,
+                hasLightSource);
         }
 
         public TacticalObstacleState CreateObstacle(
@@ -119,6 +129,21 @@ namespace Warzone.Combat
         public BuildingState CreateBuilding(int buildingId, Vec2 position, float radius, bool isEnterable, IReadOnlyList<int> tacticalNodeIds)
         {
             return new BuildingState(buildingId, position, radius, isEnterable, tacticalNodeIds);
+        }
+
+        public EnvironmentalZoneState CreateEnvironmentalZone(
+            int zoneId,
+            EnvironmentalZoneType zoneType,
+            Vec2 position,
+            float radius,
+            float intensity,
+            float durationRemaining,
+            bool isActive,
+            float visionPenalty,
+            float damagePerSecond,
+            float pressurePerSecond)
+        {
+            return new EnvironmentalZoneState(zoneId, zoneType, position, radius, intensity, durationRemaining, isActive, visionPenalty, damagePerSecond, pressurePerSecond);
         }
     }
 }

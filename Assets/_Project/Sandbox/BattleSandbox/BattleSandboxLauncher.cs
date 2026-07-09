@@ -41,6 +41,9 @@ namespace Warzone.Sandbox.BattleSandbox
                 case BattleSandboxMode.M6PressureRetreat:
                     EnsureCompatibilityEntry<M6PressureRetreatSandboxBootstrap>();
                     break;
+                case BattleSandboxMode.M7EnvironmentCombat:
+                    EnsureCompatibilityEntry<M7EnvironmentCombatSandboxBootstrap>();
+                    break;
                 default:
                     EnsureCompatibilityEntry<M5IntegratedSandboxBootstrap>();
                     break;
@@ -57,6 +60,7 @@ namespace Warzone.Sandbox.BattleSandbox
             DisableEntry<M4SpatialCombatSandboxBootstrap>();
             DisableEntry<M5IntegratedSandboxBootstrap>();
             DisableEntry<M6PressureRetreatSandboxBootstrap>();
+            DisableEntry<M7EnvironmentCombatSandboxBootstrap>();
         }
 
         private void DisableEntry<T>() where T : MonoBehaviour

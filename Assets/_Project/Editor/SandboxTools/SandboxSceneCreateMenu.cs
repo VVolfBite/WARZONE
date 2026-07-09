@@ -12,6 +12,7 @@ namespace Warzone.Editor.SandboxTools
         private const string SceneDirectory = "Assets/Scenes/Sandbox";
         private const string M5ScenePath = "Assets/Scenes/Sandbox/Sandbox_M5_Integrated.unity";
         private const string M6ScenePath = "Assets/Scenes/Sandbox/Sandbox_M6_PressureRetreat.unity";
+        private const string M7ScenePath = "Assets/Scenes/Sandbox/Sandbox_M7_EnvironmentCombat.unity";
 
         [MenuItem("Warzone/Sandbox/Create M5 Integrated Sandbox Scene")]
         public static void CreateM5IntegratedSandboxScene()
@@ -23,6 +24,12 @@ namespace Warzone.Editor.SandboxTools
         public static void CreateM6PressureRetreatSandboxScene()
         {
             CreateSandboxScene("M6 Sandbox Launcher", BattleSandboxMode.M6PressureRetreat, M6ScenePath);
+        }
+
+        [MenuItem("Warzone/Sandbox/Create M7 Environment Combat Sandbox Scene")]
+        public static void CreateM7EnvironmentCombatSandboxScene()
+        {
+            CreateSandboxScene("M7 Sandbox Launcher", BattleSandboxMode.M7EnvironmentCombat, M7ScenePath);
         }
 
         private static void CreateSandboxScene(string launcherName, BattleSandboxMode mode, string scenePath)

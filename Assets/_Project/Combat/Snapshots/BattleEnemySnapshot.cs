@@ -15,7 +15,11 @@ namespace Warzone.Combat
             bool isAlive,
             int? occupiedTacticalNodeId,
             BattleEntityId? currentTargetMemberId,
-            float attackCooldownRemaining)
+            float attackCooldownRemaining,
+            int nightVisionLevel,
+            bool hasLightSource,
+            float detectionRange,
+            float effectiveDetectionRange)
         {
             EnemyId = enemyId;
             DefinitionId = definitionId;
@@ -27,6 +31,10 @@ namespace Warzone.Combat
             OccupiedTacticalNodeId = occupiedTacticalNodeId;
             CurrentTargetMemberId = currentTargetMemberId;
             AttackCooldownRemaining = attackCooldownRemaining;
+            NightVisionLevel = nightVisionLevel;
+            HasLightSource = hasLightSource;
+            DetectionRange = detectionRange;
+            EffectiveDetectionRange = effectiveDetectionRange;
         }
 
         public BattleEntityId EnemyId { get; private set; }
@@ -39,5 +47,9 @@ namespace Warzone.Combat
         public int? OccupiedTacticalNodeId { get; private set; }
         public BattleEntityId? CurrentTargetMemberId { get; private set; }
         public float AttackCooldownRemaining { get; private set; }
+        public int NightVisionLevel { get; private set; }
+        public bool HasLightSource { get; private set; }
+        public float DetectionRange { get; private set; }
+        public float EffectiveDetectionRange { get; private set; }
     }
 }

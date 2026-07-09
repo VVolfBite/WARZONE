@@ -25,7 +25,12 @@ namespace Warzone.Combat
             bool isSuppressed,
             bool isBroken,
             bool isRetreating,
-            Vec2? retreatTargetPosition)
+            Vec2? retreatTargetPosition,
+            int nightVisionLevel,
+            int smokeVisionLevel,
+            bool hasLightSource,
+            float detectionRange,
+            float effectiveDetectionRange)
         {
             MemberId = memberId;
             SquadId = squadId;
@@ -48,6 +53,11 @@ namespace Warzone.Combat
             IsBroken = isBroken;
             IsRetreating = isRetreating;
             RetreatTargetPosition = retreatTargetPosition;
+            NightVisionLevel = nightVisionLevel;
+            SmokeVisionLevel = smokeVisionLevel;
+            HasLightSource = hasLightSource;
+            DetectionRange = detectionRange;
+            EffectiveDetectionRange = effectiveDetectionRange;
         }
 
         public BattleEntityId MemberId { get; private set; }
@@ -71,5 +81,10 @@ namespace Warzone.Combat
         public bool IsBroken { get; private set; }
         public bool IsRetreating { get; private set; }
         public Vec2? RetreatTargetPosition { get; private set; }
+        public int NightVisionLevel { get; private set; }
+        public int SmokeVisionLevel { get; private set; }
+        public bool HasLightSource { get; private set; }
+        public float DetectionRange { get; private set; }
+        public float EffectiveDetectionRange { get; private set; }
     }
 }

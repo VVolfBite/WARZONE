@@ -43,8 +43,8 @@ $testDirectory = Join-Path $artifactRoot "test-results"
 New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
 New-Item -ItemType Directory -Force -Path $testDirectory | Out-Null
 
-$logPath = Join-Path $logDirectory "unity_editmode_M6.log"
-$resultPath = Join-Path $testDirectory "editmode_M6.xml"
+$logPath = Join-Path $logDirectory "unity_editmode_M7.log"
+$resultPath = Join-Path $testDirectory "editmode_M7.xml"
 
 & $unityPath `
     -batchmode `
