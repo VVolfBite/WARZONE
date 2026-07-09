@@ -11,6 +11,7 @@ namespace Warzone.Combat
         Window = 6,
         Doorway = 7,
         BuildingInterior = 8,
+        InteriorPosition = 8,
         BuildingEntrance = 9
     }
 }

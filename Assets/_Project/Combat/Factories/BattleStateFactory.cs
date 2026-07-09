@@ -70,9 +70,14 @@ namespace Warzone.Combat
             bool isEnabled = true,
             float requiredSearchSeconds = 3f,
             int? extractionOwnerSquadId = null,
-            int? buildingId = null)
+            int? buildingId = null,
+            bool isInsideBuilding = false,
+            bool allowsFireThrough = false,
+            bool allowsVisionThrough = false,
+            bool isEntryPoint = false,
+            bool isSearchPoint = false)
         {
-            return new TacticalNodeState(nodeId, nodeType, position, radius, isEnabled, requiredSearchSeconds, extractionOwnerSquadId, buildingId);
+            return new TacticalNodeState(nodeId, nodeType, position, radius, isEnabled, requiredSearchSeconds, extractionOwnerSquadId, buildingId, isInsideBuilding, allowsFireThrough, allowsVisionThrough, isEntryPoint, isSearchPoint);
         }
 
         public BattleEnemyState CreateEnemy(
@@ -126,9 +131,18 @@ namespace Warzone.Combat
                 accuracyPenaltyAgainstOccupant);
         }
 
-        public BuildingState CreateBuilding(int buildingId, Vec2 position, float radius, bool isEnterable, IReadOnlyList<int> tacticalNodeIds)
+        public BuildingState CreateBuilding(
+            int buildingId,
+            Vec2 position,
+            float radius,
+            bool isEnterable,
+            IReadOnlyList<int> tacticalNodeIds,
+            IReadOnlyList<int> entranceNodeIds = null,
+            IReadOnlyList<int> windowNodeIds = null,
+            IReadOnlyList<int> interiorNodeIds = null,
+            IReadOnlyList<int> searchNodeIds = null)
         {
-            return new BuildingState(buildingId, position, radius, isEnterable, tacticalNodeIds);
+            return new BuildingState(buildingId, position, radius, isEnterable, tacticalNodeIds, entranceNodeIds, windowNodeIds, interiorNodeIds, searchNodeIds);
         }
 
         public EnvironmentalZoneState CreateEnvironmentalZone(

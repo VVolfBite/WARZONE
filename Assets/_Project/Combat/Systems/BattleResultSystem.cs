@@ -92,12 +92,12 @@ namespace Warzone.Combat
                 unitOutcomes,
                 casualties,
                 new BattleStatistics(aliveMembers, aliveEnemies),
-                battleState.ElapsedTimeSeconds,
+                battleState.MissionRuntimeState.CompletionTimeSeconds > 0f ? battleState.MissionRuntimeState.CompletionTimeSeconds : battleState.ElapsedTimeSeconds,
                 0,
                 missionStatus.ResultType,
                 _missionObjectiveSystem.BuildObjectiveResults(battleState, objectives),
                 new BattleCasualtyResult(casualties, deadEnemies),
-                new BattleLootResult(missionStatus.LootCount),
+                new BattleLootResult(battleState.MissionRuntimeState.LootDiscoveredCount),
                 new BattleExtractionResult(extractedMembers, aliveMembers));
 
             battleState.SetBattleResult(battleResult);

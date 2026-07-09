@@ -94,6 +94,51 @@ namespace Warzone.Combat
                 return;
             }
 
+            EnterBuildingCommand enterBuildingCommand = command as EnterBuildingCommand;
+            if (enterBuildingCommand != null)
+            {
+                BuildingState buildingState;
+                if (battleState.TryGetBuilding(enterBuildingCommand.BuildingId, out buildingState))
+                {
+                    squadState.SetDesiredPosition(buildingState.Position);
+                }
+
+                squadState.Stop();
+                squadState.SetCurrentOrder(command);
+                squadState.SetStance(SquadStance.Moving);
+                return;
+            }
+
+            DefendBuildingCommand defendBuildingCommand = command as DefendBuildingCommand;
+            if (defendBuildingCommand != null)
+            {
+                BuildingState buildingState;
+                if (battleState.TryGetBuilding(defendBuildingCommand.BuildingId, out buildingState))
+                {
+                    squadState.SetDesiredPosition(buildingState.Position);
+                }
+
+                squadState.Stop();
+                squadState.SetCurrentOrder(command);
+                squadState.SetStance(SquadStance.Defending);
+                return;
+            }
+
+            SearchBuildingCommand searchBuildingCommand = command as SearchBuildingCommand;
+            if (searchBuildingCommand != null)
+            {
+                BuildingState buildingState;
+                if (battleState.TryGetBuilding(searchBuildingCommand.BuildingId, out buildingState))
+                {
+                    squadState.SetDesiredPosition(buildingState.Position);
+                }
+
+                squadState.Stop();
+                squadState.SetCurrentOrder(command);
+                squadState.SetStance(SquadStance.Defending);
+                return;
+            }
+
             if (command is ClearSquadOrderCommand)
             {
                 squadState.Stop();

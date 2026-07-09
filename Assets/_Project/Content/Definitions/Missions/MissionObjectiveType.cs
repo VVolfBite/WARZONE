@@ -4,6 +4,7 @@ namespace Warzone.Content.Definitions
     {
         EliminateEnemies = 0,
         SearchPoint = 1,
-        ExtractSquad = 2
+        ExtractSquad = 2,
+        EnterBuilding = 3
     }
 }

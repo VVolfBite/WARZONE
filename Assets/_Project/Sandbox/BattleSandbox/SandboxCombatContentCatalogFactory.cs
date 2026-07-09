@@ -151,5 +151,39 @@ namespace Warzone.Sandbox.BattleSandbox
                 zones,
                 visionEquipment);
         }
+
+        public static ContentCatalog CreateBuildingTacticsCatalog()
+        {
+            ContentCatalog baseCatalog = CreateEnvironmentCombatCatalog();
+            MissionDefinition mission = new MissionDefinition(
+                "sandbox.m8.building-tactics",
+                "Building Tactics Slice",
+                1,
+                1,
+                new[]
+                {
+                    new MissionObjectiveDefinition(MissionObjectiveType.EnterBuilding, "100", 1),
+                    new MissionObjectiveDefinition(MissionObjectiveType.SearchPoint, "30", 1),
+                    new MissionObjectiveDefinition(MissionObjectiveType.EliminateEnemies, "enemy.all", 6),
+                    new MissionObjectiveDefinition(MissionObjectiveType.ExtractSquad, "extract.alpha", 1)
+                });
+
+            Dictionary<string, MissionDefinition> missions = new Dictionary<string, MissionDefinition>();
+            foreach (KeyValuePair<string, MissionDefinition> pair in baseCatalog.Missions)
+            {
+                missions.Add(pair.Key, pair.Value);
+            }
+
+            missions[mission.Id] = mission;
+
+            return new ContentCatalog(
+                baseCatalog.Units,
+                missions,
+                baseCatalog.Abilities,
+                baseCatalog.Weapons,
+                baseCatalog.Enemies,
+                baseCatalog.EnvironmentalZones,
+                baseCatalog.VisionEquipment);
+        }
     }
 }

@@ -13,7 +13,14 @@ namespace Warzone.Combat
             bool isSearched,
             float searchProgress,
             float requiredSearchSeconds,
-            BattleEntityId? occupyingMemberId)
+            BattleEntityId? occupyingMemberId,
+            BattleEntityId? reservedByMemberId,
+            int? buildingId,
+            bool isInsideBuilding,
+            bool allowsFireThrough,
+            bool allowsVisionThrough,
+            bool isEntryPoint,
+            bool isSearchPoint)
         {
             NodeId = nodeId;
             NodeType = nodeType;
@@ -24,6 +31,13 @@ namespace Warzone.Combat
             SearchProgress = searchProgress;
             RequiredSearchSeconds = requiredSearchSeconds;
             OccupyingMemberId = occupyingMemberId;
+            ReservedByMemberId = reservedByMemberId;
+            BuildingId = buildingId;
+            IsInsideBuilding = isInsideBuilding;
+            AllowsFireThrough = allowsFireThrough;
+            AllowsVisionThrough = allowsVisionThrough;
+            IsEntryPoint = isEntryPoint;
+            IsSearchPoint = isSearchPoint;
         }
 
         public int NodeId { get; private set; }
@@ -35,5 +49,12 @@ namespace Warzone.Combat
         public float SearchProgress { get; private set; }
         public float RequiredSearchSeconds { get; private set; }
         public BattleEntityId? OccupyingMemberId { get; private set; }
+        public BattleEntityId? ReservedByMemberId { get; private set; }
+        public int? BuildingId { get; private set; }
+        public bool IsInsideBuilding { get; private set; }
+        public bool AllowsFireThrough { get; private set; }
+        public bool AllowsVisionThrough { get; private set; }
+        public bool IsEntryPoint { get; private set; }
+        public bool IsSearchPoint { get; private set; }
     }
 }

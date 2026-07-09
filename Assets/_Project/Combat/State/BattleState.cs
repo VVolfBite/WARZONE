@@ -19,6 +19,7 @@ namespace Warzone.Combat
             CommandQueue = new BattleCommandQueue();
             EventBuffer = new BattleEventBuffer();
             EnvironmentState = new BattleEnvironmentState();
+            MissionRuntimeState = new BattleMissionRuntimeState();
         }
 
         public string BattleId { get; private set; }
@@ -27,6 +28,7 @@ namespace Warzone.Combat
         public BattleCommandQueue CommandQueue { get; private set; }
         public BattleEventBuffer EventBuffer { get; private set; }
         public BattleEnvironmentState EnvironmentState { get; private set; }
+        public BattleMissionRuntimeState MissionRuntimeState { get; private set; }
         public BattleMissionStatusSnapshot CurrentMissionStatus { get; private set; }
         public BattleResult CurrentBattleResult { get; private set; }
 

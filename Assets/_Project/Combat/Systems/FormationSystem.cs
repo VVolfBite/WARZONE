@@ -23,9 +23,21 @@ namespace Warzone.Combat
         {
             foreach (TacticalNodeState nodeState in battleState.TacticalNodesById.Values)
             {
-                if (nodeState != null)
+                if (nodeState == null)
                 {
-                    nodeState.ClearReservation();
+                    continue;
+                }
+
+                nodeState.ClearReservation();
+                if (!nodeState.OccupyingMemberId.HasValue)
+                {
+                    continue;
+                }
+
+                BattleMemberState memberState;
+                if (!battleState.TryGetMember(nodeState.OccupyingMemberId.Value, out memberState) || !memberState.CanAct)
+                {
+                    nodeState.SetOccupyingMember(null);
                 }
             }
         }
@@ -46,6 +58,27 @@ namespace Warzone.Combat
 
             if (activeMembers.Count == 0)
             {
+                return;
+            }
+
+            DefendBuildingCommand defendBuildingCommand = squadState.CurrentOrder as DefendBuildingCommand;
+            if (defendBuildingCommand != null)
+            {
+                AssignDefendBuildingIntents(battleState, squadState, activeMembers, defendBuildingCommand);
+                return;
+            }
+
+            EnterBuildingCommand enterBuildingCommand = squadState.CurrentOrder as EnterBuildingCommand;
+            if (enterBuildingCommand != null)
+            {
+                AssignEnterBuildingIntents(battleState, squadState, activeMembers, enterBuildingCommand);
+                return;
+            }
+
+            SearchBuildingCommand searchBuildingCommand = squadState.CurrentOrder as SearchBuildingCommand;
+            if (searchBuildingCommand != null)
+            {
+                AssignSearchBuildingIntents(battleState, squadState, activeMembers, searchBuildingCommand);
                 return;
             }
 
@@ -81,10 +114,7 @@ namespace Warzone.Combat
                 TacticalNodeState coverNode = FindAvailableCoverNodeQuery.Execute(battleState, command.AreaCenter, command.Radius);
                 if (coverNode != null)
                 {
-                    coverNode.ReserveFor(memberState.MemberId);
-                    ApplyIntent(memberState, MemberIntentType.TakeCover, coverNode.Position, coverNode.NodeId);
-                    battleState.AddEvent(new BattleEventRecord(BattleEventTypes.TacticalNodeReserved, squadState.SquadId, memberState.MemberId, coverNode.NodeId.ToString()));
-                    battleState.AddEvent(new BattleEventRecord(BattleEventTypes.DefensivePositionAssigned, squadState.SquadId, memberState.MemberId, coverNode.NodeId.ToString()));
+                    ReserveNodeForMember(battleState, squadState, memberState, coverNode, MemberIntentType.TakeCover);
                     continue;
                 }
 
@@ -106,17 +136,14 @@ namespace Warzone.Combat
                 BattleMemberState memberState = activeMembers[i];
                 if (!searchNode.IsSearched && i == 0)
                 {
-                    searchNode.ReserveFor(memberState.MemberId);
-                    ApplyIntent(memberState, MemberIntentType.SearchPoint, searchNode.Position, searchNode.NodeId);
-                    battleState.AddEvent(new BattleEventRecord(BattleEventTypes.TacticalNodeReserved, squadState.SquadId, memberState.MemberId, searchNode.NodeId.ToString()));
+                    ReserveNodeForMember(battleState, squadState, memberState, searchNode, MemberIntentType.SearchPoint);
                     continue;
                 }
 
                 TacticalNodeState coverNode = FindAvailableCoverNodeQuery.Execute(battleState, searchNode.Position, 6f);
                 if (coverNode != null)
                 {
-                    coverNode.ReserveFor(memberState.MemberId);
-                    ApplyIntent(memberState, MemberIntentType.TakeCover, coverNode.Position, coverNode.NodeId);
+                    ReserveNodeForMember(battleState, squadState, memberState, coverNode, MemberIntentType.TakeCover);
                     continue;
                 }
 
@@ -136,6 +163,120 @@ namespace Warzone.Combat
             for (int i = 0; i < activeMembers.Count; i++)
             {
                 ApplyIntent(activeMembers[i], MemberIntentType.Extract, extractionNode.Position, extractionNode.NodeId);
+            }
+        }
+
+        private static void AssignEnterBuildingIntents(BattleState battleState, BattleSquadState squadState, List<BattleMemberState> activeMembers, EnterBuildingCommand command)
+        {
+            BuildingState buildingState = FindBuildingByIdQuery.Execute(battleState, command.BuildingId);
+            if (buildingState == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < activeMembers.Count; i++)
+            {
+                BattleMemberState memberState = activeMembers[i];
+                TacticalNodeState nodeState = FindAvailableInteriorNodeQuery.Execute(battleState, buildingState.BuildingId) ??
+                                              FindBuildingEntranceQuery.Execute(battleState, buildingState.BuildingId, memberState.Position) ??
+                                              FindAvailableWindowNodeQuery.Execute(battleState, buildingState.BuildingId);
+                if (nodeState != null)
+                {
+                    ReserveNodeForMember(battleState, squadState, memberState, nodeState, MemberIntentType.MoveToPosition);
+                    continue;
+                }
+
+                Vec2 fallback = BuildFormationTarget(squadState, activeMembers.Count, i, buildingState.Position);
+                ApplyIntent(memberState, MemberIntentType.MoveToPosition, fallback, null);
+            }
+        }
+
+        private static void AssignDefendBuildingIntents(BattleState battleState, BattleSquadState squadState, List<BattleMemberState> activeMembers, DefendBuildingCommand command)
+        {
+            BuildingState buildingState = FindBuildingByIdQuery.Execute(battleState, command.BuildingId);
+            if (buildingState == null)
+            {
+                AssignDefendIntents(battleState, squadState, activeMembers, new DefendAreaCommand(squadState.SquadId, squadState.DesiredPosition, 8f));
+                return;
+            }
+
+            for (int i = 0; i < activeMembers.Count; i++)
+            {
+                BattleMemberState memberState = activeMembers[i];
+                TacticalNodeState nodeState = FindAvailableWindowNodeQuery.Execute(battleState, buildingState.BuildingId);
+                if (nodeState == null)
+                {
+                    nodeState = FindBuildingEntranceQuery.Execute(battleState, buildingState.BuildingId, memberState.Position);
+                }
+
+                if (nodeState == null)
+                {
+                    nodeState = FindAvailableInteriorNodeQuery.Execute(battleState, buildingState.BuildingId);
+                }
+
+                if (nodeState != null)
+                {
+                    ReserveNodeForMember(battleState, squadState, memberState, nodeState, nodeState.NodeType == TacticalNodeType.Window ? MemberIntentType.TakeCover : MemberIntentType.MoveToPosition);
+                    continue;
+                }
+
+                TacticalNodeState fallbackCoverNode = FindAvailableCoverNodeQuery.Execute(battleState, buildingState.Position, buildingState.Radius + 4f);
+                if (fallbackCoverNode != null)
+                {
+                    ReserveNodeForMember(battleState, squadState, memberState, fallbackCoverNode, MemberIntentType.TakeCover);
+                    continue;
+                }
+
+                Vec2 fallback = BuildFormationTarget(squadState, activeMembers.Count, i, buildingState.Position);
+                ApplyIntent(memberState, MemberIntentType.MoveToPosition, fallback, null);
+            }
+        }
+
+        private static void AssignSearchBuildingIntents(BattleState battleState, BattleSquadState squadState, List<BattleMemberState> activeMembers, SearchBuildingCommand command)
+        {
+            BuildingState buildingState = FindBuildingByIdQuery.Execute(battleState, command.BuildingId);
+            if (buildingState == null)
+            {
+                return;
+            }
+
+            TacticalNodeState searchNode = FindBuildingSearchPointQuery.Execute(battleState, buildingState.BuildingId, true);
+            for (int i = 0; i < activeMembers.Count; i++)
+            {
+                BattleMemberState memberState = activeMembers[i];
+                if (searchNode != null && !searchNode.IsSearched && i == 0)
+                {
+                    ReserveNodeForMember(battleState, squadState, memberState, searchNode, MemberIntentType.SearchPoint);
+                    continue;
+                }
+
+                TacticalNodeState nodeState = FindAvailableWindowNodeQuery.Execute(battleState, buildingState.BuildingId) ??
+                                              FindAvailableInteriorNodeQuery.Execute(battleState, buildingState.BuildingId);
+                if (nodeState != null)
+                {
+                    ReserveNodeForMember(battleState, squadState, memberState, nodeState, nodeState.NodeType == TacticalNodeType.Window ? MemberIntentType.TakeCover : MemberIntentType.MoveToPosition);
+                    continue;
+                }
+
+                Vec2 fallback = BuildFormationTarget(squadState, activeMembers.Count, i, buildingState.Position);
+                ApplyIntent(memberState, MemberIntentType.MoveToPosition, fallback, null);
+            }
+        }
+
+        private static void ReserveNodeForMember(BattleState battleState, BattleSquadState squadState, BattleMemberState memberState, TacticalNodeState nodeState, MemberIntentType intentType)
+        {
+            nodeState.ReserveFor(memberState.MemberId);
+            ApplyIntent(memberState, intentType, nodeState.Position, nodeState.NodeId);
+            battleState.AddEvent(new BattleEventRecord(BattleEventTypes.TacticalNodeReserved, squadState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
+
+            if (intentType == MemberIntentType.TakeCover || nodeState.NodeType == TacticalNodeType.Window || nodeState.NodeType == TacticalNodeType.Doorway)
+            {
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.DefensivePositionAssigned, squadState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
+            }
+
+            if (nodeState.NodeType == TacticalNodeType.Window)
+            {
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.WindowPositionAssigned, squadState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
             }
         }
 

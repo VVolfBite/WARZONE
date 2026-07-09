@@ -240,6 +240,28 @@ namespace Warzone.Sandbox.BattleSandbox
                     _context.TacticalCommandService.ExtractSquad(_context.SelectedSquadId, node.NodeId);
                 }
             }
+
+            if (_context.Mode == BattleSandboxMode.M8BuildingTactics && squad != null)
+            {
+                BuildingSnapshot building = BattleSandboxCommandQueries.FindNearestBuilding(snapshot, squad.Position, true);
+                if (building != null)
+                {
+                    if (keyboard.gKey.wasPressedThisFrame)
+                    {
+                        _context.TacticalCommandService.EnterBuilding(_context.SelectedSquadId, building.BuildingId);
+                    }
+
+                    if (keyboard.hKey.wasPressedThisFrame)
+                    {
+                        _context.TacticalCommandService.DefendBuilding(_context.SelectedSquadId, building.BuildingId);
+                    }
+
+                    if (keyboard.jKey.wasPressedThisFrame)
+                    {
+                        _context.TacticalCommandService.SearchBuilding(_context.SelectedSquadId, building.BuildingId);
+                    }
+                }
+            }
         }
 
         private bool TryRaycast(out RaycastHit hit)

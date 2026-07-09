@@ -300,7 +300,14 @@ namespace Warzone.Sandbox.BattleSandbox
                 nodeState.IsSearched,
                 nodeState.SearchProgress,
                 nodeState.RequiredSearchSeconds,
-                nodeState.OccupyingMemberId));
+                nodeState.OccupyingMemberId,
+                nodeState.ReservedByMemberId,
+                nodeState.BuildingId,
+                nodeState.IsInsideBuilding,
+                nodeState.AllowsFireThrough,
+                nodeState.AllowsVisionThrough,
+                nodeState.IsEntryPoint,
+                nodeState.IsSearchPoint));
         }
 
         private void CreateNodeView(TacticalNodeSnapshot nodeState)
@@ -380,7 +387,12 @@ namespace Warzone.Sandbox.BattleSandbox
                 buildingState.Position,
                 buildingState.Radius,
                 buildingState.IsEnterable,
-                buildingState.TacticalNodeIds));
+                buildingState.IsDamaged,
+                buildingState.TacticalNodeIds,
+                buildingState.EntranceNodeIds,
+                buildingState.WindowNodeIds,
+                buildingState.InteriorNodeIds,
+                buildingState.SearchNodeIds));
         }
 
         private void CreateBuildingView(BuildingSnapshot buildingState)

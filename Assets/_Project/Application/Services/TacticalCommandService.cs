@@ -32,6 +32,21 @@ namespace Warzone.Application.Services
             _battleService.Enqueue(new ExtractSquadCommand(squadId, nodeId));
         }
 
+        public void EnterBuilding(int squadId, int buildingId)
+        {
+            _battleService.Enqueue(new EnterBuildingCommand(squadId, buildingId));
+        }
+
+        public void DefendBuilding(int squadId, int buildingId)
+        {
+            _battleService.Enqueue(new DefendBuildingCommand(squadId, buildingId));
+        }
+
+        public void SearchBuilding(int squadId, int buildingId)
+        {
+            _battleService.Enqueue(new SearchBuildingCommand(squadId, buildingId));
+        }
+
         public void ClearOrder(int squadId)
         {
             _battleService.Enqueue(new ClearSquadOrderCommand(squadId));

@@ -8,6 +8,7 @@ namespace Warzone.Sandbox.BattleSandbox
         M4SpatialCombat = 3,
         M5IntegratedSandbox = 4,
         M6PressureRetreat = 5,
-        M7EnvironmentCombat = 6
+        M7EnvironmentCombat = 6,
+        M8BuildingTactics = 7
     }
 }

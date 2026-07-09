@@ -13,6 +13,16 @@ namespace Warzone.Combat
             {
                 if (!memberState.CanAct)
                 {
+                    if (memberState.OccupiedTacticalNodeId.HasValue)
+                    {
+                        TacticalNodeState occupiedNodeState;
+                        if (battleState.TryGetTacticalNode(memberState.OccupiedTacticalNodeId.Value, out occupiedNodeState) &&
+                            occupiedNodeState.OccupyingMemberId == memberState.MemberId)
+                        {
+                            occupiedNodeState.SetOccupyingMember(null);
+                        }
+                    }
+
                     memberState.ClearIntent();
                     memberState.SetCurrentTargetEnemy(null);
                     memberState.ClearOccupiedTacticalNode();

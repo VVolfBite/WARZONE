@@ -54,6 +54,10 @@ if (-not (Invoke-CheckedScript -Label "DOMAIN_AND_TEST_SOURCE_CHECK" -Path (Join
     $allPassed = $false
 }
 
+if (-not (Invoke-CheckedScript -Label "UNITY_PROJECT_STATIC_CHECK" -Path (Join-Path $root "scripts\check_unity_project_static.ps1"))) {
+    $allPassed = $false
+}
+
 if (-not (Invoke-CheckedScript -Label "UNITY_EDITMODE_CHECK" -Path (Join-Path $root "scripts\check_unity_editmode.ps1"))) {
     $allPassed = $false
 }

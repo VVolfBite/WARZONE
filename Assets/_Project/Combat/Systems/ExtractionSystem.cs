@@ -35,6 +35,7 @@ namespace Warzone.Combat
                 }
 
                 memberState.MarkExtracted();
+                battleState.MissionRuntimeState.MarkMemberExtracted(memberState.MemberId);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberExtracted, memberState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
             }
 

@@ -102,7 +102,14 @@ namespace Warzone.Combat
                         nodeState.IsSearched,
                         nodeState.SearchProgress,
                         nodeState.RequiredSearchSeconds,
-                        nodeState.OccupyingMemberId));
+                        nodeState.OccupyingMemberId,
+                        nodeState.ReservedByMemberId,
+                        nodeState.BuildingId,
+                        nodeState.IsInsideBuilding,
+                        nodeState.AllowsFireThrough,
+                        nodeState.AllowsVisionThrough,
+                        nodeState.IsEntryPoint,
+                        nodeState.IsSearchPoint));
                 }
 
                 foreach (TacticalObstacleState obstacleState in battleState.ObstaclesById.Values)
@@ -126,7 +133,12 @@ namespace Warzone.Combat
                         buildingState.Position,
                         buildingState.Radius,
                         buildingState.IsEnterable,
-                        new List<int>(buildingState.TacticalNodeIds)));
+                        buildingState.IsDamaged,
+                        new List<int>(buildingState.TacticalNodeIds),
+                        new List<int>(buildingState.EntranceNodeIds),
+                        new List<int>(buildingState.WindowNodeIds),
+                        new List<int>(buildingState.InteriorNodeIds),
+                        new List<int>(buildingState.SearchNodeIds)));
                 }
 
                 foreach (EnvironmentalZoneState zoneState in battleState.EnvironmentState.ZonesById.Values)
@@ -159,7 +171,7 @@ namespace Warzone.Combat
                     battleState.EnvironmentState.GlobalVisibilityMultiplier,
                     battleState.EnvironmentState.AmbientLightLevel,
                     zones) : new BattleEnvironmentSnapshot(false, 1f, 1f, zones),
-                battleState != null ? battleState.CurrentMissionStatus : new BattleMissionStatusSnapshot(0, 0, 0, 0, 0, 0, false, false, false, false, false, BattleCompletionType.Partial, 0),
+                battleState != null ? battleState.CurrentMissionStatus : new BattleMissionStatusSnapshot(0, 0, 0, 0, 0, 0, 0, 0, false, false, false, false, false, false, BattleCompletionType.Partial, 0),
                 battleState != null ? battleState.CurrentBattleResult : null,
                 battleState != null ? new List<BattleEventRecord>(battleState.RecentEvents) : new List<BattleEventRecord>());
         }

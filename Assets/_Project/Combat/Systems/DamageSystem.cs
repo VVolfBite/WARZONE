@@ -84,6 +84,7 @@ namespace Warzone.Combat
 
                 if (!enemyState.IsAlive)
                 {
+                    battleState.MissionRuntimeState.MarkEnemyKilled(enemyState.EnemyId);
                     battleState.AddEvent(new BattleEventRecord(
                         BattleEventTypes.EnemyKilled,
                         null,

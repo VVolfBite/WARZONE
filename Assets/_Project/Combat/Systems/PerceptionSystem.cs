@@ -61,6 +61,18 @@ namespace Warzone.Combat
                             continue;
                         }
 
+                        BuildingVisibilityResult buildingVisibility = BuildingVisibilityRule.Evaluate(battleState, memberState, enemyState);
+                        if (!buildingVisibility.HasVisibility)
+                        {
+                            battleState.AddEvent(new BattleEventRecord(
+                                BattleEventTypes.BuildingLineOfSightBlocked,
+                                memberState.SquadId,
+                                memberState.MemberId,
+                                buildingVisibility.BlockingBuildingId.HasValue ? buildingVisibility.BlockingBuildingId.Value.ToString() : "building",
+                                enemyState.EnemyId));
+                            break;
+                        }
+
                         EnvironmentalZoneState blockingSmokeZone;
                         if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, memberState.Position, enemyState.Position, memberState.SmokeVisionLevel, out blockingSmokeZone))
                         {
@@ -73,7 +85,7 @@ namespace Warzone.Combat
                             break;
                         }
 
-                        LineOfSightResult blockedLine = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position);
+                        LineOfSightResult blockedLine = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position, buildingVisibility.AllowThroughBuildingBlockers);
                         if (!blockedLine.HasLineOfSight)
                         {
                             battleState.AddEvent(new BattleEventRecord(

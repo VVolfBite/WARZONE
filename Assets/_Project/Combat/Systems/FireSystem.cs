@@ -91,7 +91,19 @@ namespace Warzone.Combat
                 return;
             }
 
-            FireLineResult fireLine = FireLineRule.Evaluate(battleState, memberState.Position, enemyState.Position);
+            BuildingFireResult buildingFire = BuildingFireRule.Evaluate(battleState, memberState, enemyState);
+            if (!buildingFire.CanFire)
+            {
+                battleState.AddEvent(new BattleEventRecord(
+                    BattleEventTypes.BuildingFireBlocked,
+                    memberState.SquadId,
+                    memberState.MemberId,
+                    buildingFire.BlockingBuildingId.HasValue ? buildingFire.BlockingBuildingId.Value.ToString() : "building",
+                    enemyState.EnemyId));
+                return;
+            }
+
+            FireLineResult fireLine = FireLineRule.Evaluate(battleState, memberState.Position, enemyState.Position, buildingFire.AllowThroughBuildingBlockers);
             if (!fireLine.CanFire)
             {
                 battleState.AddEvent(new BattleEventRecord(
@@ -109,7 +121,7 @@ namespace Warzone.Combat
                 weaponDefinition.Damage,
                 weaponDefinition.Id,
                 false,
-                fireLine.DamageMultiplier,
+                fireLine.DamageMultiplier * buildingFire.TargetDamageMultiplier,
                 fireLine.CoverObstacleId));
 
             memberState.ResetAttackCooldown(SuppressionRule.ApplyAttackCooldownPenalty(weaponDefinition.FireIntervalSeconds, memberState.IsSuppressed));

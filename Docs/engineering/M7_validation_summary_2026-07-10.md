@@ -1,5 +1,7 @@
 # M7 Validation Summary
 
+Recorded package source commit SHA: `1868aa6ab40a9c8da4fae9b18a1f8f5e42907909`
+
 ## 1. Goal
 
 M7 extends the combat slice in three directions:

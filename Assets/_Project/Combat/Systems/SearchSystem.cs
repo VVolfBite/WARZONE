@@ -54,12 +54,14 @@ namespace Warzone.Combat
                 }
 
                 nodeState.MarkSearched();
+                battleState.MissionRuntimeState.MarkSearchPointCompleted(nodeState.NodeId);
                 memberState.SetIntent(new MemberIntent(MemberIntentType.HoldPosition, nodeState.Position, true, nodeState.NodeId));
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.SearchCompleted, memberState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
 
                 if (!nodeState.LootDiscovered)
                 {
                     nodeState.MarkLootDiscovered();
+                    battleState.MissionRuntimeState.LootRuntimeState.AddLootFromSearchPoint(nodeState.NodeId, 1);
                     battleState.AddEvent(new BattleEventRecord(BattleEventTypes.LootDiscovered, memberState.SquadId, memberState.MemberId, "supplies:1", null, 1));
                 }
             }

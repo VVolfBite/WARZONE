@@ -16,10 +16,14 @@ namespace Warzone.Combat
         public const string LootDiscovered = "LootDiscovered";
         public const string MemberExtracted = "MemberExtracted";
         public const string SquadExtracted = "SquadExtracted";
+        public const string BuildingEntered = "BuildingEntered";
         public const string TacticalNodeReserved = "TacticalNodeReserved";
         public const string DefensivePositionAssigned = "DefensivePositionAssigned";
+        public const string WindowPositionAssigned = "WindowPositionAssigned";
         public const string LineOfSightBlocked = "LineOfSightBlocked";
+        public const string BuildingLineOfSightBlocked = "BuildingLineOfSightBlocked";
         public const string ShotBlocked = "ShotBlocked";
+        public const string BuildingFireBlocked = "BuildingFireBlocked";
         public const string CoverReducedDamage = "CoverReducedDamage";
         public const string BattleCompleted = "BattleCompleted";
         public const string PressureChanged = "PressureChanged";

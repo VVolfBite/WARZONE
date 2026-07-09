@@ -42,13 +42,19 @@ namespace Warzone.Combat
                         continue;
                     }
 
+                    BuildingVisibilityResult buildingVisibility = BuildingVisibilityRule.Evaluate(battleState, enemyState, memberState);
+                    if (!buildingVisibility.HasVisibility)
+                    {
+                        continue;
+                    }
+
                     EnvironmentalZoneState blockingSmokeZone;
                     if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, enemyState.Position, memberState.Position, 0, out blockingSmokeZone))
                     {
                         continue;
                     }
 
-                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, enemyState.Position, memberState.Position);
+                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, enemyState.Position, memberState.Position, buildingVisibility.AllowThroughBuildingBlockers);
                     if (!lineOfSight.HasLineOfSight)
                     {
                         continue;

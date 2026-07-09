@@ -5,7 +5,7 @@ namespace Warzone.Combat
 {
     public static class FireLineRule
     {
-        public static FireLineResult Evaluate(BattleState battleState, Vec2 origin, Vec2 target)
+        public static FireLineResult Evaluate(BattleState battleState, Vec2 origin, Vec2 target, bool ignoreBuildingBlockers = false)
         {
             List<TacticalObstacleState> obstacles = FindObstaclesBetweenQuery.Execute(battleState, origin, target);
             TacticalObstacleState coverObstacle = null;
@@ -18,6 +18,12 @@ namespace Warzone.Combat
 
                 if (obstacleState.BlocksFire)
                 {
+                    if (ignoreBuildingBlockers &&
+                        (obstacleState.ObstacleType == TacticalObstacleType.BuildingBlocker || obstacleState.ObstacleType == TacticalObstacleType.Wall))
+                    {
+                        continue;
+                    }
+
                     return new FireLineResult(false, obstacleState.ObstacleId, obstacleState.ObstacleType);
                 }
 

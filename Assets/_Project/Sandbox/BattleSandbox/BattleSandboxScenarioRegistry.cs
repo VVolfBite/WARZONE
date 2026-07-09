@@ -20,6 +20,8 @@ namespace Warzone.Sandbox.BattleSandbox
                     return "M6 Pressure Retreat";
                 case BattleSandboxMode.M7EnvironmentCombat:
                     return "M7 Environment Combat";
+                case BattleSandboxMode.M8BuildingTactics:
+                    return "M8 Building Tactics";
                 default:
                     return mode.ToString();
             }
@@ -29,7 +31,8 @@ namespace Warzone.Sandbox.BattleSandbox
         {
             return mode != BattleSandboxMode.M5IntegratedSandbox &&
                    mode != BattleSandboxMode.M6PressureRetreat &&
-                   mode != BattleSandboxMode.M7EnvironmentCombat;
+                   mode != BattleSandboxMode.M7EnvironmentCombat &&
+                   mode != BattleSandboxMode.M8BuildingTactics;
         }
 
         public static int GetDefaultSelectedSquadId(BattleSandboxMode mode)

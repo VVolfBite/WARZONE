@@ -37,13 +37,19 @@ namespace Warzone.Combat
 
                 if (distance <= effectiveDetectionRange)
                 {
+                    BuildingVisibilityResult buildingVisibility = BuildingVisibilityRule.Evaluate(battleState, memberState, enemyState);
+                    if (!buildingVisibility.HasVisibility)
+                    {
+                        continue;
+                    }
+
                     EnvironmentalZoneState blockingSmokeZone;
                     if (EnvironmentalVisibilityRule.TryGetBlockingSmokeZone(battleState.EnvironmentState, memberState.Position, enemyState.Position, memberState.SmokeVisionLevel, out blockingSmokeZone))
                     {
                         continue;
                     }
 
-                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position);
+                    LineOfSightResult lineOfSight = LineOfSightRule.Evaluate(battleState, memberState.Position, enemyState.Position, buildingVisibility.AllowThroughBuildingBlockers);
                     if (lineOfSight.HasLineOfSight)
                     {
                         visibleEnemies.Add(enemyState);

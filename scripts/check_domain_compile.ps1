@@ -52,6 +52,8 @@ function Get-SandboxTestExtraFiles {
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M6PressureRetreatScenarioFactory.cs')
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M7EnvironmentCombatScenario.cs')
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M7EnvironmentCombatScenarioFactory.cs')
+        (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M8BuildingTacticsScenario.cs')
+        (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/M8BuildingTacticsScenarioFactory.cs')
     )
 }
 

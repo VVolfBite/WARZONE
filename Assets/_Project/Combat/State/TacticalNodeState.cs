@@ -12,7 +12,12 @@ namespace Warzone.Combat
             bool isEnabled = true,
             float requiredSearchSeconds = 3f,
             int? extractionOwnerSquadId = null,
-            int? buildingId = null)
+            int? buildingId = null,
+            bool isInsideBuilding = false,
+            bool allowsFireThrough = false,
+            bool allowsVisionThrough = false,
+            bool isEntryPoint = false,
+            bool isSearchPoint = false)
         {
             NodeId = nodeId;
             NodeType = nodeType;
@@ -22,6 +27,11 @@ namespace Warzone.Combat
             RequiredSearchSeconds = requiredSearchSeconds < 0f ? 0f : requiredSearchSeconds;
             ExtractionOwnerSquadId = extractionOwnerSquadId;
             BuildingId = buildingId;
+            IsInsideBuilding = isInsideBuilding;
+            AllowsFireThrough = allowsFireThrough;
+            AllowsVisionThrough = allowsVisionThrough;
+            IsEntryPoint = isEntryPoint;
+            IsSearchPoint = isSearchPoint || nodeType == TacticalNodeType.SearchPoint;
         }
 
         public int NodeId { get; private set; }
@@ -30,6 +40,7 @@ namespace Warzone.Combat
         public float Radius { get; private set; }
         public bool IsEnabled { get; private set; }
         public BattleEntityId? OccupyingMemberId { get; private set; }
+        public BattleEntityId? ReservedByMemberId { get; private set; }
         public bool IsReserved { get; private set; }
         public float SearchProgress { get; private set; }
         public bool SearchStarted { get; private set; }
@@ -38,6 +49,11 @@ namespace Warzone.Combat
         public float RequiredSearchSeconds { get; private set; }
         public int? ExtractionOwnerSquadId { get; private set; }
         public int? BuildingId { get; private set; }
+        public bool IsInsideBuilding { get; private set; }
+        public bool AllowsFireThrough { get; private set; }
+        public bool AllowsVisionThrough { get; private set; }
+        public bool IsEntryPoint { get; private set; }
+        public bool IsSearchPoint { get; private set; }
 
         public bool IsAvailable
         {
@@ -51,14 +67,19 @@ namespace Warzone.Combat
 
         public void ReserveFor(BattleEntityId memberId)
         {
-            OccupyingMemberId = memberId;
             IsReserved = true;
+            ReservedByMemberId = memberId;
         }
 
         public void ClearReservation()
         {
-            OccupyingMemberId = null;
             IsReserved = false;
+            ReservedByMemberId = null;
+        }
+
+        public void SetOccupyingMember(BattleEntityId? memberId)
+        {
+            OccupyingMemberId = memberId;
         }
 
         public void MarkSearchStarted()

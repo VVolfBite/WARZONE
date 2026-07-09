@@ -36,9 +36,11 @@ namespace Warzone.Combat
                 return;
             }
 
+            ReleasePreviousOccupancy(battleState, memberState);
+
             if (memberState.CurrentIntent.IntentType == MemberIntentType.HoldPosition)
             {
-                UpdateOccupiedNode(memberState);
+                UpdateOccupiedNode(battleState, memberState);
                 return;
             }
 
@@ -57,7 +59,7 @@ namespace Warzone.Combat
             {
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 CompleteIntent(memberState);
-                UpdateOccupiedNode(memberState);
+                UpdateOccupiedNode(battleState, memberState);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
@@ -69,7 +71,7 @@ namespace Warzone.Combat
                 memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
                 CompleteIntent(memberState);
                 memberState.UpdateFacing(direction);
-                UpdateOccupiedNode(memberState);
+                UpdateOccupiedNode(battleState, memberState);
                 battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MemberReachedPosition, memberState.SquadId, memberState.MemberId));
                 return;
             }
@@ -90,13 +92,53 @@ namespace Warzone.Combat
             memberState.CurrentIntent.MarkCompleted();
         }
 
-        private static void UpdateOccupiedNode(BattleMemberState memberState)
+        private static void ReleasePreviousOccupancy(BattleState battleState, BattleMemberState memberState)
+        {
+            if (battleState == null || memberState == null || !memberState.OccupiedTacticalNodeId.HasValue)
+            {
+                return;
+            }
+
+            if (memberState.CurrentIntent != null &&
+                memberState.CurrentIntent.IsCompleted &&
+                memberState.CurrentIntent.TacticalNodeId == memberState.OccupiedTacticalNodeId)
+            {
+                return;
+            }
+
+            TacticalNodeState nodeState;
+            if (battleState.TryGetTacticalNode(memberState.OccupiedTacticalNodeId.Value, out nodeState) &&
+                nodeState.OccupyingMemberId == memberState.MemberId)
+            {
+                nodeState.SetOccupyingMember(null);
+            }
+
+            memberState.ClearOccupiedTacticalNode();
+        }
+
+        private static void UpdateOccupiedNode(BattleState battleState, BattleMemberState memberState)
         {
             if (memberState.CurrentIntent != null &&
                 memberState.CurrentIntent.IsCompleted &&
                 memberState.CurrentIntent.TacticalNodeId.HasValue)
             {
                 memberState.SetOccupiedTacticalNode(memberState.CurrentIntent.TacticalNodeId.Value);
+                TacticalNodeState nodeState;
+                if (battleState != null && battleState.TryGetTacticalNode(memberState.CurrentIntent.TacticalNodeId.Value, out nodeState))
+                {
+                    nodeState.SetOccupyingMember(memberState.MemberId);
+                    if (nodeState.ReservedByMemberId == memberState.MemberId)
+                    {
+                        nodeState.ClearReservation();
+                    }
+
+                    if (nodeState.BuildingId.HasValue &&
+                        battleState.MissionRuntimeState.MarkBuildingEntered(nodeState.BuildingId.Value))
+                    {
+                        battleState.AddEvent(new BattleEventRecord(BattleEventTypes.BuildingEntered, memberState.SquadId, memberState.MemberId, nodeState.BuildingId.Value.ToString()));
+                    }
+                }
+
                 return;
             }
 

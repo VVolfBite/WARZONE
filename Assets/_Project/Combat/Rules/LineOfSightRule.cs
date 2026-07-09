@@ -5,13 +5,19 @@ namespace Warzone.Combat
 {
     public static class LineOfSightRule
     {
-        public static LineOfSightResult Evaluate(BattleState battleState, Vec2 origin, Vec2 target)
+        public static LineOfSightResult Evaluate(BattleState battleState, Vec2 origin, Vec2 target, bool ignoreBuildingBlockers = false)
         {
             List<TacticalObstacleState> obstacles = FindObstaclesBetweenQuery.Execute(battleState, origin, target);
             for (int i = 0; i < obstacles.Count; i++)
             {
                 TacticalObstacleState obstacleState = obstacles[i];
                 if (!obstacleState.BlocksLineOfSight)
+                {
+                    continue;
+                }
+
+                if (ignoreBuildingBlockers &&
+                    (obstacleState.ObstacleType == TacticalObstacleType.BuildingBlocker || obstacleState.ObstacleType == TacticalObstacleType.Wall))
                 {
                     continue;
                 }

@@ -3,6 +3,8 @@ namespace Warzone.Combat
     public sealed class BattleMissionStatusSnapshot
     {
         public BattleMissionStatusSnapshot(
+            int enteredBuildingCount,
+            int totalBuildingObjectiveCount,
             int aliveEnemyCount,
             int totalEnemyCount,
             int searchedPointCount,
@@ -10,6 +12,7 @@ namespace Warzone.Combat
             int extractedMemberCount,
             int totalAliveMemberCount,
             bool isObjectiveComplete,
+            bool isEnterBuildingObjectiveComplete,
             bool isSearchObjectiveComplete,
             bool isEliminateObjectiveComplete,
             bool isExtractObjectiveComplete,
@@ -17,6 +20,8 @@ namespace Warzone.Combat
             BattleCompletionType resultType,
             int lootCount)
         {
+            EnteredBuildingCount = enteredBuildingCount;
+            TotalBuildingObjectiveCount = totalBuildingObjectiveCount;
             AliveEnemyCount = aliveEnemyCount;
             TotalEnemyCount = totalEnemyCount;
             SearchedPointCount = searchedPointCount;
@@ -24,6 +29,7 @@ namespace Warzone.Combat
             ExtractedMemberCount = extractedMemberCount;
             TotalAliveMemberCount = totalAliveMemberCount;
             IsObjectiveComplete = isObjectiveComplete;
+            IsEnterBuildingObjectiveComplete = isEnterBuildingObjectiveComplete;
             IsSearchObjectiveComplete = isSearchObjectiveComplete;
             IsEliminateObjectiveComplete = isEliminateObjectiveComplete;
             IsExtractObjectiveComplete = isExtractObjectiveComplete;
@@ -32,6 +38,8 @@ namespace Warzone.Combat
             LootCount = lootCount;
         }
 
+        public int EnteredBuildingCount { get; private set; }
+        public int TotalBuildingObjectiveCount { get; private set; }
         public int AliveEnemyCount { get; private set; }
         public int TotalEnemyCount { get; private set; }
         public int SearchedPointCount { get; private set; }
@@ -39,6 +47,7 @@ namespace Warzone.Combat
         public int ExtractedMemberCount { get; private set; }
         public int TotalAliveMemberCount { get; private set; }
         public bool IsObjectiveComplete { get; private set; }
+        public bool IsEnterBuildingObjectiveComplete { get; private set; }
         public bool IsSearchObjectiveComplete { get; private set; }
         public bool IsEliminateObjectiveComplete { get; private set; }
         public bool IsExtractObjectiveComplete { get; private set; }

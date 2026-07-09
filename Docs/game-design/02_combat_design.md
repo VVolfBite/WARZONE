@@ -122,3 +122,19 @@ secondary ignition, or long-term status illness.
 
 This still stops well short of a full weather system, advanced smoke diffusion,
 night-battle presentation, or vehicle/environment integration.
+
+## 13. M8 Building Tactics Addendum
+
+Buildings in M8 are still node-based abstractions. They are not full indoor
+simulation spaces with continuous room-by-room micro-positioning.
+
+Windows and doorways are tactical nodes. They matter because they define where a
+member can observe and fire across the building shell.
+
+Interior points are staging and holding nodes. A member inside a building but not
+on a window / doorway should not behave as if they have free fire onto exterior
+targets.
+
+The player still commands squads, not individuals. `EnterBuilding`, `DefendBuilding`,
+and `SearchBuilding` are squad-level intents; the system assigns members to
+entrances, windows, interior points, and search nodes automatically.

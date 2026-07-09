@@ -270,3 +270,49 @@ M7 adds:
 
 This remains a technical slice. It is not a full weather system, not a real-time
 lighting model, and not a physically simulated smoke solution.
+
+## 18. M8 Building Tactical Layer
+
+M8 extends the combat slice from environmental combat into first-order building tactics.
+
+Current intended order inside `BattleSimulation` remains:
+
+1. `CommandSystem`
+2. `SquadPlanningSystem`
+3. `FormationSystem`
+4. `MovementSystem`
+5. `EnvironmentalZoneSystem`
+6. `SearchSystem`
+7. `ExtractionSystem`
+8. `EnemyAwarenessSystem`
+9. `EnemyBehaviorSystem`
+10. `PerceptionSystem`
+11. `TargetSelectionSystem`
+12. `FireSystem`
+13. `EnemyFireSystem`
+14. `DamageSystem`
+15. `DeathCleanupSystem`
+16. `PressureSystem`
+17. `RetreatSystem`
+18. `BattleResultSystem.UpdateMissionStatus`
+19. `BattleResultSystem.UpdateBattleResult`
+20. `BattleSnapshotFactory`
+
+M8 adds:
+
+- stable `BattleMissionRuntimeState` authority for search, loot, extraction, building entry, and enemy kills
+- building node groupings for:
+  - entrances
+  - windows
+  - interior positions
+  - building search points
+- building-facing commands:
+  - `EnterBuildingCommand`
+  - `DefendBuildingCommand`
+  - `SearchBuildingCommand`
+- first-order building visibility / fire gating:
+  - exterior units cannot freely observe or fire at interior non-window occupants
+  - window / doorway / entrance nodes act as tactical firing and observation contexts
+
+This is still not a full interior combat system. It does not include room-level pathfinding,
+stacking logic, breaching, or structural destruction.
