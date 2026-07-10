@@ -50,6 +50,10 @@ if (-not (Invoke-CheckedScript -Label "TEXT_BOUNDARY_CHECK" -Path (Join-Path $ro
     $allPassed = $false
 }
 
+if (-not (Invoke-CheckedScript -Label "ASMDEF_BOUNDARY_CHECK" -Path (Join-Path $root "scripts\check_asmdef_references.ps1"))) {
+    $allPassed = $false
+}
+
 if (-not (Invoke-CheckedScript -Label "DOMAIN_AND_TEST_SOURCE_CHECK" -Path (Join-Path $root "scripts\check_domain_compile.ps1"))) {
     $allPassed = $false
 }

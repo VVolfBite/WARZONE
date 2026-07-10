@@ -209,29 +209,58 @@ namespace Warzone.Application
                 return false;
             }
 
+            CampaignWeaponInstanceState boundWeaponInstance;
             if (!string.IsNullOrEmpty(memberState.CarriedWeaponInstanceId))
             {
-                CampaignWeaponInstanceState weaponInstance;
-                if (!campaignState.Inventory.TryGetWeaponInstance(memberState.CarriedWeaponInstanceId, out weaponInstance))
+                if (!campaignState.Inventory.TryGetWeaponInstance(memberState.CarriedWeaponInstanceId, out boundWeaponInstance))
                 {
                     reason = "Assigned weapon instance not found.";
                     return false;
                 }
 
-                if (weaponInstance.IsLost || !weaponInstance.IsAvailable)
+                if (!IsWeaponUsableForLaunch(boundWeaponInstance))
                 {
                     reason = "Assigned weapon instance is not available.";
                     return false;
                 }
 
-                if (string.IsNullOrEmpty(weaponInstance.DefinitionId))
+                if (string.IsNullOrEmpty(boundWeaponInstance.DefinitionId))
                 {
                     reason = "Assigned weapon instance is missing definition.";
                     return false;
                 }
 
-                selection = new WeaponSelection(weaponInstance.DefinitionId, weaponInstance.InstanceId);
+                selection = new WeaponSelection(boundWeaponInstance.DefinitionId, boundWeaponInstance.InstanceId);
                 return true;
+            }
+
+            CampaignWeaponInstanceState ownedWeaponInstance = null;
+            bool hasOwnedWeaponInstance = false;
+            foreach (CampaignWeaponInstanceState candidate in campaignState.Inventory.GetWeaponInstancesForMember(memberState.MemberId))
+            {
+                if (candidate == null)
+                {
+                    continue;
+                }
+
+                hasOwnedWeaponInstance = true;
+                if (IsWeaponUsableForLaunch(candidate))
+                {
+                    ownedWeaponInstance = candidate;
+                    break;
+                }
+            }
+
+            if (ownedWeaponInstance != null)
+            {
+                selection = new WeaponSelection(ownedWeaponInstance.DefinitionId, ownedWeaponInstance.InstanceId);
+                return true;
+            }
+
+            if (hasOwnedWeaponInstance)
+            {
+                reason = "Owned weapon instance is not available.";
+                return false;
             }
 
             if (!string.IsNullOrEmpty(memberState.CarriedWeaponId))
@@ -242,13 +271,9 @@ namespace Warzone.Application
                     selection = new WeaponSelection(carriedWeaponDefinition.Id, null);
                     return true;
                 }
-            }
 
-            CampaignWeaponInstanceState ownedWeaponInstance;
-            if (campaignState.Inventory.TryGetWeaponInstanceForMember(memberState.MemberId, out ownedWeaponInstance))
-            {
-                selection = new WeaponSelection(ownedWeaponInstance.DefinitionId, ownedWeaponInstance.InstanceId);
-                return true;
+                reason = "Carried weapon definition not found.";
+                return false;
             }
 
             WeaponDefinition defaultWeaponDefinition;
@@ -260,6 +285,15 @@ namespace Warzone.Application
 
             reason = "No available weapon definition.";
             return false;
+        }
+
+        private static bool IsWeaponUsableForLaunch(CampaignWeaponInstanceState weaponInstance)
+        {
+            return weaponInstance != null &&
+                weaponInstance.IsAvailable &&
+                !weaponInstance.IsLost &&
+                !weaponInstance.IsDamaged &&
+                !string.IsNullOrEmpty(weaponInstance.DefinitionId);
         }
 
         private sealed class WeaponSelection

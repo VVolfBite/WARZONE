@@ -49,6 +49,7 @@ namespace Warzone.Combat
             List<BattleEntityId> casualties = new List<BattleEntityId>();
             List<BattleEntityId> deadEnemies = new List<BattleEntityId>();
             List<BattleEntityId> extractedMembers = new List<BattleEntityId>();
+            List<BattleEntityId> woundedMembers = new List<BattleEntityId>();
             int aliveMembers = 0;
             int aliveEnemies = 0;
 
@@ -59,6 +60,10 @@ namespace Warzone.Combat
                 if (survived)
                 {
                     aliveMembers++;
+                    if (memberState.Health < memberState.MaxHealth)
+                    {
+                        woundedMembers.Add(memberState.MemberId);
+                    }
                 }
                 else
                 {
@@ -98,7 +103,8 @@ namespace Warzone.Combat
                 _missionObjectiveSystem.BuildObjectiveResults(battleState, objectives),
                 new BattleCasualtyResult(casualties, deadEnemies),
                 new BattleLootResult(battleState.MissionRuntimeState.LootDiscoveredCount),
-                new BattleExtractionResult(extractedMembers, aliveMembers));
+                new BattleExtractionResult(extractedMembers, aliveMembers),
+                new BattleWoundResult(woundedMembers));
 
             battleState.SetBattleResult(battleResult);
             battleState.AddEvent(new BattleEventRecord(BattleEventTypes.BattleCompleted, message: battleResult.CompletionType.ToString()));

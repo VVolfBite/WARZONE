@@ -109,3 +109,16 @@ M14 adds the first pass of battle aftermath into the campaign economy:
 - infirmary, workshop, and training capabilities nudge the recovery loop
 
 This is still a minimal model. It does not add full equipment management or a full base-building tree.
+
+## M15 freeze clarification
+
+M15 removes the broad assumption that every extracted member is wounded and every returned weapon is damaged.
+
+Current rule shape:
+
+- only members explicitly marked wounded by the battle result receive wound settlements
+- only wounded extracted members can return with damage when the workshop is unavailable
+- uninjured extracted members keep their weapons undamaged
+- lost or unavailable weapons do not silently re-enter the mission pool
+
+This is the point where the campaign aftermath rules are frozen for the first Unity validation pass.

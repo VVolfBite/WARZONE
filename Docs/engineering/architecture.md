@@ -478,3 +478,17 @@ Current direction:
 - `CampaignSettlementSystem` applies progression, recovery, equipment, resources, sites, squads, and history in a stable order
 
 M14 continues the rule that `Content` does not reference `Combat`.
+
+## 25. M15 Demo Freeze Cleanup
+
+M15 is a freeze point, not a new gameplay layer.
+
+Current guidance:
+
+- `BattleResult` now carries explicit wound data instead of assuming all extracted members are wounded
+- `MissionSettlementService` should translate combat results into campaign settlements without broad default damage or wound assumptions
+- `MissionLaunchPlanFactory` should reject unusable weapon instances instead of silently falling back
+- `Content`, `Combat`, `Campaign`, and `Application` boundaries are checked by source scans and asmdef scans
+- the next step after M15 is Unity first-import / compile recovery, not another gameplay expansion
+
+This milestone keeps the pure-code foundation stable before the first real Unity validation pass.

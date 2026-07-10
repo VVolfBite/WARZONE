@@ -22,7 +22,8 @@ namespace Warzone.Combat
                 new List<BattleObjectiveResult>(),
                 new BattleCasualtyResult(casualties, new List<BattleEntityId>()),
                 new BattleLootResult(0),
-                new BattleExtractionResult(new List<BattleEntityId>(), 0))
+                new BattleExtractionResult(new List<BattleEntityId>(), 0),
+                new BattleWoundResult(new List<BattleEntityId>()))
         {
         }
 
@@ -38,6 +39,35 @@ namespace Warzone.Combat
             BattleCasualtyResult casualtyResult,
             BattleLootResult lootResult,
             BattleExtractionResult extractionResult)
+            : this(
+                missionOutcome,
+                unitOutcomes,
+                casualties,
+                battleStatistics,
+                elapsedTimeSeconds,
+                seed,
+                completionType,
+                objectiveResults,
+                casualtyResult,
+                lootResult,
+                extractionResult,
+                new BattleWoundResult(new List<BattleEntityId>()))
+        {
+        }
+
+        public BattleResult(
+            MissionOutcome missionOutcome,
+            IReadOnlyList<UnitOutcome> unitOutcomes,
+            IReadOnlyList<BattleEntityId> casualties,
+            BattleStatistics battleStatistics,
+            float elapsedTimeSeconds,
+            int seed,
+            BattleCompletionType completionType,
+            IReadOnlyList<BattleObjectiveResult> objectiveResults,
+            BattleCasualtyResult casualtyResult,
+            BattleLootResult lootResult,
+            BattleExtractionResult extractionResult,
+            BattleWoundResult woundResult)
         {
             MissionOutcome = missionOutcome;
             UnitOutcomes = unitOutcomes;
@@ -50,6 +80,7 @@ namespace Warzone.Combat
             CasualtyResult = casualtyResult;
             LootResult = lootResult;
             ExtractionResult = extractionResult;
+            WoundResult = woundResult ?? new BattleWoundResult(new List<BattleEntityId>());
         }
 
         public MissionOutcome MissionOutcome { get; private set; }
@@ -63,5 +94,6 @@ namespace Warzone.Combat
         public BattleCasualtyResult CasualtyResult { get; private set; }
         public BattleLootResult LootResult { get; private set; }
         public BattleExtractionResult ExtractionResult { get; private set; }
+        public BattleWoundResult WoundResult { get; private set; }
     }
 }

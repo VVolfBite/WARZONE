@@ -95,3 +95,18 @@ Return:
   - compile error
   - scene/bootstrap error
   - Play Mode runtime error
+
+## 10. M15 Freeze Context
+
+After M15, the first Unity open should be treated as a compile-risk check, not a feature review.
+
+Verify in this order:
+
+1. project import completes
+2. Console has no asmdef resolution failures
+3. `Warzone.Content` still has no `Warzone.Combat` references
+4. `Warzone.Combat` still has no `Warzone.Campaign` or `Warzone.Application` references
+5. `Warzone.Application` still bridges the campaign/combat boundary only through its service layer
+6. run the static project checks before trying scenes
+
+If any of those fail, capture the first error and stop. Do not continue into gameplay verification until the assembly graph is healthy.

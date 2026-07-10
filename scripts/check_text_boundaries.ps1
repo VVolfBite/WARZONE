@@ -32,6 +32,15 @@ if ($LASTEXITCODE -eq 0) {
 
 Write-Output "CONTENT_COMBAT_BOUNDARY: OK"
 
+$contentCampaignHits = rg -n "Warzone.Campaign" Assets/_Project/Content
+if ($LASTEXITCODE -eq 0) {
+    Write-Output "CONTENT_CAMPAIGN_BOUNDARY: FAILED"
+    $contentCampaignHits
+    exit 1
+}
+
+Write-Output "CONTENT_CAMPAIGN_BOUNDARY: OK"
+
 $campaignCombatHits = rg -n "Warzone.Combat" Assets/_Project/Campaign
 if ($LASTEXITCODE -eq 0) {
     Write-Output "CAMPAIGN_COMBAT_BOUNDARY: FAILED"
@@ -40,6 +49,15 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Output "CAMPAIGN_COMBAT_BOUNDARY: OK"
+
+$combatApplicationHits = rg -n "Warzone.Application" Assets/_Project/Combat
+if ($LASTEXITCODE -eq 0) {
+    Write-Output "COMBAT_APPLICATION_BOUNDARY: FAILED"
+    $combatApplicationHits
+    exit 1
+}
+
+Write-Output "COMBAT_APPLICATION_BOUNDARY: OK"
 
 $legacyNamespaceHits = rg -n "Warzone.Adapters|Warzone.Controls|Warzone.Presentation" Assets/_Project
 if ($LASTEXITCODE -eq 0) {

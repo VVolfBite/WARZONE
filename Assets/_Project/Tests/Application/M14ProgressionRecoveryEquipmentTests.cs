@@ -54,7 +54,7 @@ namespace Warzone.Tests.Application
             campaignState.MainBase.RemoveModule("base.infirmary");
 
             MissionLaunchPlan launchPlan = CreateLaunchPlan(campaignState);
-            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 1 }, new[] { 0, 2, 3 }, 4, true);
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 1 }, new[] { 0, 2, 3 }, new[] { 0 }, 4, true);
 
             MissionSettlementService settlementService = new MissionSettlementService(DemoContentFactory.CreateDemoCatalog());
             settlementService.ApplyBattleResult(campaignState, launchPlan, battleResult);
@@ -66,6 +66,23 @@ namespace Warzone.Tests.Application
             Assert.That(survivor.IsWounded, Is.True);
             Assert.That(survivor.IsRecovering, Is.True);
             Assert.That(survivor.RecoveryDaysRemaining, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SettlementService_DoesNotWoundUninjuredExtractedMembers()
+        {
+            CampaignState campaignState = new StartingCampaignFactory().CreateStartingCampaign();
+            MissionLaunchPlan launchPlan = CreateLaunchPlan(campaignState);
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 1 }, new[] { 0, 2, 3 }, null, 4, true);
+
+            MissionSettlementService settlementService = new MissionSettlementService(DemoContentFactory.CreateDemoCatalog());
+            settlementService.ApplyBattleResult(campaignState, launchPlan, battleResult);
+
+            CampaignMemberState survivor;
+            Assert.That(campaignState.Roster.TryGetMember("campaign.member.1", out survivor), Is.True);
+            Assert.That(survivor.IsWounded, Is.False);
+            Assert.That(survivor.IsRecovering, Is.False);
+            Assert.That(survivor.IsAvailable, Is.True);
         }
 
         [Test]
@@ -95,7 +112,7 @@ namespace Warzone.Tests.Application
             campaignState.MainBase.RemoveModule("base.workshop");
 
             MissionLaunchPlan launchPlan = CreateLaunchPlan(campaignState);
-            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 1 }, new[] { 0, 2, 3 }, 3, true);
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 1 }, new[] { 0, 2, 3 }, new[] { 0 }, 3, true);
 
             MissionSettlementService settlementService = new MissionSettlementService(DemoContentFactory.CreateDemoCatalog());
             settlementService.ApplyBattleResult(campaignState, launchPlan, battleResult);
@@ -177,20 +194,24 @@ namespace Warzone.Tests.Application
             MissionLaunchPlan launchPlan,
             IEnumerable<int> deadIndices,
             IEnumerable<int> extractedIndices,
+            IEnumerable<int> woundedIndices,
             int lootCount,
             bool victory)
         {
             List<int> deadIndexList = new List<int>(deadIndices ?? new int[0]);
             List<int> extractedIndexList = new List<int>(extractedIndices ?? new int[0]);
+            List<int> woundedIndexList = new List<int>(woundedIndices ?? new int[0]);
             List<UnitOutcome> unitOutcomes = new List<UnitOutcome>();
             List<BattleEntityId> deadMemberIds = new List<BattleEntityId>();
             List<BattleEntityId> extractedMemberIds = new List<BattleEntityId>();
+            List<BattleEntityId> woundedMemberIds = new List<BattleEntityId>();
 
             for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
             {
                 MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
                 bool isDead = deadIndexList.Contains(i);
                 bool isExtracted = extractedIndexList.Contains(i);
+                bool isWounded = woundedIndexList.Contains(i);
                 unitOutcomes.Add(new UnitOutcome(new BattleEntityId(loadout.BattleMemberId), loadout.CampaignMemberId, !isDead));
                 if (isDead)
                 {
@@ -200,6 +221,11 @@ namespace Warzone.Tests.Application
                 if (isExtracted)
                 {
                     extractedMemberIds.Add(new BattleEntityId(loadout.BattleMemberId));
+                }
+
+                if (isWounded && !isDead)
+                {
+                    woundedMemberIds.Add(new BattleEntityId(loadout.BattleMemberId));
                 }
             }
 
@@ -220,7 +246,8 @@ namespace Warzone.Tests.Application
                 },
                 new BattleCasualtyResult(deadMemberIds, new BattleEntityId[0]),
                 new BattleLootResult(lootCount),
-                new BattleExtractionResult(extractedMemberIds, launchPlan.MemberLoadouts.Count - deadMemberIds.Count));
+                new BattleExtractionResult(extractedMemberIds, launchPlan.MemberLoadouts.Count - deadMemberIds.Count),
+                new BattleWoundResult(woundedMemberIds));
         }
     }
 }

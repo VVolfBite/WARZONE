@@ -46,6 +46,11 @@ namespace Warzone.Campaign
 
         public bool TryGetWeaponInstanceForMember(string memberId, out CampaignWeaponInstanceState instance)
         {
+            return TryGetWeaponInstanceForMember(memberId, out instance, false);
+        }
+
+        public bool TryGetWeaponInstanceForMember(string memberId, out CampaignWeaponInstanceState instance, bool includeUnavailable)
+        {
             instance = null;
             if (string.IsNullOrEmpty(memberId))
             {
@@ -54,10 +59,19 @@ namespace Warzone.Campaign
 
             foreach (CampaignWeaponInstanceState weaponInstance in _weaponInstances.Values)
             {
-                if (weaponInstance != null && weaponInstance.AssignedMemberId == memberId && weaponInstance.IsAvailable && !weaponInstance.IsLost)
+                if (weaponInstance != null && weaponInstance.AssignedMemberId == memberId)
                 {
-                    instance = weaponInstance;
-                    return true;
+                    if (includeUnavailable)
+                    {
+                        instance = weaponInstance;
+                        return true;
+                    }
+
+                    if (weaponInstance.IsAvailable && !weaponInstance.IsLost && !weaponInstance.IsDamaged)
+                    {
+                        instance = weaponInstance;
+                        return true;
+                    }
                 }
             }
 

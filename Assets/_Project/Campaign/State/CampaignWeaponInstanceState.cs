@@ -95,5 +95,10 @@ namespace Warzone.Campaign
             IsEquipped = false;
             LastMissionId = missionId;
         }
+
+        public bool IsUsableForLaunch()
+        {
+            return !IsLost && IsAvailable && !IsDamaged;
+        }
     }
 }

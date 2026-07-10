@@ -8,9 +8,9 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 if ([string]::IsNullOrWhiteSpace($PackagePath)) {
-    $latest = Get-ChildItem -Path $root -Filter "Warzone_M14_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    $latest = Get-ChildItem -Path $root -Filter "Warzone_M15_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($null -eq $latest) {
-        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no M14 handoff package found)"
+        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no M15 handoff package found)"
         exit 0
     }
 

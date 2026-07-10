@@ -223,6 +223,7 @@ namespace Warzone.Application.Services
             bool missionSucceeded = battleResult != null && battleResult.MissionOutcome == MissionOutcome.Victory;
             IReadOnlyList<BattleEntityId> deadMemberIds = battleResult != null && battleResult.CasualtyResult != null ? battleResult.CasualtyResult.DeadMemberIds : null;
             IReadOnlyList<BattleEntityId> extractedMemberIds = battleResult != null && battleResult.ExtractionResult != null ? battleResult.ExtractionResult.ExtractedMemberIds : null;
+            IReadOnlyList<BattleEntityId> woundedMemberIds = battleResult != null && battleResult.WoundResult != null ? battleResult.WoundResult.WoundedMemberIds : null;
 
             for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
             {
@@ -232,13 +233,20 @@ namespace Warzone.Application.Services
                     continue;
                 }
 
-                if (ContainsBattleId(extractedMemberIds, loadout.BattleMemberId))
+                bool isExtracted = ContainsBattleId(extractedMemberIds, loadout.BattleMemberId);
+                bool isWounded = ContainsBattleId(woundedMemberIds, loadout.BattleMemberId);
+
+                if (isExtracted)
                 {
-                    settlements.Add(new CampaignWoundSettlement(
-                        loadout.CampaignMemberId,
-                        missionSucceeded ? WoundSeverity.Light : WoundSeverity.Moderate,
-                        missionSucceeded ? 1 : 3,
-                        launchPlan.MissionId));
+                    if (isWounded)
+                    {
+                        settlements.Add(new CampaignWoundSettlement(
+                            loadout.CampaignMemberId,
+                            missionSucceeded ? WoundSeverity.Light : WoundSeverity.Moderate,
+                            missionSucceeded ? 1 : 3,
+                            launchPlan.MissionId));
+                    }
+
                     continue;
                 }
 
@@ -259,6 +267,7 @@ namespace Warzone.Application.Services
             bool hasWorkshop = campaignState != null && campaignState.MainBase != null && campaignState.MainBase.HasCapability("workshop");
             IReadOnlyList<BattleEntityId> deadMemberIds = battleResult != null && battleResult.CasualtyResult != null ? battleResult.CasualtyResult.DeadMemberIds : null;
             IReadOnlyList<BattleEntityId> extractedMemberIds = battleResult != null && battleResult.ExtractionResult != null ? battleResult.ExtractionResult.ExtractedMemberIds : null;
+            IReadOnlyList<BattleEntityId> woundedMemberIds = battleResult != null && battleResult.WoundResult != null ? battleResult.WoundResult.WoundedMemberIds : null;
 
             for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
             {
@@ -270,9 +279,10 @@ namespace Warzone.Application.Services
 
                 bool isDead = ContainsBattleId(deadMemberIds, loadout.BattleMemberId);
                 bool isExtracted = ContainsBattleId(extractedMemberIds, loadout.BattleMemberId);
+                bool isWounded = ContainsBattleId(woundedMemberIds, loadout.BattleMemberId);
                 bool shouldReturn = !isDead && isExtracted;
                 bool shouldLose = isDead || !isExtracted;
-                bool shouldDamage = shouldReturn && !hasWorkshop;
+                bool shouldDamage = shouldReturn && isWounded && !hasWorkshop;
                 float durability = shouldDamage ? 0.75f : 1f;
 
                 settlements.Add(new CampaignEquipmentSettlement(

@@ -218,11 +218,25 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void ContentSource_DoesNotReferenceCampaignLayers()
+        {
+            string contentDirectory = Path.Combine("Assets", "_Project", "Content");
+            AssertDirectoryDoesNotContain(contentDirectory, "Warzone.Campaign");
+        }
+
+        [Test]
         public void ApplicationSource_DoesNotReferenceRuntimeOrSandboxLayers()
         {
             string applicationDirectory = Path.Combine("Assets", "_Project", "Application");
             AssertDirectoryDoesNotContain(applicationDirectory, "Warzone.Runtime");
             AssertDirectoryDoesNotContain(applicationDirectory, "Warzone.Sandbox");
+        }
+
+        [Test]
+        public void CombatSource_DoesNotReferenceApplicationLayers()
+        {
+            string combatDirectory = Path.Combine("Assets", "_Project", "Combat");
+            AssertDirectoryDoesNotContain(combatDirectory, "Warzone.Application");
         }
 
         [Test]

@@ -152,3 +152,11 @@ Every milestone report must explicitly distinguish:
 - `ContentCatalogValidator` should keep mission, site, reward, outpost, and resource references honest without Unity
 - `DemoContentFactory` should centralize demo and test seed content instead of scattering magic ids through Application and Campaign
 - handoff packaging should keep `Assets/_Project` in the archive path with forward slashes
+
+## M15 Freeze Notes
+
+- `BattleResult` wound coverage should be explicit and tested; do not infer wounds from extracted state alone
+- settlement tests should distinguish dead, extracted wounded, extracted unwounded, and unextracted living members
+- weapon launch validation should reject lost, unavailable, and damaged instances before fallback logic is considered
+- asmdef boundary checks should run alongside text-boundary checks before any Unity import attempt
+- the freeze point is meant to stabilize the code-only stack before Unity compile recovery, not to add new systems
