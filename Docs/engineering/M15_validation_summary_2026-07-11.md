@@ -3,7 +3,7 @@
 ## Status
 
 - Milestone: M15 demo freeze cleanup
-- Commit SHA: PENDING_FINAL_COMMIT
+- Commit SHA: f2d9a74b84f7d634d4b0c759b93f9f905fe196dd
 
 ## Goal
 
@@ -51,4 +51,3 @@ See `Docs/engineering/demo_freeze_audit.md`.
 ## Next step
 
 Open Unity on a clean machine and follow the first-open checklist before adding any new gameplay systems.
-
