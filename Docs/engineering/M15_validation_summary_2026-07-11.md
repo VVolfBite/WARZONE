@@ -3,7 +3,9 @@
 ## Status
 
 - Milestone: M15 demo freeze cleanup
-- Commit SHA: f2d9a74b84f7d634d4b0c759b93f9f905fe196dd
+- Code freeze commit: f2d9a74b84f7d634d4b0c759b93f9f905fe196dd
+- Final handoff commit: 1855adf34196d015636f3e7c3431134f271567f8
+- Handoff package generated from: 1855adf34196d015636f3e7c3431134f271567f8
 
 ## Goal
 
@@ -40,7 +42,8 @@ See `Docs/engineering/demo_freeze_audit.md`.
 - Unity Editor compile: not verified
 - static Unity project check: OK
 - asmdef boundary check: OK
-- handoff package path check: pending final package generation
+- handoff package path check: OK
+- handoff package: `Warzone_M15_source_20260711_043321.zip`
 
 ## Known issues
 

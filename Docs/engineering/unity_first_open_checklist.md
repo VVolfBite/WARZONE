@@ -51,6 +51,8 @@ Expected scene path:
 
 - `Assets/Scenes/Sandbox/Sandbox_M8_BuildingTactics.unity`
 
+If the first import is clean, create the M8 scene first, then the M7 scene. Do not start with the heaviest environment scene.
+
 ## 6. Manual Smoke Check
 
 1. Open `Assets/Scenes/Sandbox/Sandbox_M8_BuildingTactics.unity`
@@ -60,7 +62,16 @@ Expected scene path:
 5. Verify `G/H/J` building commands
 6. Verify the debug panel shows building status, mission status, and recent events
 
-## 7. Error Capture Format
+## 7. Recommended Play Order
+
+1. simple M1 or M2 compatibility entry
+2. M5 integrated sandbox
+3. M7 environment sandbox
+4. M8 building sandbox
+
+Do not start with the most complex scene path if the import has not yet been validated.
+
+## 8. Error Capture Format
 
 When reporting back, include:
 
@@ -71,7 +82,7 @@ When reporting back, include:
 - full stack trace if available
 - whether the error happens on import, scene open, or Play Mode
 
-## 8. Useful Logs To Return
+## 9. Useful Logs To Return
 
 - Unity Console error text
 - `Editor.log` excerpt around the first compile failure
@@ -82,7 +93,7 @@ powershell -ExecutionPolicy Bypass -File scripts/check_unity_project_static.ps1
 powershell -ExecutionPolicy Bypass -File scripts/check_unity_editmode.ps1
 ```
 
-## 9. If Reporting To A Remote LLM
+## 10. If Reporting To A Remote LLM
 
 Return:
 
@@ -96,7 +107,7 @@ Return:
   - scene/bootstrap error
   - Play Mode runtime error
 
-## 10. M15 Freeze Context
+## 11. M15 Freeze Context
 
 After M15, the first Unity open should be treated as a compile-risk check, not a feature review.
 
@@ -110,3 +121,15 @@ Verify in this order:
 6. run the static project checks before trying scenes
 
 If any of those fail, capture the first error and stop. Do not continue into gameplay verification until the assembly graph is healthy.
+
+## 12. M16 Import Focus
+
+After M16, the checklist should be treated as an import recovery plan.
+
+Required first-pass checks:
+
+1. capture `UnityVersion`
+2. confirm `Packages/manifest.json`
+3. run static project checks
+4. verify asmdef graph
+5. only then inspect sandbox scenes or launcher wiring

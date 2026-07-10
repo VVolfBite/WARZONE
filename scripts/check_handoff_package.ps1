@@ -8,9 +8,9 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 if ([string]::IsNullOrWhiteSpace($PackagePath)) {
-    $latest = Get-ChildItem -Path $root -Filter "Warzone_M15_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    $latest = Get-ChildItem -Path $root -Filter "Warzone_M16_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($null -eq $latest) {
-        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no M15 handoff package found)"
+        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no M16 handoff package found)"
         exit 0
     }
 
@@ -72,6 +72,19 @@ try {
 
     if (-not $manifestFound) {
         Write-Output "HANDOFF_PACKAGE_CHECK: FAILED (missing package_manifest.txt)"
+        exit 1
+    }
+
+    $summaryFound = $false
+    foreach ($entry in $entries) {
+        if ($entry.FullName -eq "Docs/engineering/M16_validation_summary_2026-07-11.md") {
+            $summaryFound = $true
+            break
+        }
+    }
+
+    if (-not $summaryFound) {
+        Write-Output "HANDOFF_PACKAGE_CHECK: FAILED (missing M16 validation summary)"
         exit 1
     }
 }

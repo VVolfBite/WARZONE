@@ -492,3 +492,21 @@ Current guidance:
 - the next step after M15 is Unity first-import / compile recovery, not another gameplay expansion
 
 This milestone keeps the pure-code foundation stable before the first real Unity validation pass.
+
+## 26. M16 Design Freeze Audit
+
+M16 does not add gameplay. It verifies that the code-only foundation still matches the intended design before Unity first import / compile recovery.
+
+Current decision:
+
+- the project is frozen at the pure-code layer
+- the next phase must be Unity import / compile recovery
+- no M17 gameplay expansion should be added before Unity validation
+
+The audit focus is on:
+
+- boundary correctness
+- duplicate truth risks
+- id mapping clarity
+- legacy containment
+- Unity import risks

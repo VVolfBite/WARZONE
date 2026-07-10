@@ -49,3 +49,6 @@ These remain legacy and are not being extended.
 - verify Sandbox menus and launcher wiring
 - only after that consider a formal demo scene
 
+## M16 note
+
+This audit remains valid after M16; the project should stay frozen at the pure-code layer until Unity validation is completed.

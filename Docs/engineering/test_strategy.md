@@ -160,3 +160,10 @@ Every milestone report must explicitly distinguish:
 - weapon launch validation should reject lost, unavailable, and damaged instances before fallback logic is considered
 - asmdef boundary checks should run alongside text-boundary checks before any Unity import attempt
 - the freeze point is meant to stabilize the code-only stack before Unity compile recovery, not to add new systems
+
+## M16 Freeze Notes
+
+- keep domain compile and test source compile checks green before Unity validation
+- treat Unity Editor compile as the next gating milestone, not as a background task
+- `check_warzone_all.ps1` should report text boundary, asmdef boundary, compile, Unity project static check, Unity EditMode, and handoff package path status
+- do not add new gameplay tests in M16; use the milestone for risk audit and documentation only

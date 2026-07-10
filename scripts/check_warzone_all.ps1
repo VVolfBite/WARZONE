@@ -70,6 +70,13 @@ if (-not (Invoke-CheckedScript -Label "HANDOFF_PACKAGE_CHECK" -Path (Join-Path $
     $allPassed = $false
 }
 
+$latestPackage = Get-ChildItem -Path $root -Filter "Warzone_M16_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+if ($null -ne $latestPackage) {
+    Write-Output "HANDOFF_PACKAGE_PATH: OK - $($latestPackage.FullName)"
+} else {
+    Write-Output "HANDOFF_PACKAGE_PATH: SKIPPED - no M16 package found"
+}
+
 if ($allPassed) {
     Write-Output "WARZONE_VALIDATION: OK"
 } else {
