@@ -1,7 +1,11 @@
+using System.Collections.Generic;
+
 namespace Warzone.Content.Definitions
 {
     public sealed class SiteDefinition
     {
+        private readonly List<string> _tags = new List<string>();
+
         public SiteDefinition(
             string id,
             string displayName,
@@ -10,6 +14,35 @@ namespace Warzone.Content.Definitions
             int baseThreatLevel = 0,
             string lootRemainingHint = null,
             string requiredMissionType = null)
+            : this(
+                id,
+                displayName,
+                siteType,
+                isEnterable,
+                baseThreatLevel,
+                lootRemainingHint,
+                requiredMissionType,
+                5,
+                0,
+                0,
+                true,
+                null)
+        {
+        }
+
+        public SiteDefinition(
+            string id,
+            string displayName,
+            SiteType siteType,
+            bool isEnterable,
+            int baseThreatLevel,
+            string lootRemainingHint,
+            string requiredMissionType,
+            int maxThreatLevel,
+            int initialLootRemaining,
+            int resourceRichness,
+            bool canBecomeOutpost,
+            IReadOnlyList<string> tags)
         {
             Id = id;
             DisplayName = displayName;
@@ -18,6 +51,11 @@ namespace Warzone.Content.Definitions
             BaseThreatLevel = baseThreatLevel;
             LootRemainingHint = lootRemainingHint;
             RequiredMissionType = requiredMissionType;
+            MaxThreatLevel = maxThreatLevel < 0 ? 0 : maxThreatLevel;
+            InitialLootRemaining = initialLootRemaining < 0 ? 0 : initialLootRemaining;
+            ResourceRichness = resourceRichness < 0 ? 0 : resourceRichness;
+            CanBecomeOutpost = canBecomeOutpost;
+            SyncTags(tags);
         }
 
         public string Id { get; private set; }
@@ -27,5 +65,32 @@ namespace Warzone.Content.Definitions
         public int BaseThreatLevel { get; private set; }
         public string LootRemainingHint { get; private set; }
         public string RequiredMissionType { get; private set; }
+        public int MaxThreatLevel { get; private set; }
+        public int InitialLootRemaining { get; private set; }
+        public int ResourceRichness { get; private set; }
+        public bool CanBecomeOutpost { get; private set; }
+
+        public IReadOnlyList<string> Tags
+        {
+            get { return _tags; }
+        }
+
+        private void SyncTags(IReadOnlyList<string> tags)
+        {
+            _tags.Clear();
+            if (tags == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < tags.Count; i++)
+            {
+                string tag = tags[i];
+                if (!string.IsNullOrEmpty(tag) && !_tags.Contains(tag))
+                {
+                    _tags.Add(tag);
+                }
+            }
+        }
     }
 }

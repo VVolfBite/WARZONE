@@ -104,18 +104,29 @@ namespace Warzone.Application
                 squadLoadouts.Add(new MissionSquadLoadout(squadId, squadState.DisplayName, squadMembers));
             }
 
+            CampaignSiteState campaignSiteState;
+            campaignState.TryGetSite(siteId, out campaignSiteState);
+
             MissionSiteContext siteContext = new MissionSiteContext(
                 siteDefinition.Id,
                 siteDefinition.DisplayName,
                 siteDefinition.SiteType,
                 siteDefinition.IsEnterable,
-                siteDefinition.BaseThreatLevel,
-                false,
-                siteDefinition.LootRemainingHint,
+                campaignSiteState != null ? campaignSiteState.ThreatLevel : siteDefinition.BaseThreatLevel,
+                campaignSiteState != null ? campaignSiteState.SearchCompleted : false,
+                campaignSiteState != null ? campaignSiteState.LootRemainingHint : siteDefinition.LootRemainingHint,
+                campaignSiteState != null ? campaignSiteState.IsCleared : false,
+                campaignSiteState != null ? campaignSiteState.IsExhausted : false,
+                campaignSiteState != null ? campaignSiteState.IsOccupied : false,
+                campaignSiteState != null ? campaignSiteState.LootRemaining : siteDefinition.InitialLootRemaining,
+                campaignSiteState != null ? campaignSiteState.ResourceRichness : siteDefinition.ResourceRichness,
+                campaignSiteState != null ? campaignSiteState.VisitCount : 0,
                 new Vec2(0f, 0f),
                 new Vec2(18f, 0f),
                 new Vec2(9f, 1.5f),
-                0f);
+                campaignSiteState != null ? campaignSiteState.LastVisitedTime : 0f,
+                campaignSiteState != null ? campaignSiteState.OutpostId : null,
+                campaignSiteState != null ? campaignSiteState.Tags : siteDefinition.Tags);
 
             launchPlan = new MissionLaunchPlan(
                 missionDefinition.Id,

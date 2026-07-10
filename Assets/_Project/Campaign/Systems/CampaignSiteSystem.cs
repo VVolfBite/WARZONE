@@ -22,6 +22,11 @@ namespace Warzone.Campaign
             }
         }
 
+        public void MarkSearched(CampaignState campaignState, string siteId)
+        {
+            MarkSearchCompleted(campaignState, siteId);
+        }
+
         public void MarkCleared(CampaignState campaignState, string siteId)
         {
             CampaignSiteState site;
@@ -40,13 +45,62 @@ namespace Warzone.Campaign
             }
         }
 
-        public void MarkVisited(CampaignState campaignState, string siteId, float time)
+        public void IncreaseThreat(CampaignState campaignState, string siteId, int amount)
         {
             CampaignSiteState site;
             if (TryGetSite(campaignState, siteId, out site))
             {
-                site.UpdateLastVisitedTime(time);
-                site.MarkDiscovered();
+                site.IncreaseThreat(amount);
+            }
+        }
+
+        public void ReduceThreat(CampaignState campaignState, string siteId, int amount)
+        {
+            CampaignSiteState site;
+            if (TryGetSite(campaignState, siteId, out site))
+            {
+                site.ReduceThreat(amount);
+            }
+        }
+
+        public void ReduceLoot(CampaignState campaignState, string siteId, int amount)
+        {
+            CampaignSiteState site;
+            if (TryGetSite(campaignState, siteId, out site))
+            {
+                site.ReduceLoot(amount);
+            }
+        }
+
+        public void SetOccupied(CampaignState campaignState, string siteId, bool isOccupied)
+        {
+            CampaignSiteState site;
+            if (TryGetSite(campaignState, siteId, out site))
+            {
+                site.SetOccupied(isOccupied);
+            }
+        }
+
+        public void MarkExhausted(CampaignState campaignState, string siteId)
+        {
+            CampaignSiteState site;
+            if (TryGetSite(campaignState, siteId, out site))
+            {
+                site.MarkExhausted();
+            }
+        }
+
+        public void MarkVisited(CampaignState campaignState, string siteId, float time)
+        {
+            MarkVisited(campaignState, siteId, time, 1);
+        }
+
+        public void MarkVisited(CampaignState campaignState, string siteId, float time, int visitCountDelta)
+        {
+            CampaignSiteState site;
+            if (TryGetSite(campaignState, siteId, out site))
+            {
+                site.MarkVisited(time, visitCountDelta);
             }
         }
     }

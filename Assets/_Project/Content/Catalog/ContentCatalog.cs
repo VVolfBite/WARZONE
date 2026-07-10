@@ -15,7 +15,8 @@ namespace Warzone.Content
             IReadOnlyDictionary<string, VisionEquipmentDefinition> visionEquipment = null,
             IReadOnlyDictionary<string, SiteDefinition> sites = null,
             IReadOnlyDictionary<string, ItemDefinition> items = null,
-            IReadOnlyDictionary<string, ResourcePackageDefinition> resourcePackages = null)
+            IReadOnlyDictionary<string, ResourcePackageDefinition> resourcePackages = null,
+            IReadOnlyDictionary<string, OutpostDefinition> outposts = null)
         {
             Units = units ?? new Dictionary<string, UnitDefinition>();
             Missions = missions ?? new Dictionary<string, MissionDefinition>();
@@ -27,6 +28,7 @@ namespace Warzone.Content
             Sites = sites ?? new Dictionary<string, SiteDefinition>();
             Items = items ?? new Dictionary<string, ItemDefinition>();
             ResourcePackages = resourcePackages ?? new Dictionary<string, ResourcePackageDefinition>();
+            Outposts = outposts ?? new Dictionary<string, OutpostDefinition>();
         }
 
         public IReadOnlyDictionary<string, UnitDefinition> Units { get; private set; }
@@ -37,6 +39,7 @@ namespace Warzone.Content
         public IReadOnlyDictionary<string, EnvironmentalZoneDefinition> EnvironmentalZones { get; private set; }
         public IReadOnlyDictionary<string, VisionEquipmentDefinition> VisionEquipment { get; private set; }
         public IReadOnlyDictionary<string, SiteDefinition> Sites { get; private set; }
+        public IReadOnlyDictionary<string, OutpostDefinition> Outposts { get; private set; }
         public IReadOnlyDictionary<string, ItemDefinition> Items { get; private set; }
         public IReadOnlyDictionary<string, ResourcePackageDefinition> ResourcePackages { get; private set; }
 
@@ -68,6 +71,11 @@ namespace Warzone.Content
         public bool TryGetSite(string siteId, out SiteDefinition definition)
         {
             return Sites.TryGetValue(siteId, out definition);
+        }
+
+        public bool TryGetOutpostDefinition(string outpostId, out OutpostDefinition definition)
+        {
+            return Outposts.TryGetValue(outpostId, out definition);
         }
 
         public bool TryGetItem(string itemId, out ItemDefinition definition)

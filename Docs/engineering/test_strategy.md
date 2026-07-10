@@ -126,3 +126,12 @@ Every milestone report must explicitly distinguish:
 - `Application.Tests` may reference Combat and Campaign because it validates the bridge
 - `Sandbox.Tests` is separate and is the only place where Sandbox-facing Unity code should be tested
 - validation output should distinguish domain compile, test source compile, actual test execution, and Unity Editor compile
+
+## M11 Test Boundary Notes
+
+- `CampaignWorldProgressionTests` stays pure Campaign and covers site state, world tick, and outpost rules
+- `Application` tests cover mission planning, reward resolution, and settlement bridging
+- `MissionLaunchPlanFactory` should remain side-effect free
+- `MissionSettlementService` should translate combat results into campaign settlements, not mutate world progression rules directly
+- `CampaignSiteState` repeat-entry and decay rules should be validated without Unity
+- validation output should continue to separate domain compile, test source compile, actual test execution, Unity Editor compile, and sandbox manual run status

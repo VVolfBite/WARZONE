@@ -367,3 +367,31 @@ M10 keeps the boundary strict:
 - base maintenance is a long-term resource drain, not a per-tick hard fail
 
 This is still a technical loop. It is not full base construction, merchants, formal save/load, or a complete economy model.
+
+## 21. M11 Campaign World / Outpost Loop
+
+M11 extends the Campaign layer from settlement into repeatable world progression.
+
+Current intended flow:
+
+1. `CampaignState`
+2. `CampaignTimeSystem`
+3. `CampaignWorldTickSystem`
+4. `CampaignSiteSystem`
+5. `CampaignOutpostSystem`
+6. `MissionLaunchPlanFactory`
+7. `BattleStateFromMissionFactory`
+8. `BattleService`
+9. `BattleResult`
+10. `MissionSettlementService`
+11. `CampaignSettlementSystem`
+12. `CampaignState`
+
+M11 adds:
+
+- repeatable site state with discovery, search, exhaustion, occupation, visit count, loot remaining, and threat drift
+- outposts as lightweight local campaign nodes, not full bases
+- site resource decay over time and on successful search
+- launch-plan context that reads the current site state instead of only the static site definition
+
+This remains a bounded campaign loop. It does not add merchants, formal save/load, or a full world-map simulation.

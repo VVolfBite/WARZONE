@@ -1,4 +1,5 @@
 using Warzone.Campaign;
+using Warzone.Content.Definitions;
 
 namespace Warzone.Application
 {
@@ -31,8 +32,65 @@ namespace Warzone.Application
             campaignState.ResourceLedger.Add("medicine", 8);
             campaignState.ResourceLedger.Add("ammo", 18);
             campaignState.ResourceLedger.Add("fuel", 6);
+            campaignState.ResourceLedger.Add("building_material", 4);
 
-            campaignState.AddSite(new CampaignSiteState("site.alpha", "Alpha Site", true, false, 2, false, "generic loot", 0f));
+            campaignState.AddSite(new CampaignSiteState(
+                "site.alpha",
+                "Alpha Medical Clinic",
+                SiteType.Facility,
+                true,
+                true,
+                1,
+                true,
+                "medicine cache",
+                0f,
+                4,
+                6,
+                4,
+                false,
+                false,
+                true,
+                null,
+                new[] { "medical", "clinic" }));
+
+            campaignState.AddSite(new CampaignSiteState(
+                "site.beta",
+                "Beta Supply Depot",
+                SiteType.Compound,
+                true,
+                false,
+                3,
+                false,
+                "ammo cache",
+                0f,
+                5,
+                4,
+                6,
+                false,
+                true,
+                false,
+                null,
+                new[] { "supply", "depot" }));
+
+            campaignState.AddSite(new CampaignSiteState(
+                "site.gamma",
+                "Gamma Residence",
+                SiteType.UrbanBlock,
+                true,
+                false,
+                2,
+                false,
+                "generic loot",
+                0f,
+                3,
+                3,
+                3,
+                false,
+                false,
+                true,
+                null,
+                new[] { "residential" }));
+
             campaignState.SetMainBase(_baseSystem.CreateStartingBase("base.main", "Main Base", "site.alpha"));
 
             return campaignState;

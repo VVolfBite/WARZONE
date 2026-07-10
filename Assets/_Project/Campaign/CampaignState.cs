@@ -5,6 +5,7 @@ namespace Warzone.Campaign
     public sealed class CampaignState
     {
         private readonly Dictionary<string, CampaignSiteState> _sitesById = new Dictionary<string, CampaignSiteState>();
+        private readonly Dictionary<string, CampaignOutpostState> _outpostsById = new Dictionary<string, CampaignOutpostState>();
         private readonly List<CampaignMissionHistoryRecord> _missionHistory = new List<CampaignMissionHistoryRecord>();
 
         public CampaignState()
@@ -32,6 +33,11 @@ namespace Warzone.Campaign
         public IReadOnlyDictionary<string, CampaignSiteState> SitesById
         {
             get { return _sitesById; }
+        }
+
+        public IReadOnlyDictionary<string, CampaignOutpostState> OutpostsById
+        {
+            get { return _outpostsById; }
         }
 
         public IReadOnlyList<CampaignMissionHistoryRecord> MissionHistory
@@ -75,9 +81,24 @@ namespace Warzone.Campaign
             _sitesById[site.SiteId] = site;
         }
 
+        public void AddOutpost(CampaignOutpostState outpost)
+        {
+            if (outpost == null || string.IsNullOrEmpty(outpost.OutpostId))
+            {
+                return;
+            }
+
+            _outpostsById[outpost.OutpostId] = outpost;
+        }
+
         public bool TryGetSite(string siteId, out CampaignSiteState site)
         {
             return _sitesById.TryGetValue(siteId, out site);
+        }
+
+        public bool TryGetOutpost(string outpostId, out CampaignOutpostState outpost)
+        {
+            return _outpostsById.TryGetValue(outpostId, out outpost);
         }
 
         public void AddMissionHistory(CampaignMissionHistoryRecord record)

@@ -166,20 +166,54 @@ namespace Warzone.Campaign
                     continue;
                 }
 
+                _siteSystem.MarkVisited(campaignState, siteSettlement.SiteId, siteSettlement.LastVisitedTime, siteSettlement.VisitCountDelta);
+
                 if (siteSettlement.SearchCompleted)
                 {
-                    _siteSystem.MarkSearchCompleted(campaignState, siteSettlement.SiteId);
+                    _siteSystem.MarkSearched(campaignState, siteSettlement.SiteId);
                 }
 
-                _siteSystem.MarkVisited(campaignState, siteSettlement.SiteId, siteSettlement.LastVisitedTime);
+                if (siteSettlement.LootRemainingDelta > 0)
+                {
+                    _siteSystem.ReduceLoot(campaignState, siteSettlement.SiteId, siteSettlement.LootRemainingDelta);
+                }
+                else if (siteSettlement.ResourceRichnessDelta > 0)
+                {
+                    CampaignSiteState site;
+                    if (_siteSystem.TryGetSite(campaignState, siteSettlement.SiteId, out site))
+                    {
+                        site.SetResourceRichness(site.ResourceRichness - siteSettlement.ResourceRichnessDelta);
+                        if (site.ResourceRichness <= 0)
+                        {
+                            site.MarkExhausted();
+                        }
+                    }
+                }
 
                 if (siteSettlement.IsCleared)
                 {
                     _siteSystem.MarkCleared(campaignState, siteSettlement.SiteId);
-                    continue;
+                }
+                else
+                {
+                    _siteSystem.UpdateThreat(campaignState, siteSettlement.SiteId, siteSettlement.ThreatLevel);
                 }
 
-                _siteSystem.UpdateThreat(campaignState, siteSettlement.SiteId, siteSettlement.ThreatLevel);
+                _siteSystem.SetOccupied(campaignState, siteSettlement.SiteId, siteSettlement.IsOccupied);
+
+                if (siteSettlement.IsExhausted)
+                {
+                    _siteSystem.MarkExhausted(campaignState, siteSettlement.SiteId);
+                }
+
+                if (!string.IsNullOrEmpty(siteSettlement.OutpostId))
+                {
+                    CampaignSiteState site;
+                    if (_siteSystem.TryGetSite(campaignState, siteSettlement.SiteId, out site))
+                    {
+                        site.SetOutpost(siteSettlement.OutpostId);
+                    }
+                }
             }
         }
 
