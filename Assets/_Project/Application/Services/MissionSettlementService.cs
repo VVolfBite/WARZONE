@@ -34,8 +34,11 @@ namespace Warzone.Application.Services
             List<CampaignResourceRewardSettlement> resourceRewards = _rewardResolver.ResolveResourceRewards(launchPlan, battleResult);
             List<CampaignItemRewardSettlement> itemRewards = _rewardResolver.ResolveItemRewards(launchPlan, battleResult);
             List<CampaignWeaponRewardSettlement> weaponRewards = _rewardResolver.ResolveWeaponRewards(launchPlan, battleResult);
-            List<CampaignBaseEffectSettlement> baseEffects = BuildBaseEffects();
             List<CampaignCasualtySettlement> casualties = BuildCasualties(launchPlan, battleResult);
+            List<CampaignWoundSettlement> woundSettlements = BuildWoundSettlements(campaignState, launchPlan, battleResult);
+            List<CampaignEquipmentSettlement> equipmentSettlements = BuildEquipmentSettlements(campaignState, launchPlan, battleResult);
+            List<CampaignExperienceSettlement> experienceSettlements = BuildExperienceSettlements(campaignState, launchPlan, battleResult);
+            List<CampaignBaseEffectSettlement> baseEffects = BuildBaseEffects();
 
             CampaignSiteState siteState;
             campaignState.TryGetSite(launchPlan.SiteId, out siteState);
@@ -111,6 +114,9 @@ namespace Warzone.Application.Services
                 itemRewards,
                 weaponRewards,
                 baseEffects,
+                experienceSettlements,
+                woundSettlements,
+                equipmentSettlements,
                 deadCount,
                 extractedCount);
 
@@ -161,6 +167,126 @@ namespace Warzone.Application.Services
         private static List<CampaignBaseEffectSettlement> BuildBaseEffects()
         {
             return new List<CampaignBaseEffectSettlement>();
+        }
+
+        private static List<CampaignExperienceSettlement> BuildExperienceSettlements(CampaignState campaignState, MissionLaunchPlan launchPlan, BattleResult battleResult)
+        {
+            List<CampaignExperienceSettlement> settlements = new List<CampaignExperienceSettlement>();
+            if (launchPlan == null || launchPlan.MemberLoadouts == null)
+            {
+                return settlements;
+            }
+
+            int experiencePerSurvivor = GetExperienceReward(battleResult);
+            int trainingBonus = HasCapability(campaignState, "training") ? 5 : 0;
+            IReadOnlyList<BattleEntityId> extractedMemberIds = battleResult.ExtractionResult != null ? battleResult.ExtractionResult.ExtractedMemberIds : null;
+            IReadOnlyList<BattleEntityId> deadMemberIds = battleResult.CasualtyResult != null ? battleResult.CasualtyResult.DeadMemberIds : null;
+
+            for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
+            {
+                MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
+                if (loadout == null || string.IsNullOrEmpty(loadout.CampaignMemberId))
+                {
+                    continue;
+                }
+
+                if (ContainsBattleId(deadMemberIds, loadout.BattleMemberId))
+                {
+                    continue;
+                }
+
+                if (!ContainsBattleId(extractedMemberIds, loadout.BattleMemberId))
+                {
+                    continue;
+                }
+
+                int reward = experiencePerSurvivor + trainingBonus;
+                if (reward <= 0)
+                {
+                    continue;
+                }
+
+                settlements.Add(new CampaignExperienceSettlement(loadout.CampaignMemberId, reward, 1, 0));
+            }
+
+            return settlements;
+        }
+
+        private static List<CampaignWoundSettlement> BuildWoundSettlements(CampaignState campaignState, MissionLaunchPlan launchPlan, BattleResult battleResult)
+        {
+            List<CampaignWoundSettlement> settlements = new List<CampaignWoundSettlement>();
+            if (launchPlan == null || launchPlan.MemberLoadouts == null)
+            {
+                return settlements;
+            }
+
+            bool missionSucceeded = battleResult != null && battleResult.MissionOutcome == MissionOutcome.Victory;
+            IReadOnlyList<BattleEntityId> deadMemberIds = battleResult != null && battleResult.CasualtyResult != null ? battleResult.CasualtyResult.DeadMemberIds : null;
+            IReadOnlyList<BattleEntityId> extractedMemberIds = battleResult != null && battleResult.ExtractionResult != null ? battleResult.ExtractionResult.ExtractedMemberIds : null;
+
+            for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
+            {
+                MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
+                if (loadout == null || string.IsNullOrEmpty(loadout.CampaignMemberId) || ContainsBattleId(deadMemberIds, loadout.BattleMemberId))
+                {
+                    continue;
+                }
+
+                if (ContainsBattleId(extractedMemberIds, loadout.BattleMemberId))
+                {
+                    settlements.Add(new CampaignWoundSettlement(
+                        loadout.CampaignMemberId,
+                        missionSucceeded ? WoundSeverity.Light : WoundSeverity.Moderate,
+                        missionSucceeded ? 1 : 3,
+                        launchPlan.MissionId));
+                    continue;
+                }
+
+                settlements.Add(new CampaignWoundSettlement(loadout.CampaignMemberId, WoundSeverity.Severe, 5, launchPlan.MissionId));
+            }
+
+            return settlements;
+        }
+
+        private static List<CampaignEquipmentSettlement> BuildEquipmentSettlements(CampaignState campaignState, MissionLaunchPlan launchPlan, BattleResult battleResult)
+        {
+            List<CampaignEquipmentSettlement> settlements = new List<CampaignEquipmentSettlement>();
+            if (launchPlan == null || launchPlan.MemberLoadouts == null)
+            {
+                return settlements;
+            }
+
+            bool hasWorkshop = campaignState != null && campaignState.MainBase != null && campaignState.MainBase.HasCapability("workshop");
+            IReadOnlyList<BattleEntityId> deadMemberIds = battleResult != null && battleResult.CasualtyResult != null ? battleResult.CasualtyResult.DeadMemberIds : null;
+            IReadOnlyList<BattleEntityId> extractedMemberIds = battleResult != null && battleResult.ExtractionResult != null ? battleResult.ExtractionResult.ExtractedMemberIds : null;
+
+            for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
+            {
+                MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
+                if (loadout == null || string.IsNullOrEmpty(loadout.WeaponInstanceId))
+                {
+                    continue;
+                }
+
+                bool isDead = ContainsBattleId(deadMemberIds, loadout.BattleMemberId);
+                bool isExtracted = ContainsBattleId(extractedMemberIds, loadout.BattleMemberId);
+                bool shouldReturn = !isDead && isExtracted;
+                bool shouldLose = isDead || !isExtracted;
+                bool shouldDamage = shouldReturn && !hasWorkshop;
+                float durability = shouldDamage ? 0.75f : 1f;
+
+                settlements.Add(new CampaignEquipmentSettlement(
+                    loadout.CampaignMemberId,
+                    loadout.WeaponInstanceId,
+                    loadout.WeaponDefinitionId,
+                    shouldReturn,
+                    shouldLose,
+                    shouldDamage,
+                    durability,
+                    launchPlan.MissionId));
+            }
+
+            return settlements;
         }
 
         private static bool HasCompletedObjective(IReadOnlyList<BattleObjectiveResult> objectiveResults, MissionObjectiveType objectiveType)
@@ -247,6 +373,31 @@ namespace Warzone.Application.Services
             }
 
             return false;
+        }
+
+        private static int GetExperienceReward(BattleResult battleResult)
+        {
+            if (battleResult == null)
+            {
+                return 0;
+            }
+
+            switch (battleResult.CompletionType)
+            {
+                case BattleCompletionType.Success:
+                    return 20;
+                case BattleCompletionType.Partial:
+                    return 10;
+                case BattleCompletionType.Failure:
+                    return 5;
+                default:
+                    return 10;
+            }
+        }
+
+        private static bool HasCapability(CampaignState campaignState, string capabilityId)
+        {
+            return campaignState != null && campaignState.MainBase != null && campaignState.MainBase.HasCapability(capabilityId);
         }
 
         private static CampaignCasualtySettlement FindCasualty(IReadOnlyList<CampaignCasualtySettlement> casualties, string campaignMemberId)

@@ -23,6 +23,24 @@ if ($LASTEXITCODE -eq 0) {
 
 Write-Output "UNITYENGINE_BOUNDARY: OK"
 
+$contentCombatHits = rg -n "Warzone.Combat" Assets/_Project/Content
+if ($LASTEXITCODE -eq 0) {
+    Write-Output "CONTENT_COMBAT_BOUNDARY: FAILED"
+    $contentCombatHits
+    exit 1
+}
+
+Write-Output "CONTENT_COMBAT_BOUNDARY: OK"
+
+$campaignCombatHits = rg -n "Warzone.Combat" Assets/_Project/Campaign
+if ($LASTEXITCODE -eq 0) {
+    Write-Output "CAMPAIGN_COMBAT_BOUNDARY: FAILED"
+    $campaignCombatHits
+    exit 1
+}
+
+Write-Output "CAMPAIGN_COMBAT_BOUNDARY: OK"
+
 $legacyNamespaceHits = rg -n "Warzone.Adapters|Warzone.Controls|Warzone.Presentation" Assets/_Project
 if ($LASTEXITCODE -eq 0) {
     $nonArchitectureHits = $legacyNamespaceHits | Where-Object { $_ -notmatch "Assets/_Project\\Tests\\Architecture\\AssemblyDefinitionTests.cs" }

@@ -211,6 +211,13 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void ContentSource_DoesNotReferenceCombatLayers()
+        {
+            string contentDirectory = Path.Combine("Assets", "_Project", "Content");
+            AssertDirectoryDoesNotContain(contentDirectory, "Warzone.Combat");
+        }
+
+        [Test]
         public void ApplicationSource_DoesNotReferenceRuntimeOrSandboxLayers()
         {
             string applicationDirectory = Path.Combine("Assets", "_Project", "Application");

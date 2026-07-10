@@ -8,6 +8,7 @@ namespace Warzone.Application
             string displayName,
             int squadId,
             string weaponDefinitionId,
+            string weaponInstanceId,
             int maxHealth,
             float baseMovementSpeed,
             float detectionRange,
@@ -21,6 +22,7 @@ namespace Warzone.Application
             DisplayName = displayName;
             SquadId = squadId;
             WeaponDefinitionId = weaponDefinitionId;
+            WeaponInstanceId = weaponInstanceId;
             MaxHealth = maxHealth;
             BaseMovementSpeed = baseMovementSpeed;
             DetectionRange = detectionRange;
@@ -35,6 +37,7 @@ namespace Warzone.Application
         public string DisplayName { get; private set; }
         public int SquadId { get; private set; }
         public string WeaponDefinitionId { get; private set; }
+        public string WeaponInstanceId { get; private set; }
         public int MaxHealth { get; private set; }
         public float BaseMovementSpeed { get; private set; }
         public float DetectionRange { get; private set; }

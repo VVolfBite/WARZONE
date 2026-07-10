@@ -121,11 +121,11 @@ namespace Warzone.Content
                 new Dictionary<string, int> { { "food", 1 } },
                 new[] { OutpostCapability.SafeExtraction, OutpostCapability.Watch }));
 
-            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("smoke_grenade_zone", "Smoke Grenade Zone", Warzone.Combat.EnvironmentalZoneType.Smoke, 2.8f, 0.8f, 18f, 0.55f, 0f, 0f));
-            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("fire_patch", "Fire Patch", Warzone.Combat.EnvironmentalZoneType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f));
-            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("toxic_spore_cloud", "Toxic Spore Cloud", Warzone.Combat.EnvironmentalZoneType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f));
-            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("light_flare", "Light Flare", Warzone.Combat.EnvironmentalZoneType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f));
-            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("darkness_pool", "Darkness Pool", Warzone.Combat.EnvironmentalZoneType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f));
+            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("smoke_grenade_zone", "Smoke Grenade Zone", EnvironmentalZoneDefinitionType.Smoke, 2.8f, 0.8f, 18f, 0.55f, 0f, 0f));
+            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("fire_patch", "Fire Patch", EnvironmentalZoneDefinitionType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f));
+            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("toxic_spore_cloud", "Toxic Spore Cloud", EnvironmentalZoneDefinitionType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f));
+            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("light_flare", "Light Flare", EnvironmentalZoneDefinitionType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f));
+            catalog.RegisterEnvironmentalZone(new EnvironmentalZoneDefinition("darkness_pool", "Darkness Pool", EnvironmentalZoneDefinitionType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f));
 
             catalog.RegisterVisionEquipment(new VisionEquipmentDefinition("basic_night_vision", "Basic Night Vision", 1, 0));
             catalog.RegisterVisionEquipment(new VisionEquipmentDefinition("flashlight", "Flashlight", 0, 1));

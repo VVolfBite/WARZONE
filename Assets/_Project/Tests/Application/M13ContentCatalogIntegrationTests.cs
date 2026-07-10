@@ -19,6 +19,11 @@ namespace Warzone.Tests.Application
             CampaignMemberState memberState;
             Assert.That(campaignState.Roster.TryGetMember("campaign.member.1", out memberState), Is.True);
             Assert.That(memberState.CarriedWeaponId, Is.EqualTo("rifle"));
+            Assert.That(memberState.CarriedWeaponInstanceId, Is.EqualTo("weapon.alpha.rifle.1"));
+
+            CampaignWeaponInstanceState weaponInstance;
+            Assert.That(campaignState.Inventory.TryGetWeaponInstance("weapon.alpha.rifle.1", out weaponInstance), Is.True);
+            Assert.That(weaponInstance.AssignedMemberId, Is.EqualTo("campaign.member.1"));
 
             CampaignSiteState siteState;
             Assert.That(campaignState.TryGetSite("medical_clinic", out siteState), Is.True);

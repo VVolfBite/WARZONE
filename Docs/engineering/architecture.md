@@ -463,3 +463,18 @@ M12 keeps the boundary strict:
 - load restores Campaign state by reconstruction, not by mutating Combat data
 
 This is a code-only persistence loop. It is not a Unity file IO feature, not cloud save, and not a version migration framework.
+
+## 24. M14 Progression / Recovery / Equipment Boundary
+
+M14 keeps the content boundary clean and extends the campaign loop with long-term post-battle state.
+
+Current direction:
+
+- `Content/Definitions/Environment` owns static environment zone types
+- `Application` maps content zone types to combat runtime zone types
+- `CampaignMemberState` tracks progression, wounds, and recovery
+- `CampaignWeaponInstanceState` tracks deployment, loss, and damage
+- `MissionSettlementService` translates battle results into campaign settlements
+- `CampaignSettlementSystem` applies progression, recovery, equipment, resources, sites, squads, and history in a stable order
+
+M14 continues the rule that `Content` does not reference `Combat`.

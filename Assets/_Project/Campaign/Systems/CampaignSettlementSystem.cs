@@ -7,7 +7,16 @@ namespace Warzone.Campaign
         private readonly CampaignRosterSystem _rosterSystem = new CampaignRosterSystem();
         private readonly CampaignInventorySystem _inventorySystem = new CampaignInventorySystem();
         private readonly CampaignSiteSystem _siteSystem = new CampaignSiteSystem();
-        private readonly CampaignBaseSystem _baseSystem = new CampaignBaseSystem();
+        private readonly CampaignProgressionSystem _progressionSystem = new CampaignProgressionSystem();
+        private readonly CampaignBaseSystem _baseSystem;
+        private readonly CampaignRecoverySystem _recoverySystem;
+        private readonly CampaignEquipmentSettlementSystem _equipmentSettlementSystem = new CampaignEquipmentSettlementSystem();
+
+        public CampaignSettlementSystem()
+        {
+            _baseSystem = new CampaignBaseSystem();
+            _recoverySystem = new CampaignRecoverySystem(_baseSystem);
+        }
 
         public void Apply(CampaignState campaignState, CampaignSettlement settlement)
         {
@@ -17,6 +26,9 @@ namespace Warzone.Campaign
             }
 
             ApplyCasualties(campaignState, settlement.Casualties);
+            ApplyWounds(campaignState, settlement.WoundSettlements);
+            ApplyEquipment(campaignState, settlement.EquipmentSettlements);
+            ApplyProgression(campaignState, settlement.ExperienceSettlements);
             ApplyRewards(campaignState, settlement);
             ApplySites(campaignState, settlement.SiteSettlements);
             ApplySquads(campaignState, settlement.SquadSettlements);
@@ -26,6 +38,41 @@ namespace Warzone.Campaign
             {
                 campaignState.AddMissionHistory(settlement.HistoryRecord);
             }
+        }
+
+        private void ApplyWounds(CampaignState campaignState, IReadOnlyList<CampaignWoundSettlement> woundSettlements)
+        {
+            if (woundSettlements == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < woundSettlements.Count; i++)
+            {
+                CampaignWoundSettlement woundSettlement = woundSettlements[i];
+                if (woundSettlement == null || string.IsNullOrEmpty(woundSettlement.CampaignMemberId))
+                {
+                    continue;
+                }
+
+                CampaignMemberState member;
+                if (!campaignState.Roster.TryGetMember(woundSettlement.CampaignMemberId, out member))
+                {
+                    continue;
+                }
+
+                _recoverySystem.ApplyWound(campaignState, member, woundSettlement.WoundSeverity, woundSettlement.RecoveryDaysRemaining, woundSettlement.MissionId);
+            }
+        }
+
+        private void ApplyEquipment(CampaignState campaignState, IReadOnlyList<CampaignEquipmentSettlement> equipmentSettlements)
+        {
+            _equipmentSettlementSystem.ApplyEquipmentSettlement(campaignState, equipmentSettlements);
+        }
+
+        private void ApplyProgression(CampaignState campaignState, IReadOnlyList<CampaignExperienceSettlement> experienceSettlements)
+        {
+            _progressionSystem.ApplySettlements(campaignState, experienceSettlements);
         }
 
         private void ApplyCasualties(CampaignState campaignState, IReadOnlyList<CampaignCasualtySettlement> casualties)

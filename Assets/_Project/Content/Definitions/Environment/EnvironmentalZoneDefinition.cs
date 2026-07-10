@@ -5,7 +5,7 @@ namespace Warzone.Content.Definitions
         public EnvironmentalZoneDefinition(
             string id,
             string displayName,
-            Warzone.Combat.EnvironmentalZoneType zoneType,
+            EnvironmentalZoneDefinitionType zoneType,
             float defaultRadius,
             float defaultIntensity,
             float defaultDurationSeconds,
@@ -26,7 +26,7 @@ namespace Warzone.Content.Definitions
 
         public string Id { get; private set; }
         public string DisplayName { get; private set; }
-        public Warzone.Combat.EnvironmentalZoneType ZoneType { get; private set; }
+        public EnvironmentalZoneDefinitionType ZoneType { get; private set; }
         public float DefaultRadius { get; private set; }
         public float DefaultIntensity { get; private set; }
         public float DefaultDurationSeconds { get; private set; }
@@ -35,4 +35,3 @@ namespace Warzone.Content.Definitions
         public float PressurePerSecond { get; private set; }
     }
 }
-

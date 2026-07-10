@@ -99,3 +99,13 @@ M12 defines what survives a save/load roundtrip.
 - current mission metadata when one is active
 
 Combat battle state remains ephemeral and is not part of the campaign save format.
+## M14 long-term aftermath
+
+M14 adds the first pass of battle aftermath into the campaign economy:
+
+- survivors gain experience
+- wounded members recover over time
+- weapons can return damaged, remain lost, or be repaired later
+- infirmary, workshop, and training capabilities nudge the recovery loop
+
+This is still a minimal model. It does not add full equipment management or a full base-building tree.

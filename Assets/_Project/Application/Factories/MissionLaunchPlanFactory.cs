@@ -91,13 +91,19 @@ namespace Warzone.Application
                         return false;
                     }
 
-                    string weaponId = string.IsNullOrEmpty(memberState.CarriedWeaponId) ? defaultWeaponId : memberState.CarriedWeaponId;
+                    WeaponSelection weaponSelection;
+                    if (!TryResolveWeaponSelection(campaignState, memberState, defaultWeaponId, out weaponSelection, out reason))
+                    {
+                        return false;
+                    }
+
                     MissionMemberLoadout loadout = new MissionMemberLoadout(
                         memberState.MemberId,
                         nextBattleMemberId++,
                         memberState.DisplayName,
                         squadId,
-                        weaponId,
+                        weaponSelection.WeaponDefinitionId,
+                        weaponSelection.WeaponInstanceId,
                         memberState.IsAlive ? 100 : 1,
                         4f,
                         12f,
@@ -185,6 +191,87 @@ namespace Warzone.Application
             }
 
             return siteDefinition != null ? siteDefinition.SiteType.ToString().ToLowerInvariant() : "generic_loot";
+        }
+
+        private bool TryResolveWeaponSelection(
+            CampaignState campaignState,
+            CampaignMemberState memberState,
+            string defaultWeaponId,
+            out WeaponSelection selection,
+            out string reason)
+        {
+            selection = null;
+            reason = null;
+
+            if (campaignState == null || memberState == null)
+            {
+                reason = "Missing member state.";
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(memberState.CarriedWeaponInstanceId))
+            {
+                CampaignWeaponInstanceState weaponInstance;
+                if (!campaignState.Inventory.TryGetWeaponInstance(memberState.CarriedWeaponInstanceId, out weaponInstance))
+                {
+                    reason = "Assigned weapon instance not found.";
+                    return false;
+                }
+
+                if (weaponInstance.IsLost || !weaponInstance.IsAvailable)
+                {
+                    reason = "Assigned weapon instance is not available.";
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(weaponInstance.DefinitionId))
+                {
+                    reason = "Assigned weapon instance is missing definition.";
+                    return false;
+                }
+
+                selection = new WeaponSelection(weaponInstance.DefinitionId, weaponInstance.InstanceId);
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(memberState.CarriedWeaponId))
+            {
+                WeaponDefinition carriedWeaponDefinition;
+                if (_contentCatalog.TryGetWeapon(memberState.CarriedWeaponId, out carriedWeaponDefinition))
+                {
+                    selection = new WeaponSelection(carriedWeaponDefinition.Id, null);
+                    return true;
+                }
+            }
+
+            CampaignWeaponInstanceState ownedWeaponInstance;
+            if (campaignState.Inventory.TryGetWeaponInstanceForMember(memberState.MemberId, out ownedWeaponInstance))
+            {
+                selection = new WeaponSelection(ownedWeaponInstance.DefinitionId, ownedWeaponInstance.InstanceId);
+                return true;
+            }
+
+            WeaponDefinition defaultWeaponDefinition;
+            if (_contentCatalog.TryGetWeapon(defaultWeaponId, out defaultWeaponDefinition))
+            {
+                selection = new WeaponSelection(defaultWeaponDefinition.Id, null);
+                return true;
+            }
+
+            reason = "No available weapon definition.";
+            return false;
+        }
+
+        private sealed class WeaponSelection
+        {
+            public WeaponSelection(string weaponDefinitionId, string weaponInstanceId)
+            {
+                WeaponDefinitionId = weaponDefinitionId;
+                WeaponInstanceId = weaponInstanceId;
+            }
+
+            public string WeaponDefinitionId { get; private set; }
+            public string WeaponInstanceId { get; private set; }
         }
     }
 }

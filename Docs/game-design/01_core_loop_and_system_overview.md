@@ -104,3 +104,13 @@ M12 adds a code-only persistence step to the long-term loop.
 6. The campaign can continue through mission preparation, settlement, world ticks, and outpost updates.
 
 This is not combat save/load. It is long-term state persistence only.
+## M14 post-battle progression
+
+After a mission, the long-term loop also updates:
+
+- member experience and level
+- wounds and recovery time
+- weapon loss, return, and damage
+- base capability modifiers such as infirmary and workshop
+
+These are Campaign-state changes, not Combat-state changes.

@@ -52,7 +52,14 @@ namespace Warzone.Application
             CampaignSquadState squad = new CampaignSquadState(1, "Alpha Squad", new[] { member1.MemberId, member2.MemberId, member3.MemberId, member4.MemberId });
             campaignState.AddSquad(squad);
 
-            campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState("weapon.alpha.rifle", rifleDefinition.Id, member1.MemberId, true));
+            campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState("weapon.alpha.rifle.1", rifleDefinition.Id, member1.MemberId, true));
+            campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState("weapon.alpha.rifle.2", rifleDefinition.Id, member2.MemberId, true));
+            campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState("weapon.alpha.rifle.3", rifleDefinition.Id, member3.MemberId, true));
+            campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState("weapon.alpha.rifle.4", rifleDefinition.Id, member4.MemberId, true));
+            member1.SetCarriedWeaponInstanceId("weapon.alpha.rifle.1");
+            member2.SetCarriedWeaponInstanceId("weapon.alpha.rifle.2");
+            member3.SetCarriedWeaponInstanceId("weapon.alpha.rifle.3");
+            member4.SetCarriedWeaponInstanceId("weapon.alpha.rifle.4");
             campaignState.Inventory.AddItemStack(new CampaignItemStackState("medical_supplies", "Medical Supplies", 2));
             campaignState.Inventory.AddItemStack(new CampaignItemStackState("ammunition_box", "Ammunition Box", 4));
 

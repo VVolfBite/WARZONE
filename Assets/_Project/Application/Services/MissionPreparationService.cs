@@ -57,6 +57,24 @@ namespace Warzone.Application.Services
                 return;
             }
 
+            if (launchPlan.MemberLoadouts != null)
+            {
+                for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
+                {
+                    MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
+                    if (loadout == null || string.IsNullOrEmpty(loadout.WeaponInstanceId))
+                    {
+                        continue;
+                    }
+
+                    CampaignWeaponInstanceState weaponInstance;
+                    if (campaignState.Inventory.TryGetWeaponInstance(loadout.WeaponInstanceId, out weaponInstance))
+                    {
+                        weaponInstance.MarkDeployed(launchPlan.MissionId);
+                    }
+                }
+            }
+
             _campaignMissionSystem.RegisterMission(
                 campaignState,
                 new CampaignMissionState(

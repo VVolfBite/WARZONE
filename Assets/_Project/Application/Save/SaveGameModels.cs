@@ -36,8 +36,18 @@ namespace Warzone.Application.Save
         public bool IsWounded { get; set; }
         public bool IsAvailable { get; set; }
         public int Experience { get; set; }
+        public int Level { get; set; }
+        public int MissionsCompleted { get; set; }
+        public int Kills { get; set; }
+        public string WoundSeverity { get; set; }
+        public int RecoveryDaysRemaining { get; set; }
+        public bool IsRecovering { get; set; }
+        public int SkillPoints { get; set; }
+        public float Fatigue { get; set; }
+        public string LastInjuryMissionId { get; set; }
         public int? AssignedSquadId { get; set; }
         public string CarriedWeaponId { get; set; }
+        public string CarriedWeaponInstanceId { get; set; }
         public string LoadoutId { get; set; }
     }
 
@@ -73,7 +83,13 @@ namespace Warzone.Application.Save
         public string InstanceId { get; set; }
         public string DefinitionId { get; set; }
         public string OwnerMemberId { get; set; }
+        public string AssignedMemberId { get; set; }
         public bool IsEquipped { get; set; }
+        public bool IsAvailable { get; set; }
+        public bool IsLost { get; set; }
+        public bool IsDamaged { get; set; }
+        public float Durability { get; set; }
+        public string LastMissionId { get; set; }
     }
 
     public sealed class ItemStackSaveData

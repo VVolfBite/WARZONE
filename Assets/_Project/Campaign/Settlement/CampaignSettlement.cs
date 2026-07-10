@@ -39,6 +39,9 @@ namespace Warzone.Campaign
             IReadOnlyList<CampaignItemRewardSettlement> itemRewards = null,
             IReadOnlyList<CampaignWeaponRewardSettlement> weaponRewards = null,
             IReadOnlyList<CampaignBaseEffectSettlement> baseEffects = null,
+            IReadOnlyList<CampaignExperienceSettlement> experienceSettlements = null,
+            IReadOnlyList<CampaignWoundSettlement> woundSettlements = null,
+            IReadOnlyList<CampaignEquipmentSettlement> equipmentSettlements = null,
             int unitsLost = 0,
             int unitsKept = 0)
         {
@@ -54,8 +57,47 @@ namespace Warzone.Campaign
             ItemRewards = itemRewards ?? new List<CampaignItemRewardSettlement>();
             WeaponRewards = weaponRewards ?? new List<CampaignWeaponRewardSettlement>();
             BaseEffects = baseEffects ?? new List<CampaignBaseEffectSettlement>();
+            ExperienceSettlements = experienceSettlements ?? new List<CampaignExperienceSettlement>();
+            WoundSettlements = woundSettlements ?? new List<CampaignWoundSettlement>();
+            EquipmentSettlements = equipmentSettlements ?? new List<CampaignEquipmentSettlement>();
             UnitsLost = unitsLost;
             UnitsKept = unitsKept;
+        }
+
+        public CampaignSettlement(
+            string missionId,
+            string siteId,
+            bool missionCompleted,
+            IReadOnlyList<CampaignCasualtySettlement> casualties,
+            IReadOnlyList<CampaignLootSettlement> loot,
+            IReadOnlyList<CampaignSiteSettlement> siteSettlements,
+            IReadOnlyList<CampaignSquadSettlement> squadSettlements,
+            CampaignMissionHistoryRecord historyRecord,
+            IReadOnlyList<CampaignResourceRewardSettlement> resourceRewards,
+            IReadOnlyList<CampaignItemRewardSettlement> itemRewards,
+            IReadOnlyList<CampaignWeaponRewardSettlement> weaponRewards,
+            IReadOnlyList<CampaignBaseEffectSettlement> baseEffects,
+            int unitsLost,
+            int unitsKept)
+            : this(
+                missionId,
+                siteId,
+                missionCompleted,
+                casualties,
+                loot,
+                siteSettlements,
+                squadSettlements,
+                historyRecord,
+                resourceRewards,
+                itemRewards,
+                weaponRewards,
+                baseEffects,
+                null,
+                null,
+                null,
+                unitsLost,
+                unitsKept)
+        {
         }
 
         public string MissionId { get; private set; }
@@ -70,6 +112,9 @@ namespace Warzone.Campaign
         public IReadOnlyList<CampaignItemRewardSettlement> ItemRewards { get; private set; }
         public IReadOnlyList<CampaignWeaponRewardSettlement> WeaponRewards { get; private set; }
         public IReadOnlyList<CampaignBaseEffectSettlement> BaseEffects { get; private set; }
+        public IReadOnlyList<CampaignExperienceSettlement> ExperienceSettlements { get; private set; }
+        public IReadOnlyList<CampaignWoundSettlement> WoundSettlements { get; private set; }
+        public IReadOnlyList<CampaignEquipmentSettlement> EquipmentSettlements { get; private set; }
         public int UnitsLost { get; private set; }
         public int UnitsKept { get; private set; }
     }

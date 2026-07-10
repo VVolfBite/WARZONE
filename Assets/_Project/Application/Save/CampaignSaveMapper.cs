@@ -178,8 +178,18 @@ namespace Warzone.Application.Save
                 IsWounded = member.IsWounded,
                 IsAvailable = member.IsAvailable,
                 Experience = member.Experience,
+                Level = member.Level,
+                MissionsCompleted = member.MissionsCompleted,
+                Kills = member.Kills,
+                WoundSeverity = member.WoundSeverity.ToString(),
+                RecoveryDaysRemaining = member.RecoveryDaysRemaining,
+                IsRecovering = member.IsRecovering,
+                SkillPoints = member.SkillPoints,
+                Fatigue = member.Fatigue,
+                LastInjuryMissionId = member.LastInjuryMissionId,
                 AssignedSquadId = member.AssignedSquadId,
                 CarriedWeaponId = member.CarriedWeaponId,
+                CarriedWeaponInstanceId = member.CarriedWeaponInstanceId,
                 LoadoutId = member.LoadoutId
             };
         }
@@ -223,7 +233,13 @@ namespace Warzone.Application.Save
                     InstanceId = instance.InstanceId,
                     DefinitionId = instance.DefinitionId,
                     OwnerMemberId = instance.OwnerMemberId,
-                    IsEquipped = instance.IsEquipped
+                    AssignedMemberId = instance.AssignedMemberId,
+                    IsEquipped = instance.IsEquipped,
+                    IsAvailable = instance.IsAvailable,
+                    IsLost = instance.IsLost,
+                    IsDamaged = instance.IsDamaged,
+                    Durability = instance.Durability,
+                    LastMissionId = instance.LastMissionId
                 });
             }
 
@@ -478,7 +494,17 @@ namespace Warzone.Application.Save
                     memberData.Experience,
                     memberData.AssignedSquadId,
                     memberData.CarriedWeaponId,
-                    memberData.LoadoutId);
+                    memberData.LoadoutId,
+                    memberData.CarriedWeaponInstanceId,
+                    memberData.Level,
+                    memberData.MissionsCompleted,
+                    memberData.Kills,
+                    ParseWoundSeverity(memberData.WoundSeverity),
+                    memberData.RecoveryDaysRemaining,
+                    memberData.IsRecovering,
+                    memberData.SkillPoints,
+                    memberData.Fatigue,
+                    memberData.LastInjuryMissionId);
                 campaignState.AddMember(member);
             }
         }
@@ -546,8 +572,13 @@ namespace Warzone.Application.Save
                     campaignState.Inventory.AddWeaponInstance(new CampaignWeaponInstanceState(
                         weaponData.InstanceId,
                         weaponData.DefinitionId,
-                        weaponData.OwnerMemberId,
-                        weaponData.IsEquipped));
+                        !string.IsNullOrEmpty(weaponData.OwnerMemberId) ? weaponData.OwnerMemberId : weaponData.AssignedMemberId,
+                        weaponData.IsEquipped,
+                        weaponData.IsAvailable,
+                        weaponData.IsLost,
+                        weaponData.IsDamaged,
+                        weaponData.Durability,
+                        weaponData.LastMissionId));
                 }
             }
 
@@ -780,6 +811,17 @@ namespace Warzone.Application.Save
             }
 
             return false;
+        }
+
+        private static WoundSeverity ParseWoundSeverity(string severity)
+        {
+            WoundSeverity woundSeverity;
+            if (!System.Enum.TryParse(severity, out woundSeverity))
+            {
+                return WoundSeverity.None;
+            }
+
+            return woundSeverity;
         }
     }
 }

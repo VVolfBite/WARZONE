@@ -7,6 +7,7 @@ namespace Warzone.Campaign
         private readonly CampaignSiteSystem _siteSystem = new CampaignSiteSystem();
         private readonly CampaignResourceConsumptionSystem _resourceConsumptionSystem = new CampaignResourceConsumptionSystem();
         private readonly CampaignOutpostSystem _outpostSystem = new CampaignOutpostSystem();
+        private readonly CampaignRecoverySystem _recoverySystem = new CampaignRecoverySystem();
 
         public void ApplyHourlyTick(CampaignState campaignState)
         {
@@ -29,6 +30,7 @@ namespace Warzone.Campaign
 
             ApplySiteDailyEffects(campaignState);
             _outpostSystem.ApplyOutpostDailyEffects(campaignState);
+            _recoverySystem.AdvanceRecoveryDay(campaignState);
             _resourceConsumptionSystem.ApplyDailyMaintenance(campaignState);
         }
 

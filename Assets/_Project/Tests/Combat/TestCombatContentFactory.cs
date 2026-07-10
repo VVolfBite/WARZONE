@@ -163,11 +163,11 @@ namespace Warzone.Tests.Combat
                 baseCatalog.Enemies,
                 new Dictionary<string, EnvironmentalZoneDefinition>
                 {
-                    { "sandbox.smoke", new EnvironmentalZoneDefinition("sandbox.smoke", "Smoke Zone", EnvironmentalZoneType.Smoke, 2.8f, 0.85f, 18f, 0.55f, 0f, 0f) },
-                    { "sandbox.fire", new EnvironmentalZoneDefinition("sandbox.fire", "Fire Zone", EnvironmentalZoneType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f) },
-                    { "sandbox.toxic", new EnvironmentalZoneDefinition("sandbox.toxic", "Toxic Zone", EnvironmentalZoneType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f) },
-                    { "sandbox.light", new EnvironmentalZoneDefinition("sandbox.light", "Light Zone", EnvironmentalZoneType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f) },
-                    { "sandbox.darkness", new EnvironmentalZoneDefinition("sandbox.darkness", "Darkness Zone", EnvironmentalZoneType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f) }
+                    { "sandbox.smoke", new EnvironmentalZoneDefinition("sandbox.smoke", "Smoke Zone", EnvironmentalZoneDefinitionType.Smoke, 2.8f, 0.85f, 18f, 0.55f, 0f, 0f) },
+                    { "sandbox.fire", new EnvironmentalZoneDefinition("sandbox.fire", "Fire Zone", EnvironmentalZoneDefinitionType.Fire, 1.8f, 1f, 20f, 0f, 8f, 5f) },
+                    { "sandbox.toxic", new EnvironmentalZoneDefinition("sandbox.toxic", "Toxic Zone", EnvironmentalZoneDefinitionType.Toxic, 2.2f, 1f, 24f, 0.15f, 4f, 7f) },
+                    { "sandbox.light", new EnvironmentalZoneDefinition("sandbox.light", "Light Zone", EnvironmentalZoneDefinitionType.Light, 2.4f, 1f, 999f, 0f, 0f, 0f) },
+                    { "sandbox.darkness", new EnvironmentalZoneDefinition("sandbox.darkness", "Darkness Zone", EnvironmentalZoneDefinitionType.Darkness, 3f, 1f, 999f, 0.35f, 0f, 0f) }
                 },
                 new Dictionary<string, VisionEquipmentDefinition>
                 {

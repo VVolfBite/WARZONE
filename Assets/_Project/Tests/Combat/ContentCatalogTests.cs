@@ -51,7 +51,7 @@ namespace Warzone.Tests.Combat
             bool found = catalog.TryGetEnvironmentalZoneDefinition("sandbox.smoke", out zoneDefinition);
 
             Assert.That(found, Is.True);
-            Assert.That(zoneDefinition.ZoneType, Is.EqualTo(Warzone.Combat.EnvironmentalZoneType.Smoke));
+            Assert.That(zoneDefinition.ZoneType, Is.EqualTo(EnvironmentalZoneDefinitionType.Smoke));
         }
 
         [Test]

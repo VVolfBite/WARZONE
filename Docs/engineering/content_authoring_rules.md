@@ -41,3 +41,9 @@ Content owns static definitions only:
 - Persistent data stores ids only.
 - Loading resolves ids through the active catalog.
 - Missing content ids should fail cleanly or fall back explicitly.
+
+## Runtime mapping boundary
+- Static content enums stay in `Content`.
+- Runtime enums stay in `Combat`.
+- `Application` is the only layer that maps between the two.
+- `Content` must not reference `Combat` runtime types.

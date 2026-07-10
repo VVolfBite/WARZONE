@@ -33,6 +33,53 @@ namespace Warzone.Campaign
             _weaponInstances[instance.InstanceId] = instance;
         }
 
+        public bool TryGetWeaponInstance(string instanceId, out CampaignWeaponInstanceState instance)
+        {
+            instance = null;
+            if (string.IsNullOrEmpty(instanceId))
+            {
+                return false;
+            }
+
+            return _weaponInstances.TryGetValue(instanceId, out instance);
+        }
+
+        public bool TryGetWeaponInstanceForMember(string memberId, out CampaignWeaponInstanceState instance)
+        {
+            instance = null;
+            if (string.IsNullOrEmpty(memberId))
+            {
+                return false;
+            }
+
+            foreach (CampaignWeaponInstanceState weaponInstance in _weaponInstances.Values)
+            {
+                if (weaponInstance != null && weaponInstance.AssignedMemberId == memberId && weaponInstance.IsAvailable && !weaponInstance.IsLost)
+                {
+                    instance = weaponInstance;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public IEnumerable<CampaignWeaponInstanceState> GetWeaponInstancesForMember(string memberId)
+        {
+            if (string.IsNullOrEmpty(memberId))
+            {
+                yield break;
+            }
+
+            foreach (CampaignWeaponInstanceState weaponInstance in _weaponInstances.Values)
+            {
+                if (weaponInstance != null && weaponInstance.AssignedMemberId == memberId)
+                {
+                    yield return weaponInstance;
+                }
+            }
+        }
+
         public void AddItemStack(CampaignItemStackState stack)
         {
             if (stack == null || string.IsNullOrEmpty(stack.ItemId))
