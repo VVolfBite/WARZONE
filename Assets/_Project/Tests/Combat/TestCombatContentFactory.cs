@@ -6,7 +6,7 @@ using Warzone.Core.Math;
 
 namespace Warzone.Tests.Combat
 {
-    internal static class TestCombatContentFactory
+    public static class TestCombatContentFactory
     {
         public static ContentCatalog CreateCatalog()
         {
@@ -37,12 +37,17 @@ namespace Warzone.Tests.Combat
                 { raider.Id, raider }
             };
 
+            Dictionary<string, SiteDefinition> sites = new Dictionary<string, SiteDefinition>
+            {
+                { "site.alpha", new SiteDefinition("site.alpha", "Alpha Site", SiteType.Outpost, true, 1, "generic loot") }
+            };
+
             Dictionary<string, UnitDefinition> units = new Dictionary<string, UnitDefinition>
             {
                 { "sandbox.rifleman", new UnitDefinition("sandbox.rifleman", "Rifleman", FactionId.Player, 100, 4f, rifle, 12f, 0.5f, ArmorType.Light) }
             };
 
-            return new ContentCatalog(units, new Dictionary<string, MissionDefinition>(), null, weapons, enemies);
+            return new ContentCatalog(units, new Dictionary<string, MissionDefinition>(), null, weapons, enemies, null, null, sites);
         }
 
         public static ContentCatalog CreateTacticalCatalog()
@@ -92,6 +97,12 @@ namespace Warzone.Tests.Combat
                 new Dictionary<string, EnemyDefinition>
                 {
                     { raider.Id, raider }
+                },
+                null,
+                null,
+                new Dictionary<string, SiteDefinition>
+                {
+                    { "site.alpha", new SiteDefinition("site.alpha", "Alpha Site", SiteType.Outpost, true, 2, "generic loot") }
                 });
         }
 
@@ -132,7 +143,13 @@ namespace Warzone.Tests.Combat
                 new Dictionary<string, MissionDefinition> { { mission.Id, mission } },
                 null,
                 new Dictionary<string, WeaponDefinition> { { rifle.Id, rifle } },
-                new Dictionary<string, EnemyDefinition> { { raider.Id, raider } });
+                new Dictionary<string, EnemyDefinition> { { raider.Id, raider } },
+                null,
+                null,
+                new Dictionary<string, SiteDefinition>
+                {
+                    { "site.alpha", new SiteDefinition("site.alpha", "Alpha Site", SiteType.Compound, true, 2, "generic loot") }
+                });
         }
 
         public static ContentCatalog CreateEnvironmentCombatCatalog()
@@ -155,6 +172,10 @@ namespace Warzone.Tests.Combat
                 new Dictionary<string, VisionEquipmentDefinition>
                 {
                     { "sandbox.nvg.basic", new VisionEquipmentDefinition("sandbox.nvg.basic", "Basic NVG", 1, 0) }
+                },
+                new Dictionary<string, SiteDefinition>
+                {
+                    { "site.alpha", new SiteDefinition("site.alpha", "Alpha Site", SiteType.Compound, true, 3, "generic loot") }
                 });
         }
 
@@ -189,7 +210,73 @@ namespace Warzone.Tests.Combat
                 baseCatalog.Weapons,
                 baseCatalog.Enemies,
                 baseCatalog.EnvironmentalZones,
-                baseCatalog.VisionEquipment);
+                baseCatalog.VisionEquipment,
+                new Dictionary<string, SiteDefinition>
+                {
+                    { "site.alpha", new SiteDefinition("site.alpha", "Alpha Site", SiteType.Compound, true, 4, "generic loot") }
+                });
+        }
+
+        public static ContentCatalog CreateCampaignLoopCatalog()
+        {
+            WeaponDefinition rifle = new WeaponDefinition(
+                "sandbox.rifle",
+                "Sandbox Rifle",
+                WeaponCategory.Rifle,
+                AmmoCategory.Rifle,
+                FireMode.Automatic,
+                12f,
+                0.45f,
+                18,
+                1f,
+                1,
+                0f,
+                16f,
+                DamageType.Kinetic);
+
+            MissionDefinition mission = new MissionDefinition(
+                "mission.m9.loop",
+                "Campaign Loop Mission",
+                1,
+                1,
+                new[]
+                {
+                    new MissionObjectiveDefinition(MissionObjectiveType.EnterBuilding, "building.100", 1),
+                    new MissionObjectiveDefinition(MissionObjectiveType.SearchPoint, "search.main", 1),
+                    new MissionObjectiveDefinition(MissionObjectiveType.EliminateEnemies, "enemy.all", 3),
+                    new MissionObjectiveDefinition(MissionObjectiveType.ExtractSquad, "extract.alpha", 1)
+                },
+                MissionType.Tactical,
+                MissionDifficulty.Normal,
+                "Compound",
+                new MissionRewardDefinition(3, 25, "reward.loop"));
+
+            SiteDefinition site = new SiteDefinition("site.alpha", "Alpha Site", SiteType.Compound, true, 3, "generic loot");
+
+            return new ContentCatalog(
+                new Dictionary<string, UnitDefinition>
+                {
+                    { "sandbox.rifleman", new UnitDefinition("sandbox.rifleman", "Rifleman", FactionId.Player, 100, 4f, rifle, 12f, 0.5f, ArmorType.Light) }
+                },
+                new Dictionary<string, MissionDefinition>
+                {
+                    { mission.Id, mission }
+                },
+                null,
+                new Dictionary<string, WeaponDefinition>
+                {
+                    { rifle.Id, rifle }
+                },
+                new Dictionary<string, EnemyDefinition>
+                {
+                    { "sandbox.raider", new EnemyDefinition("sandbox.raider", "Raider", 55, 2.75f, 14f, 8f, FactionId.Enemy, 12, 0.95f) }
+                },
+                null,
+                null,
+                new Dictionary<string, SiteDefinition>
+                {
+                    { site.Id, site }
+                });
         }
 
         public static BattleState CreateSpatialBattleState()

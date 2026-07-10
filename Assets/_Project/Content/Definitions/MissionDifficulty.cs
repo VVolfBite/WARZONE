@@ -1,0 +1,10 @@
+namespace Warzone.Content.Definitions
+{
+    public enum MissionDifficulty
+    {
+        Easy = 0,
+        Normal = 1,
+        Hard = 2,
+        Extreme = 3
+    }
+}

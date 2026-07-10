@@ -316,3 +316,28 @@ M8 adds:
 
 This is still not a full interior combat system. It does not include room-level pathfinding,
 stacking logic, breaching, or structural destruction.
+
+## 19. M9 Campaign Mission Loop
+
+M9 extends the code-only loop from mission setup into settlement back to Campaign state.
+
+Current intended flow:
+
+1. `CampaignState`
+2. `MissionLaunchPlanFactory`
+3. `BattleStateFromMissionFactory`
+4. `BattleService`
+5. `BattleResult`
+6. `MissionSettlementService`
+7. `CampaignSettlementSystem`
+8. `CampaignState`
+
+M9 keeps the boundary strict:
+
+- `Campaign` stores long-term state only
+- `Application` bridges `Campaign` and `Combat`
+- `Combat` still does not reference `Campaign`
+- `MissionLaunchPlan` describes the mission loadout and site context without exposing Campaign internals
+- `CampaignSettlement` records the result write-back without depending on Combat types
+
+This is still a technical loop, not the final campaign economy or save/load architecture.

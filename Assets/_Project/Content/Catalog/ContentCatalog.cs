@@ -12,7 +12,8 @@ namespace Warzone.Content
             IReadOnlyDictionary<string, WeaponDefinition> weapons = null,
             IReadOnlyDictionary<string, EnemyDefinition> enemies = null,
             IReadOnlyDictionary<string, EnvironmentalZoneDefinition> environmentalZones = null,
-            IReadOnlyDictionary<string, VisionEquipmentDefinition> visionEquipment = null)
+            IReadOnlyDictionary<string, VisionEquipmentDefinition> visionEquipment = null,
+            IReadOnlyDictionary<string, SiteDefinition> sites = null)
         {
             Units = units ?? new Dictionary<string, UnitDefinition>();
             Missions = missions ?? new Dictionary<string, MissionDefinition>();
@@ -21,6 +22,7 @@ namespace Warzone.Content
             Enemies = enemies ?? new Dictionary<string, EnemyDefinition>();
             EnvironmentalZones = environmentalZones ?? new Dictionary<string, EnvironmentalZoneDefinition>();
             VisionEquipment = visionEquipment ?? new Dictionary<string, VisionEquipmentDefinition>();
+            Sites = sites ?? new Dictionary<string, SiteDefinition>();
         }
 
         public IReadOnlyDictionary<string, UnitDefinition> Units { get; private set; }
@@ -30,6 +32,7 @@ namespace Warzone.Content
         public IReadOnlyDictionary<string, EnemyDefinition> Enemies { get; private set; }
         public IReadOnlyDictionary<string, EnvironmentalZoneDefinition> EnvironmentalZones { get; private set; }
         public IReadOnlyDictionary<string, VisionEquipmentDefinition> VisionEquipment { get; private set; }
+        public IReadOnlyDictionary<string, SiteDefinition> Sites { get; private set; }
 
         public bool TryGetWeapon(string weaponId, out WeaponDefinition definition)
         {
@@ -54,6 +57,11 @@ namespace Warzone.Content
         public bool TryGetVisionEquipmentDefinition(string equipmentId, out VisionEquipmentDefinition definition)
         {
             return VisionEquipment.TryGetValue(equipmentId, out definition);
+        }
+
+        public bool TryGetSite(string siteId, out SiteDefinition definition)
+        {
+            return Sites.TryGetValue(siteId, out definition);
         }
     }
 }

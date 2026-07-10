@@ -1,0 +1,25 @@
+{
+    "name": "Warzone.Tests.Campaign",
+    "rootNamespace": "Warzone.Tests.Campaign",
+    "references": [
+        "Warzone.Core",
+        "Warzone.Content",
+        "Warzone.Campaign"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,6 +1,6 @@
 # M8 Validation Summary
 
-Recorded package source commit SHA: `PENDING_PUSH_SHA`
+Recorded package source commit SHA: `f5c94aafaf167f552cda4ebb4dffd9c0e2927ceb`
 
 ## 1. Goal
 

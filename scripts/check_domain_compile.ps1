@@ -38,6 +38,14 @@ function Get-CombatTestExtraFiles {
     return @()
 }
 
+function Get-CampaignTestExtraFiles {
+    return @()
+}
+
+function Get-ApplicationTestExtraFiles {
+    return @()
+}
+
 function Get-SandboxTestExtraFiles {
     return @(
         (Join-Path $root 'Assets/_Project/Sandbox/BattleSandbox/SandboxCombatContentCatalogFactory.cs')
@@ -99,6 +107,8 @@ $nunitPath = Get-NUnitPath
 if (-not $nunitPath) {
     Write-Output "ARCH_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
     Write-Output "COMBAT_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
+    Write-Output "CAMPAIGN_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
+    Write-Output "APPLICATION_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
     Write-Output "SANDBOX_TEST_SOURCE_COMPILE: SKIPPED (nunit.framework.dll not found)"
     exit 0
 }
@@ -123,6 +133,36 @@ if ($combatExitCode -eq 0) {
 } else {
     Write-Output "COMBAT_TEST_SOURCE_COMPILE: FAILED"
     $hasFailure = $true
+}
+
+$campaignTestFiles = @(Get-ChildItem Assets/_Project/Tests/Campaign -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+if ($campaignTestFiles.Count -eq 0) {
+    Write-Output "CAMPAIGN_TEST_SOURCE_COMPILE: SKIPPED (no campaign tests found)"
+} else {
+    $campaignExtraFiles = Get-CampaignTestExtraFiles
+    $campaignOutput = Join-Path $root 'Temp\Warzone.CampaignTestsValidation.dll'
+    $campaignExitCode = Invoke-Compile -CompilerPath $compilerPath -OutputPath $campaignOutput -Files ($campaignTestFiles + $campaignExtraFiles) -References @($domainOutput, $nunitPath)
+    if ($campaignExitCode -eq 0) {
+        Write-Output "CAMPAIGN_TEST_SOURCE_COMPILE: OK"
+    } else {
+        Write-Output "CAMPAIGN_TEST_SOURCE_COMPILE: FAILED"
+        $hasFailure = $true
+    }
+}
+
+$applicationTestFiles = @(Get-ChildItem Assets/_Project/Tests/Application -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+if ($applicationTestFiles.Count -eq 0) {
+    Write-Output "APPLICATION_TEST_SOURCE_COMPILE: SKIPPED (no application tests found)"
+} else {
+    $applicationExtraFiles = Get-ApplicationTestExtraFiles
+    $applicationOutput = Join-Path $root 'Temp\Warzone.ApplicationTestsValidation.dll'
+    $applicationExitCode = Invoke-Compile -CompilerPath $compilerPath -OutputPath $applicationOutput -Files ($applicationTestFiles + $applicationExtraFiles) -References @($domainOutput, $nunitPath)
+    if ($applicationExitCode -eq 0) {
+        Write-Output "APPLICATION_TEST_SOURCE_COMPILE: OK"
+    } else {
+        Write-Output "APPLICATION_TEST_SOURCE_COMPILE: FAILED"
+        $hasFailure = $true
+    }
 }
 
 $sandboxTestFiles = @(Get-ChildItem Assets/_Project/Tests/Sandbox -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
