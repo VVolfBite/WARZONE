@@ -3,7 +3,8 @@
 ## Status
 
 - Milestone: M16 design freeze audit
-- Commit SHA: PENDING_FINAL_COMMIT
+- Code freeze commit: fbb9633eff8ccc04f3f5e8c1dc8a9ccc272c38ff
+- Handoff package generated from this audit state
 
 ## 1. Goal
 
@@ -66,4 +67,3 @@ Confirm that the code-only stack still matches the intended game shape before Un
 Pure-code foundation should stay frozen after M16.
 Next step must be Unity first import / compile fix.
 Do not add M17 gameplay systems before Unity validation.
-
