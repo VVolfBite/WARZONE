@@ -65,3 +65,15 @@ M9 只补最小闭环，不做完整战役系统：
 5. `MissionSettlementService` 将结果写回 `CampaignState`
 
 这一轮的重点是边界清楚，而不是玩法完整。Campaign 负责长期状态，Combat 负责单次战斗，Application 负责把两者接起来。
+## 10. M10 局外到局内再回局外
+
+M10 把战斗结果真正写回长期状态，但仍然不做完整基地经济。
+
+1. `CampaignState` 保存长期事实。
+2. `MissionLaunchPlanFactory` 只负责验证与生成计划，不直接改写 Campaign。
+3. `MissionPreparationService.StartMission` 是显式任务开始点。
+4. `MissionSettlementService` 把 `BattleResult` 转成 `CampaignSettlement`。
+5. `CampaignSettlementSystem` 只应用结算，不自己猜任务历史。
+6. `CampaignResourceConsumptionSystem` 负责基地维护和资源消耗。
+
+这一轮的重点是闭环清楚，不是系统做满。

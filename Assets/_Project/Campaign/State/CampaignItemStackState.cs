@@ -22,5 +22,21 @@ namespace Warzone.Campaign
 
             Count += amount;
         }
+
+        public bool Spend(int amount)
+        {
+            if (amount <= 0 || Count < amount)
+            {
+                return false;
+            }
+
+            Count -= amount;
+            if (Count < 0)
+            {
+                Count = 0;
+            }
+
+            return true;
+        }
     }
 }

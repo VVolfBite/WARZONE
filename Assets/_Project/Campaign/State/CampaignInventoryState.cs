@@ -50,6 +50,43 @@ namespace Warzone.Campaign
             _itemStacks[stack.ItemId] = stack;
         }
 
+        public bool SpendItemStack(string itemId, int amount)
+        {
+            if (string.IsNullOrEmpty(itemId) || amount <= 0)
+            {
+                return false;
+            }
+
+            CampaignItemStackState stack;
+            if (!_itemStacks.TryGetValue(itemId, out stack))
+            {
+                return false;
+            }
+
+            if (stack.Count < amount)
+            {
+                return false;
+            }
+
+            stack.Spend(amount);
+            if (stack.Count <= 0)
+            {
+                _itemStacks.Remove(itemId);
+            }
+
+            return true;
+        }
+
+        public bool RemoveItemStack(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+            {
+                return false;
+            }
+
+            return _itemStacks.Remove(itemId);
+        }
+
         public void AddResourcePackage(string packageId, int amount)
         {
             if (string.IsNullOrEmpty(packageId) || amount <= 0)
@@ -60,6 +97,63 @@ namespace Warzone.Campaign
             int currentAmount;
             _resourcePackages.TryGetValue(packageId, out currentAmount);
             _resourcePackages[packageId] = currentAmount + amount;
+        }
+
+        public bool SpendResourcePackage(string packageId, int amount)
+        {
+            if (string.IsNullOrEmpty(packageId) || amount <= 0)
+            {
+                return false;
+            }
+
+            int currentAmount;
+            if (!_resourcePackages.TryGetValue(packageId, out currentAmount))
+            {
+                return false;
+            }
+
+            if (currentAmount < amount)
+            {
+                return false;
+            }
+
+            int nextAmount = currentAmount - amount;
+            if (nextAmount <= 0)
+            {
+                _resourcePackages.Remove(packageId);
+            }
+            else
+            {
+                _resourcePackages[packageId] = nextAmount;
+            }
+
+            return true;
+        }
+
+        public int GetResourcePackageAmount(string packageId)
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                return 0;
+            }
+
+            int currentAmount;
+            if (_resourcePackages.TryGetValue(packageId, out currentAmount))
+            {
+                return currentAmount < 0 ? 0 : currentAmount;
+            }
+
+            return 0;
+        }
+
+        public bool RemoveWeaponInstance(string instanceId)
+        {
+            if (string.IsNullOrEmpty(instanceId))
+            {
+                return false;
+            }
+
+            return _weaponInstances.Remove(instanceId);
         }
     }
 }

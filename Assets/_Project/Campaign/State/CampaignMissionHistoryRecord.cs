@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Warzone.Campaign
 {
     public sealed class CampaignMissionHistoryRecord
@@ -9,7 +11,8 @@ namespace Warzone.Campaign
             int casualties,
             int loot,
             float timestamp,
-            string completionType = null)
+            string completionType = null,
+            IReadOnlyDictionary<string, int> resourceRewards = null)
         {
             MissionId = missionId;
             SiteId = siteId;
@@ -18,6 +21,7 @@ namespace Warzone.Campaign
             Loot = loot;
             Timestamp = timestamp;
             CompletionType = completionType;
+            ResourceRewards = resourceRewards ?? new Dictionary<string, int>();
         }
 
         public string MissionId { get; private set; }
@@ -27,5 +31,6 @@ namespace Warzone.Campaign
         public int Loot { get; private set; }
         public float Timestamp { get; private set; }
         public string CompletionType { get; private set; }
+        public IReadOnlyDictionary<string, int> ResourceRewards { get; private set; }
     }
 }

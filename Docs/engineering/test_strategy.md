@@ -120,3 +120,9 @@ Every milestone report must explicitly distinguish:
 - actual test execution
 - Unity Editor compile
 - sandbox manual run status
+## M10 Test Boundary Notes
+
+- `Campaign.Tests` stays pure Campaign and does not reference Combat or Sandbox
+- `Application.Tests` may reference Combat and Campaign because it validates the bridge
+- `Sandbox.Tests` is separate and is the only place where Sandbox-facing Unity code should be tested
+- validation output should distinguish domain compile, test source compile, actual test execution, and Unity Editor compile

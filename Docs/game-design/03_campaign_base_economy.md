@@ -61,3 +61,14 @@ M9 不是完整基地经济，只是把战斗结果写回长期状态：
 - MissionHistory 记录一次任务结果，供后续系统查询
 
 本轮原则是先把长期状态闭环跑通，再扩展经济、商人、制造和正式存档。
+## 11. M10 资源包与基地最小循环
+
+M10 只补最小资源与基地维护，不做完整基地建设树。
+
+- 战斗结算把战利品写回 `CampaignResourceLedgerState`
+- 物品与武器实例写回 `CampaignInventoryState`
+- 主基地通过 `CampaignBaseState` 和 `CampaignBaseModuleState` 表达
+- `CampaignResourceConsumptionSystem` 每日扣除基础维护资源
+- 资源不足时，基地可以失去 operational 状态或记录 warning
+
+这一层的目标是让 Campaign 具备可验证的长期消耗与补给循环，而不是立刻变成完整经营系统。

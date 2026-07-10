@@ -12,6 +12,41 @@ namespace Warzone.Tests.Application
     public sealed class MissionLoopTests
     {
         [Test]
+        public void MissionLaunchPlanFactory_DoesNotMutateCurrentMission()
+        {
+            CampaignService campaignService = new CampaignService();
+            MissionPreparationService preparationService = new MissionPreparationService(CreateCatalog());
+
+            string currentMissionBefore = campaignService.CampaignState.CurrentMissionId;
+
+            MissionLaunchPlan launchPlan;
+            string reason;
+            bool result = preparationService.TryCreateLaunchPlan(campaignService.CampaignState, "mission.m9.loop", "site.alpha", new[] { 1 }, 123, out launchPlan, out reason);
+
+            Assert.That(result, Is.True, reason);
+            Assert.That(launchPlan, Is.Not.Null);
+            Assert.That(campaignService.CampaignState.CurrentMissionId, Is.EqualTo(currentMissionBefore));
+        }
+
+        [Test]
+        public void MissionPreparationService_StartMissionSetsCurrentMission()
+        {
+            CampaignService campaignService = new CampaignService();
+            MissionPreparationService preparationService = new MissionPreparationService(CreateCatalog());
+
+            MissionLaunchPlan launchPlan;
+            string reason;
+            bool result = preparationService.TryCreateLaunchPlan(campaignService.CampaignState, "mission.m9.loop", "site.alpha", new[] { 1 }, 123, out launchPlan, out reason);
+
+            Assert.That(result, Is.True, reason);
+
+            preparationService.StartMission(campaignService.CampaignState, launchPlan);
+
+            Assert.That(campaignService.CampaignState.CurrentMissionId, Is.EqualTo("mission.m9.loop"));
+            Assert.That(campaignService.CampaignState.CurrentMission, Is.Not.Null);
+        }
+
+        [Test]
         public void MissionLaunchPlanFactory_RejectsMissingSquad()
         {
             CampaignState campaignState = new CampaignService().CampaignState;
@@ -82,7 +117,7 @@ namespace Warzone.Tests.Application
         {
             CampaignService campaignService = new CampaignService();
             MissionLaunchPlan launchPlan = CreateLaunchPlan(campaignService.CampaignState);
-            BattleResult battleResult = CreateBattleResult(launchPlan, deadIndex: 0, extractedIndex: 1, lootCount: 4, victory: true);
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 0 }, new[] { 1 }, 4, true);
 
             MissionSettlementService settlementService = new MissionSettlementService();
             CampaignSettlement settlement = settlementService.ApplyBattleResult(campaignService.CampaignState, launchPlan, battleResult);
@@ -98,11 +133,85 @@ namespace Warzone.Tests.Application
             Assert.That(siteState.SearchCompleted, Is.True);
             Assert.That(siteState.IsCleared, Is.True);
 
-            int lootCount;
-            Assert.That(campaignService.CampaignState.Inventory.ResourcePackages.TryGetValue("generic.loot", out lootCount), Is.True);
-            Assert.That(lootCount, Is.GreaterThan(0));
+            Assert.That(campaignService.CampaignState.ResourceLedger.GetAmount("generic_loot"), Is.EqualTo(7));
+            Assert.That(campaignService.CampaignState.Inventory.ResourcePackages.ContainsKey("generic.loot"), Is.False);
 
             Assert.That(campaignService.CampaignState.MissionHistory.Count, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void SettlementService_MapsMedicalProfileLootToMedicine()
+        {
+            CampaignService campaignService = new CampaignService();
+            MissionPreparationService preparationService = new MissionPreparationService(CreateCatalog(true, "medical", 0));
+
+            MissionLaunchPlan launchPlan;
+            string reason;
+            bool prepared = preparationService.TryCreateLaunchPlan(campaignService.CampaignState, "mission.m9.loop", "site.alpha", new[] { 1 }, 777, out launchPlan, out reason);
+            Assert.That(prepared, Is.True, reason);
+
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 0 }, new[] { 1 }, 4, true, searchCompleted: true);
+            MissionSettlementService settlementService = new MissionSettlementService();
+            settlementService.ApplyBattleResult(campaignService.CampaignState, launchPlan, battleResult);
+
+            Assert.That(campaignService.CampaignState.ResourceLedger.GetAmount("medicine"), Is.EqualTo(12));
+        }
+
+        [Test]
+        public void SettlementService_ZeroLootDoesNotCreateGenericLootEntry()
+        {
+            CampaignService campaignService = new CampaignService();
+            MissionPreparationService preparationService = new MissionPreparationService(CreateCatalog(false));
+
+            MissionLaunchPlan launchPlan;
+            string reason;
+            bool prepared = preparationService.TryCreateLaunchPlan(campaignService.CampaignState, "mission.m9.loop", "site.alpha", new[] { 1 }, 777, out launchPlan, out reason);
+            Assert.That(prepared, Is.True, reason);
+
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 0 }, new[] { 1 }, 0, true, searchCompleted: false);
+            MissionSettlementService settlementService = new MissionSettlementService();
+            settlementService.ApplyBattleResult(campaignService.CampaignState, launchPlan, battleResult);
+
+            Assert.That(campaignService.CampaignState.ResourceLedger.GetAmount("generic_loot"), Is.EqualTo(0));
+            CampaignSiteState siteState;
+            Assert.That(campaignService.CampaignState.TryGetSite("site.alpha", out siteState), Is.True);
+            Assert.That(siteState.SearchCompleted, Is.False);
+        }
+
+        [Test]
+        public void SettlementService_MultiSquadAvailabilityComputedPerSquad()
+        {
+            CampaignState campaignState = new CampaignService().CampaignState;
+            campaignState.AddMember(new CampaignMemberState("campaign.member.5", "Bravo-1", true, false, true, 0, 1, "sandbox.rifle"));
+            campaignState.AddMember(new CampaignMemberState("campaign.member.6", "Bravo-2", true, false, true, 0, 1, "sandbox.rifle"));
+            campaignState.AddMember(new CampaignMemberState("campaign.member.7", "Bravo-3", true, false, true, 0, 1, "sandbox.rifle"));
+            campaignState.AddMember(new CampaignMemberState("campaign.member.8", "Bravo-4", true, false, true, 0, 1, "sandbox.rifle"));
+            campaignState.AddSquad(new CampaignSquadState(2, "Bravo Squad", new[] { "campaign.member.5", "campaign.member.6", "campaign.member.7", "campaign.member.8" }));
+
+            MissionPreparationService preparationService = new MissionPreparationService(CreateCatalog(false));
+            MissionLaunchPlan launchPlan;
+            string reason;
+            bool prepared = preparationService.TryCreateLaunchPlan(campaignState, "mission.m9.loop", "site.alpha", new[] { 1, 2 }, 777, out launchPlan, out reason);
+            Assert.That(prepared, Is.True, reason);
+
+            BattleResult battleResult = CreateBattleResult(
+                launchPlan,
+                new[] { 0, 1, 2, 3 },
+                new[] { 4, 5, 6, 7 },
+                2,
+                true);
+
+            MissionSettlementService settlementService = new MissionSettlementService();
+            CampaignSettlement settlement = settlementService.ApplyBattleResult(campaignState, launchPlan, battleResult);
+
+            CampaignSquadState alphaSquad;
+            CampaignSquadState bravoSquad;
+            Assert.That(campaignState.Roster.TryGetSquad(1, out alphaSquad), Is.True);
+            Assert.That(campaignState.Roster.TryGetSquad(2, out bravoSquad), Is.True);
+
+            Assert.That(alphaSquad.IsAvailable, Is.False);
+            Assert.That(bravoSquad.IsAvailable, Is.True);
+            Assert.That(settlement.SquadSettlements.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -118,14 +227,14 @@ namespace Warzone.Tests.Application
 
             Assert.That(prepared, Is.True, reason);
             Assert.That(battleState, Is.Not.Null);
+            Assert.That(campaignService.CampaignState.CurrentMissionId, Is.EqualTo("mission.m9.loop"));
 
-            BattleResult battleResult = CreateBattleResult(launchPlan, deadIndex: 0, extractedIndex: 1, lootCount: 3, victory: true);
+            BattleResult battleResult = CreateBattleResult(launchPlan, new[] { 0 }, new[] { 1 }, 3, true);
             MissionSettlementService settlementService = new MissionSettlementService();
             settlementService.ApplyBattleResult(campaignService.CampaignState, launchPlan, battleResult);
 
-            Assert.That(campaignService.CampaignState.CurrentMissionId, Is.EqualTo("mission.m9.loop"));
             Assert.That(campaignService.CampaignState.MissionHistory.Count, Is.EqualTo(1));
-            Assert.That(campaignService.CampaignState.Inventory.ResourcePackages["generic.loot"], Is.GreaterThanOrEqualTo(3));
+            Assert.That(campaignService.CampaignState.ResourceLedger.GetAmount("generic_loot"), Is.EqualTo(6));
         }
 
         private static MissionLaunchPlan CreateLaunchPlan()
@@ -143,7 +252,7 @@ namespace Warzone.Tests.Application
             return launchPlan;
         }
 
-        private static ContentCatalog CreateCatalog()
+        private static ContentCatalog CreateCatalog(bool includeReward = true, string rewardProfileId = "reward.loop", int genericLootCount = 3)
         {
             WeaponDefinition rifle = new WeaponDefinition(
                 "sandbox.rifle",
@@ -160,6 +269,10 @@ namespace Warzone.Tests.Application
                 16f,
                 DamageType.Kinetic);
 
+            MissionRewardDefinition reward = includeReward
+                ? new MissionRewardDefinition(genericLootCount, 25, rewardProfileId)
+                : new MissionRewardDefinition(0, 0, null);
+
             MissionDefinition mission = new MissionDefinition(
                 "mission.m9.loop",
                 "Campaign Loop Mission",
@@ -175,7 +288,7 @@ namespace Warzone.Tests.Application
                 MissionType.Tactical,
                 MissionDifficulty.Normal,
                 "Compound",
-                new MissionRewardDefinition(3, 25, "reward.loop"));
+                reward);
 
             SiteDefinition site = new SiteDefinition("site.alpha", "Alpha Site", SiteType.Compound, true, 3, "generic loot");
 
@@ -205,8 +318,16 @@ namespace Warzone.Tests.Application
                 });
         }
 
-        private static BattleResult CreateBattleResult(MissionLaunchPlan launchPlan, int deadIndex, int extractedIndex, int lootCount, bool victory)
+        private static BattleResult CreateBattleResult(
+            MissionLaunchPlan launchPlan,
+            IEnumerable<int> deadIndices,
+            IEnumerable<int> extractedIndices,
+            int lootCount,
+            bool victory,
+            bool searchCompleted = true)
         {
+            List<int> deadIndexList = new List<int>(deadIndices ?? new int[0]);
+            List<int> extractedIndexList = new List<int>(extractedIndices ?? new int[0]);
             List<UnitOutcome> unitOutcomes = new List<UnitOutcome>();
             List<BattleEntityId> deadMemberIds = new List<BattleEntityId>();
             List<BattleEntityId> extractedMemberIds = new List<BattleEntityId>();
@@ -214,23 +335,24 @@ namespace Warzone.Tests.Application
             for (int i = 0; i < launchPlan.MemberLoadouts.Count; i++)
             {
                 MissionMemberLoadout loadout = launchPlan.MemberLoadouts[i];
-                bool isDead = i == deadIndex;
-                bool isExtracted = i == extractedIndex;
+                bool isDead = deadIndexList.Contains(i);
+                bool isExtracted = extractedIndexList.Contains(i);
                 unitOutcomes.Add(new UnitOutcome(new BattleEntityId(loadout.BattleMemberId), loadout.CampaignMemberId, !isDead));
                 if (isDead)
                 {
                     deadMemberIds.Add(new BattleEntityId(loadout.BattleMemberId));
                 }
+
                 if (isExtracted)
                 {
                     extractedMemberIds.Add(new BattleEntityId(loadout.BattleMemberId));
                 }
             }
 
-            BattleObjectiveResult[] objectiveResults = new[]
+            List<BattleObjectiveResult> objectiveResults = new List<BattleObjectiveResult>
             {
                 new BattleObjectiveResult(MissionObjectiveType.EnterBuilding, "building.100", 1, 1, true),
-                new BattleObjectiveResult(MissionObjectiveType.SearchPoint, "search.main", 1, 1, true),
+                new BattleObjectiveResult(MissionObjectiveType.SearchPoint, "search.main", searchCompleted ? 1 : 0, 1, searchCompleted),
                 new BattleObjectiveResult(MissionObjectiveType.EliminateEnemies, "enemy.all", 3, 3, victory),
                 new BattleObjectiveResult(MissionObjectiveType.ExtractSquad, "extract.alpha", extractedMemberIds.Count, 1, extractedMemberIds.Count > 0)
             };

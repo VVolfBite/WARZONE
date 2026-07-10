@@ -27,6 +27,7 @@ namespace Warzone.Campaign
         public CampaignResourceLedgerState ResourceLedger { get; private set; }
         public float CampaignTime { get; private set; }
         public CampaignMissionState CurrentMission { get; private set; }
+        public CampaignBaseState MainBase { get; private set; }
 
         public IReadOnlyDictionary<string, CampaignSiteState> SitesById
         {
@@ -95,6 +96,11 @@ namespace Warzone.Campaign
         public void AddSquad(CampaignSquadState squad)
         {
             Roster.AddSquad(squad);
+        }
+
+        public void SetMainBase(CampaignBaseState baseState)
+        {
+            MainBase = baseState;
         }
     }
 }

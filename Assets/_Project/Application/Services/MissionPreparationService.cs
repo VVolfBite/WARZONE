@@ -9,6 +9,7 @@ namespace Warzone.Application.Services
     {
         private readonly MissionLaunchPlanFactory _launchPlanFactory;
         private readonly BattleStateFromMissionFactory _battleStateFromMissionFactory;
+        private readonly CampaignMissionSystem _campaignMissionSystem = new CampaignMissionSystem();
 
         public MissionPreparationService(ContentCatalog contentCatalog)
         {
@@ -44,8 +45,27 @@ namespace Warzone.Application.Services
                 return false;
             }
 
+            StartMission(campaignState, launchPlan);
             battleState = _battleStateFromMissionFactory.Create(launchPlan);
             return battleState != null;
+        }
+
+        public void StartMission(CampaignState campaignState, MissionLaunchPlan launchPlan)
+        {
+            if (campaignState == null || launchPlan == null)
+            {
+                return;
+            }
+
+            _campaignMissionSystem.RegisterMission(
+                campaignState,
+                new CampaignMissionState(
+                    launchPlan.MissionId,
+                    launchPlan.SiteId,
+                    launchPlan.MissionDefinition != null ? launchPlan.MissionDefinition.DisplayName : launchPlan.MissionId,
+                    true,
+                    launchPlan.SiteContext != null ? launchPlan.SiteContext.ThreatLevel : 0,
+                    launchPlan.MissionDefinition != null ? launchPlan.MissionDefinition.MissionType.ToString() : null));
         }
     }
 }

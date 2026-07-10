@@ -130,13 +130,6 @@ namespace Warzone.Application
                 randomSeed,
                 entryPointId: "entry.main");
 
-            campaignState.SetCurrentMission(new CampaignMissionState(
-                missionDefinition.Id,
-                siteDefinition.Id,
-                missionDefinition.DisplayName,
-                true,
-                siteDefinition.BaseThreatLevel,
-                missionDefinition.MissionType.ToString()));
             return true;
         }
 

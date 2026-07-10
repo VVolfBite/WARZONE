@@ -341,3 +341,29 @@ M9 keeps the boundary strict:
 - `CampaignSettlement` records the result write-back without depending on Combat types
 
 This is still a technical loop, not the final campaign economy or save/load architecture.
+
+## 20. M10 Campaign Resource and Base Loop
+
+M10 extends the settlement loop into long-term resources and base maintenance.
+
+Current intended flow:
+
+1. `CampaignState`
+2. `MissionLaunchPlanFactory`
+3. `BattleStateFromMissionFactory`
+4. `BattleService`
+5. `BattleResult`
+6. `MissionSettlementService`
+7. `CampaignSettlementSystem`
+8. `CampaignResourceConsumptionSystem`
+9. `CampaignState`
+
+M10 keeps the boundary strict:
+
+- `MissionLaunchPlanFactory` validates and builds plans, but does not mutate `CampaignState`
+- `MissionPreparationService.StartMission` is the explicit point where `CurrentMission` is reserved
+- `BattleResult` is translated into campaign-side settlement data before mutating long-term state
+- loot becomes strategic resources, item stacks, weapon instances, and mission history entries
+- base maintenance is a long-term resource drain, not a per-tick hard fail
+
+This is still a technical loop. It is not full base construction, merchants, formal save/load, or a complete economy model.

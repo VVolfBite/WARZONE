@@ -7,6 +7,7 @@ namespace Warzone.Campaign
         private readonly CampaignRosterSystem _rosterSystem = new CampaignRosterSystem();
         private readonly CampaignInventorySystem _inventorySystem = new CampaignInventorySystem();
         private readonly CampaignSiteSystem _siteSystem = new CampaignSiteSystem();
+        private readonly CampaignBaseSystem _baseSystem = new CampaignBaseSystem();
 
         public void Apply(CampaignState campaignState, CampaignSettlement settlement)
         {
@@ -16,9 +17,10 @@ namespace Warzone.Campaign
             }
 
             ApplyCasualties(campaignState, settlement.Casualties);
-            ApplyLoot(campaignState, settlement.Loot);
+            ApplyRewards(campaignState, settlement);
             ApplySites(campaignState, settlement.SiteSettlements);
             ApplySquads(campaignState, settlement.SquadSettlements);
+            ApplyBaseEffects(campaignState, settlement.BaseEffects);
 
             if (settlement.HistoryRecord != null)
             {
@@ -59,23 +61,93 @@ namespace Warzone.Campaign
             }
         }
 
-        private void ApplyLoot(CampaignState campaignState, IReadOnlyList<CampaignLootSettlement> loot)
+        private void ApplyRewards(CampaignState campaignState, CampaignSettlement settlement)
         {
-            if (loot == null)
+            if (settlement == null)
             {
                 return;
             }
 
-            for (int i = 0; i < loot.Count; i++)
+            bool appliedResourceRewards = false;
+            if (settlement.ResourceRewards != null && settlement.ResourceRewards.Count > 0)
             {
-                CampaignLootSettlement lootEntry = loot[i];
-                if (lootEntry == null)
+                for (int i = 0; i < settlement.ResourceRewards.Count; i++)
+                {
+                    CampaignResourceRewardSettlement reward = settlement.ResourceRewards[i];
+                    if (reward == null || string.IsNullOrEmpty(reward.ResourceId) || reward.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    campaignState.ResourceLedger.Add(reward.ResourceId, reward.Count);
+                    appliedResourceRewards = true;
+                }
+            }
+
+            if (!appliedResourceRewards && settlement.Loot != null && settlement.Loot.Count > 0)
+            {
+                for (int i = 0; i < settlement.Loot.Count; i++)
+                {
+                    CampaignLootSettlement lootEntry = settlement.Loot[i];
+                    if (lootEntry == null || lootEntry.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    campaignState.ResourceLedger.Add("generic_loot", lootEntry.Count);
+                }
+            }
+
+            if (settlement.ItemRewards != null)
+            {
+                for (int i = 0; i < settlement.ItemRewards.Count; i++)
+                {
+                    CampaignItemRewardSettlement itemReward = settlement.ItemRewards[i];
+                    if (itemReward == null || string.IsNullOrEmpty(itemReward.ItemId) || itemReward.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    _inventorySystem.AddItemStack(campaignState, itemReward.ItemId, itemReward.DisplayName, itemReward.Count);
+                }
+            }
+
+            if (settlement.WeaponRewards != null)
+            {
+                for (int i = 0; i < settlement.WeaponRewards.Count; i++)
+                {
+                    CampaignWeaponRewardSettlement weaponReward = settlement.WeaponRewards[i];
+                    if (weaponReward == null || string.IsNullOrEmpty(weaponReward.InstanceId) || string.IsNullOrEmpty(weaponReward.DefinitionId))
+                    {
+                        continue;
+                    }
+
+                    _inventorySystem.AddWeaponInstance(
+                        campaignState,
+                        new CampaignWeaponInstanceState(weaponReward.InstanceId, weaponReward.DefinitionId, weaponReward.OwnerMemberId, weaponReward.IsEquipped));
+                }
+            }
+        }
+
+        private void ApplyBaseEffects(CampaignState campaignState, IReadOnlyList<CampaignBaseEffectSettlement> baseEffects)
+        {
+            if (campaignState == null || baseEffects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < baseEffects.Count; i++)
+            {
+                CampaignBaseEffectSettlement effect = baseEffects[i];
+                if (effect == null || campaignState.MainBase == null)
                 {
                     continue;
                 }
 
-                _inventorySystem.AddItemStack(campaignState, lootEntry.LootId, lootEntry.LootId, lootEntry.Count);
-                _inventorySystem.AddGenericLoot(campaignState, lootEntry.Count);
+                if (campaignState.MainBase.BaseId == effect.BaseId)
+                {
+                    _baseSystem.SetOperational(campaignState, effect.IsOperational, effect.Warning);
+                }
             }
         }
 
