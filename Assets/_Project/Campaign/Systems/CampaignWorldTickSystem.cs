@@ -15,6 +15,8 @@ namespace Warzone.Campaign
                 return;
             }
 
+            // Intentionally conservative: hourly progression is a future hook and
+            // should not produce strong world-state drift.
             ApplySiteHourlyEffects(campaignState);
         }
 
@@ -32,19 +34,7 @@ namespace Warzone.Campaign
 
         private void ApplySiteHourlyEffects(CampaignState campaignState)
         {
-            foreach (KeyValuePair<string, CampaignSiteState> pair in campaignState.SitesById)
-            {
-                CampaignSiteState site = pair.Value;
-                if (site == null)
-                {
-                    continue;
-                }
-
-                if (!site.IsCleared && site.IsOccupied)
-                {
-                    _siteSystem.IncreaseThreat(campaignState, site.SiteId, 1);
-                }
-            }
+            return;
         }
 
         private void ApplySiteDailyEffects(CampaignState campaignState)

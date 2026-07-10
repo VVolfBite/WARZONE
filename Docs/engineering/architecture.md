@@ -395,3 +395,30 @@ M11 adds:
 - launch-plan context that reads the current site state instead of only the static site definition
 
 This remains a bounded campaign loop. It does not add merchants, formal save/load, or a full world-map simulation.
+
+## 22. M12 Campaign Save / Load Loop
+
+M12 adds an Application-side save layer that captures long-term Campaign state and restores it without involving `Combat.BattleState`.
+
+Current intended flow:
+
+1. `StartingCampaignFactory`
+2. `CampaignLifecycleService.NewGame`
+3. `CampaignState`
+4. `MissionPreparationService`
+5. `MissionSettlementService`
+6. `WorldProgressionService`
+7. `CampaignSaveMapper`
+8. `SaveGameSerializer`
+9. `SaveGameRepository`
+10. `LoadGame`
+11. `CampaignState`
+
+M12 keeps the boundary strict:
+
+- save DTOs live in `Application`
+- `CampaignState` remains the source of truth for long-term data
+- `Combat.BattleState` is not saved
+- load restores Campaign state by reconstruction, not by mutating Combat data
+
+This is a code-only persistence loop. It is not a Unity file IO feature, not cloud save, and not a version migration framework.

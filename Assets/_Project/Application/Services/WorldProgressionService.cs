@@ -19,9 +19,19 @@ namespace Warzone.Application.Services
                 return;
             }
 
+            _timeSystem.AdvanceDays(campaignState, days);
+        }
+
+        public void AdvanceDaysAndApplyWorldTicks(CampaignState campaignState, int days)
+        {
+            if (campaignState == null || days <= 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < days; i++)
             {
-                _timeSystem.AdvanceDays(campaignState, 1);
+                _timeSystem.AdvanceHours(campaignState, 24f);
                 _worldTickSystem.ApplyDailyTick(campaignState);
             }
         }
@@ -29,11 +39,6 @@ namespace Warzone.Application.Services
         public void ApplyDailyTick(CampaignState campaignState)
         {
             _worldTickSystem.ApplyDailyTick(campaignState);
-        }
-
-        public void ApplyHourlyTick(CampaignState campaignState)
-        {
-            _worldTickSystem.ApplyHourlyTick(campaignState);
         }
     }
 }

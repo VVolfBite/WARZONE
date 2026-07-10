@@ -135,3 +135,11 @@ Every milestone report must explicitly distinguish:
 - `MissionSettlementService` should translate combat results into campaign settlements, not mutate world progression rules directly
 - `CampaignSiteState` repeat-entry and decay rules should be validated without Unity
 - validation output should continue to separate domain compile, test source compile, actual test execution, Unity Editor compile, and sandbox manual run status
+
+## M12 Test Boundary Notes
+
+- save/load tests stay in `Tests/Application` and `Tests/Campaign`
+- save DTOs must not depend on `Combat.BattleState`
+- `CampaignSaveMapper` should be testable without Unity
+- `JsonSaveGameSerializer` should round-trip the DTO snapshot without touching the filesystem
+- `SaveGameService` should use an in-memory repository in tests unless a file repository is explicitly introduced later

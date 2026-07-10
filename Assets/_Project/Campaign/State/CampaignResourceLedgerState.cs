@@ -76,5 +76,53 @@ namespace Warzone.Campaign
             _resources[resourceId] = currentAmount - amount;
             return true;
         }
+
+        public bool CanSpendAll(IReadOnlyDictionary<string, int> costs)
+        {
+            if (costs == null || costs.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (KeyValuePair<string, int> cost in costs)
+            {
+                if (string.IsNullOrEmpty(cost.Key) || cost.Value <= 0)
+                {
+                    continue;
+                }
+
+                if (GetAmount(cost.Key) < cost.Value)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool SpendAll(IReadOnlyDictionary<string, int> costs)
+        {
+            if (!CanSpendAll(costs))
+            {
+                return false;
+            }
+
+            if (costs == null || costs.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (KeyValuePair<string, int> cost in costs)
+            {
+                if (string.IsNullOrEmpty(cost.Key) || cost.Value <= 0)
+                {
+                    continue;
+                }
+
+                Spend(cost.Key, cost.Value);
+            }
+
+            return true;
+        }
     }
 }

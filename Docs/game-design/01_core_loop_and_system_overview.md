@@ -91,3 +91,16 @@ M11 继续把 Campaign 扩展成可重复进入的世界循环，而不是一次
 7. `MissionLaunchPlanFactory` 读取当前地点状态，而不是只看静态定义。
 
 这一轮的重点是让世界状态持续演化，而不是每个地点都是一次性的关卡。
+
+## 12. M12 Save / Load in the Core Loop
+
+M12 adds a code-only persistence step to the long-term loop.
+
+1. `StartingCampaignFactory` creates the initial campaign.
+2. `SaveGameSnapshot` captures the current Campaign state.
+3. `SaveGameSerializer` turns the snapshot into JSON text.
+4. `SaveGameRepository` stores the serialized save.
+5. `LoadGame` restores `CampaignState` from the snapshot.
+6. The campaign can continue through mission preparation, settlement, world ticks, and outpost updates.
+
+This is not combat save/load. It is long-term state persistence only.

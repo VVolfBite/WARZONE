@@ -21,6 +21,15 @@ function Get-NUnitPath {
     return $null
 }
 
+function Get-FrameworkSupportReferences {
+    return @(
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Web.dll"
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Web.Extensions.dll"
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Runtime.Serialization.dll"
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Runtime.Serialization.Json.dll"
+    ) | Where-Object { Test-Path $_ }
+}
+
 function Get-DomainFiles {
     return @(
         @(Get-ChildItem Assets/_Project/Core -Recurse -Filter *.cs | Select-Object -ExpandProperty FullName)
@@ -74,6 +83,10 @@ function Invoke-Compile {
     )
 
     $args = @("/nologo", "/target:library", "/out:$OutputPath")
+    $frameworkRefs = Get-FrameworkSupportReferences
+    foreach ($reference in $frameworkRefs) {
+        $args += "/r:$reference"
+    }
     foreach ($reference in $References) {
         $args += "/r:$reference"
     }

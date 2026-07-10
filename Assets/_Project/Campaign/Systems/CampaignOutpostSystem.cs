@@ -33,14 +33,14 @@ namespace Warzone.Campaign
                 return false;
             }
 
-            if (!campaignState.ResourceLedger.Spend(BuildingMaterialResourceId, EstablishBuildingMaterialCost))
+            Dictionary<string, int> establishCosts = new Dictionary<string, int>
             {
-                return false;
-            }
+                { BuildingMaterialResourceId, EstablishBuildingMaterialCost },
+                { FuelResourceId, EstablishFuelCost }
+            };
 
-            if (!campaignState.ResourceLedger.Spend(FuelResourceId, EstablishFuelCost))
+            if (!campaignState.ResourceLedger.SpendAll(establishCosts))
             {
-                campaignState.ResourceLedger.Add(BuildingMaterialResourceId, EstablishBuildingMaterialCost);
                 return false;
             }
 
@@ -127,33 +127,10 @@ namespace Warzone.Campaign
                     continue;
                 }
 
-                bool canMaintain = true;
-                foreach (KeyValuePair<string, int> cost in outpost.DailyResourceCosts)
-                {
-                    if (cost.Value <= 0)
-                    {
-                        continue;
-                    }
-
-                    if (!campaignState.ResourceLedger.HasAtLeast(cost.Key, cost.Value))
-                    {
-                        canMaintain = false;
-                        break;
-                    }
-                }
-
-                if (!canMaintain)
+                if (!campaignState.ResourceLedger.SpendAll(outpost.DailyResourceCosts))
                 {
                     outpost.SetActive(false);
                     continue;
-                }
-
-                foreach (KeyValuePair<string, int> cost in outpost.DailyResourceCosts)
-                {
-                    if (cost.Value > 0)
-                    {
-                        campaignState.ResourceLedger.Spend(cost.Key, cost.Value);
-                    }
                 }
 
                 if (outpost.ReducesLocalThreat)

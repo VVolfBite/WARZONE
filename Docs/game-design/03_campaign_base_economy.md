@@ -83,3 +83,19 @@ M11 把资源循环继续外推到世界地点和前哨层。
 - 前哨是局部能力点，不是完整基地
 - 前哨可以提供安全撤离、存储或观察等最小能力，并消耗少量维护资源
 - 当前阶段不做完整经营，不做自由建造，不做商人或基地升级树
+
+## 13. M12 Persistent Campaign State
+
+M12 defines what survives a save/load roundtrip.
+
+- members and their availability
+- squads and membership lists
+- inventory item stacks and weapon instances
+- resource ledger amounts
+- base modules and operational state
+- site state, including search, exhaustion, threat, and outpost binding
+- outpost state and daily costs
+- mission history records
+- current mission metadata when one is active
+
+Combat battle state remains ephemeral and is not part of the campaign save format.
