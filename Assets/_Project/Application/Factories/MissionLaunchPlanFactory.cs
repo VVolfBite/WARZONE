@@ -49,6 +49,15 @@ namespace Warzone.Application
                 return false;
             }
 
+            if (!string.IsNullOrEmpty(missionDefinition.RequiredSiteType) &&
+                !string.Equals(missionDefinition.RequiredSiteType, siteDefinition.SiteType.ToString(), System.StringComparison.OrdinalIgnoreCase))
+            {
+                reason = "Mission requires a different site type.";
+                return false;
+            }
+
+            string lootProfileId = ResolveLootProfileId(missionDefinition, siteDefinition);
+
             string validationReason;
             if (!_campaignMissionSystem.CanLaunchMission(campaignState, missionId, siteId, selectedSquadIds, out validationReason))
             {
@@ -133,6 +142,7 @@ namespace Warzone.Application
                 siteDefinition.Id,
                 missionDefinition,
                 siteContext,
+                lootProfileId,
                 selectedSquadIds,
                 squadLoadouts,
                 memberLoadouts,
@@ -152,6 +162,29 @@ namespace Warzone.Application
             }
 
             return "sandbox.rifle";
+        }
+
+        private static string ResolveLootProfileId(MissionDefinition missionDefinition, SiteDefinition siteDefinition)
+        {
+            if (missionDefinition != null && missionDefinition.Reward != null)
+            {
+                if (!string.IsNullOrEmpty(missionDefinition.Reward.LootProfileId))
+                {
+                    return missionDefinition.Reward.LootProfileId;
+                }
+
+                if (!string.IsNullOrEmpty(missionDefinition.Reward.RewardProfileId))
+                {
+                    return missionDefinition.Reward.RewardProfileId;
+                }
+            }
+
+            if (siteDefinition != null && !string.IsNullOrEmpty(siteDefinition.DefaultOutpostId))
+            {
+                return siteDefinition.SiteType.ToString().ToLowerInvariant();
+            }
+
+            return siteDefinition != null ? siteDefinition.SiteType.ToString().ToLowerInvariant() : "generic_loot";
         }
     }
 }

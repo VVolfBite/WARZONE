@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Warzone.Combat;
+using Warzone.Content;
 using Warzone.Content.Definitions;
 using Warzone.Core.Math;
 
@@ -7,7 +8,18 @@ namespace Warzone.Application
 {
     public sealed class BattleStateFromMissionFactory
     {
+        private readonly ContentCatalog _contentCatalog;
         private readonly BattleStateFactory _battleStateFactory = new BattleStateFactory();
+
+        public BattleStateFromMissionFactory()
+            : this(null)
+        {
+        }
+
+        public BattleStateFromMissionFactory(ContentCatalog contentCatalog)
+        {
+            _contentCatalog = contentCatalog;
+        }
 
         public BattleState Create(MissionLaunchPlan launchPlan)
         {
@@ -38,6 +50,9 @@ namespace Warzone.Application
                 for (int j = 0; j < squadLoadout.Members.Count; j++)
                 {
                     MissionMemberLoadout memberLoadout = squadLoadout.Members[j];
+                    WeaponDefinition weaponDefinition = ResolveWeaponDefinition(memberLoadout.WeaponDefinitionId);
+                    float attackRange = weaponDefinition != null ? weaponDefinition.Range : memberLoadout.DetectionRange;
+                    float accuracyModifier = weaponDefinition != null ? weaponDefinition.Accuracy : memberLoadout.AccuracyModifier;
                     BattleEntityId battleMemberId = new BattleEntityId(memberLoadout.BattleMemberId);
                     squadMemberIds.Add(battleMemberId);
                     memberIds.Add(battleMemberId);
@@ -53,8 +68,8 @@ namespace Warzone.Application
                         memberLoadout.WeaponDefinitionId,
                         memberLoadout.CampaignMemberId,
                         memberLoadout.DetectionRange,
-                        10f,
-                        memberLoadout.AccuracyModifier,
+                        attackRange,
+                        accuracyModifier,
                         100f,
                         memberLoadout.NightVisionLevel,
                         memberLoadout.SmokeVisionLevel,
@@ -88,6 +103,22 @@ namespace Warzone.Application
             }
 
             return battleState;
+        }
+
+        private WeaponDefinition ResolveWeaponDefinition(string weaponDefinitionId)
+        {
+            if (_contentCatalog == null || string.IsNullOrEmpty(weaponDefinitionId))
+            {
+                return null;
+            }
+
+            WeaponDefinition weaponDefinition;
+            if (_contentCatalog.TryGetWeapon(weaponDefinitionId, out weaponDefinition))
+            {
+                return weaponDefinition;
+            }
+
+            return null;
         }
     }
 }

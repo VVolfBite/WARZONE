@@ -396,6 +396,47 @@ M11 adds:
 
 This remains a bounded campaign loop. It does not add merchants, formal save/load, or a full world-map simulation.
 
+## 22. M12 Save / Load Loop
+
+M12 adds a pure code save/load boundary around long-lived Campaign state.
+
+Current intended flow:
+
+1. `StartingCampaignFactory`
+2. `CampaignState`
+3. `CampaignSaveMapper`
+4. `SaveGameSnapshot`
+5. `JsonSaveGameSerializer` or in-memory repository
+6. `CampaignLifecycleService`
+7. `SaveGameService`
+
+The save boundary covers:
+
+- roster
+- squads
+- inventory
+- resources
+- sites
+- base
+- outposts
+- mission history
+
+It explicitly does not persist `Combat.BattleState`.
+
+## 23. M13 Content Catalog Consolidation
+
+M13 makes `ContentCatalog` the central lookup surface for static definitions.
+
+Current direction:
+
+- `Content/Definitions` stores static data only
+- `ContentCatalog` owns weapon, enemy, mission, site, item, resource, outpost, loot profile, environment, vision equipment, and base module lookups
+- `DemoContentFactory` creates a canonical demo catalog for tests and starting game state
+- `MissionLaunchPlanFactory`, `BattleStateFromMissionFactory`, `StartingCampaignFactory`, and `MissionRewardResolver` should prefer catalog lookups over scattered magic ids
+- save files should continue to store ids and runtime state only, not definition objects
+
+This remains a code-only consolidation step. It does not introduce Unity content authoring or a formal asset pipeline.
+
 ## 22. M12 Campaign Save / Load Loop
 
 M12 adds an Application-side save layer that captures long-term Campaign state and restores it without involving `Combat.BattleState`.

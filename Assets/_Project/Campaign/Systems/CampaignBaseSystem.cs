@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Warzone.Content.Definitions;
 
 namespace Warzone.Campaign
 {
@@ -6,7 +7,32 @@ namespace Warzone.Campaign
     {
         public CampaignBaseState CreateStartingBase(string baseId, string displayName, string siteId)
         {
+            return CreateStartingBase(baseId, displayName, siteId, null);
+        }
+
+        public CampaignBaseState CreateStartingBase(string baseId, string displayName, string siteId, IReadOnlyList<BaseModuleDefinition> moduleDefinitions)
+        {
             CampaignBaseState baseState = new CampaignBaseState(baseId, displayName, siteId, 150, true);
+
+            if (moduleDefinitions != null && moduleDefinitions.Count > 0)
+            {
+                for (int i = 0; i < moduleDefinitions.Count; i++)
+                {
+                    BaseModuleDefinition moduleDefinition = moduleDefinitions[i];
+                    if (moduleDefinition == null || string.IsNullOrEmpty(moduleDefinition.Id))
+                    {
+                        continue;
+                    }
+
+                    baseState.AddModule(CreateModule(
+                        "base." + moduleDefinition.Id,
+                        moduleDefinition.DisplayName,
+                        moduleDefinition.ProvidedCapabilities,
+                        moduleDefinition.DailyResourceCosts));
+                }
+
+                return baseState;
+            }
 
             baseState.AddModule(CreateModule("base.storage", "Storage Wing", new[] { "storage" }, new Dictionary<string, int> { { "building_material", 1 } }));
             baseState.AddModule(CreateModule("base.infirmary", "Infirmary", new[] { "infirmary" }, new Dictionary<string, int> { { "medicine", 1 } }));

@@ -14,7 +14,7 @@ namespace Warzone.Application.Services
         public MissionPreparationService(ContentCatalog contentCatalog)
         {
             _launchPlanFactory = new MissionLaunchPlanFactory(contentCatalog);
-            _battleStateFromMissionFactory = new BattleStateFromMissionFactory();
+            _battleStateFromMissionFactory = new BattleStateFromMissionFactory(contentCatalog);
         }
 
         public bool TryCreateLaunchPlan(

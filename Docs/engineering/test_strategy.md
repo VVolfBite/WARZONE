@@ -62,6 +62,7 @@ Current behavior:
 
 - compiles domain sources into `Temp\Warzone.DomainValidation.dll`
 - compiles `Architecture` tests against local NUnit
+- compiles `Content` tests against local NUnit
 - compiles `Combat` tests against local NUnit without pulling in Sandbox sources
 - compiles `Sandbox` tests separately against the pure C# scenario and registry sources they need
 
@@ -87,6 +88,7 @@ Current behavior:
 - runs text-boundary checks
 - runs domain compile and test-source compile checks
 - attempts Unity EditMode execution if Unity CLI is available
+- checks the latest handoff package if one exists and verifies entry-path normalization
 - reports explicit `OK`, `FAIL`, or `SKIPPED` states
 
 ### Unity EditMode entry
@@ -143,3 +145,10 @@ Every milestone report must explicitly distinguish:
 - `CampaignSaveMapper` should be testable without Unity
 - `JsonSaveGameSerializer` should round-trip the DTO snapshot without touching the filesystem
 - `SaveGameService` should use an in-memory repository in tests unless a file repository is explicitly introduced later
+
+## M13 Test Boundary Notes
+
+- `Tests/Content` is the pure Content validation assembly
+- `ContentCatalogValidator` should keep mission, site, reward, outpost, and resource references honest without Unity
+- `DemoContentFactory` should centralize demo and test seed content instead of scattering magic ids through Application and Campaign
+- handoff packaging should keep `Assets/_Project` in the archive path with forward slashes

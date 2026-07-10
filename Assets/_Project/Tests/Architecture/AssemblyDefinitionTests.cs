@@ -72,6 +72,18 @@ namespace Warzone.Tests.Architecture
         }
 
         [Test]
+        public void ContentTestsAssembly_IsContentOnly()
+        {
+            string text = ReadAsmdef("Tests/Content", "Warzone.Tests.Content.asmdef");
+            StringAssert.Contains("Warzone.Content", text);
+            StringAssert.DoesNotContain("Warzone.Combat", text);
+            StringAssert.DoesNotContain("Warzone.Campaign", text);
+            StringAssert.DoesNotContain("Warzone.Application", text);
+            StringAssert.DoesNotContain("Warzone.Runtime", text);
+            StringAssert.DoesNotContain("Warzone.Sandbox", text);
+        }
+
+        [Test]
         public void RuntimeAssembly_DoesNotReferenceSandbox()
         {
             string text = ReadAsmdef("Runtime", "Warzone.Runtime.asmdef");

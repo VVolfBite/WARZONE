@@ -62,6 +62,10 @@ if (-not (Invoke-CheckedScript -Label "UNITY_EDITMODE_CHECK" -Path (Join-Path $r
     $allPassed = $false
 }
 
+if (-not (Invoke-CheckedScript -Label "HANDOFF_PACKAGE_CHECK" -Path (Join-Path $root "scripts\check_handoff_package.ps1"))) {
+    $allPassed = $false
+}
+
 if ($allPassed) {
     Write-Output "WARZONE_VALIDATION: OK"
 } else {

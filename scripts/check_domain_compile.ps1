@@ -47,6 +47,10 @@ function Get-CombatTestExtraFiles {
     return @()
 }
 
+function Get-ContentTestExtraFiles {
+    return @()
+}
+
 function Get-CampaignTestExtraFiles {
     return @()
 }
@@ -146,6 +150,21 @@ if ($combatExitCode -eq 0) {
 } else {
     Write-Output "COMBAT_TEST_SOURCE_COMPILE: FAILED"
     $hasFailure = $true
+}
+
+$contentTestFiles = @(Get-ChildItem Assets/_Project/Tests/Content -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+if ($contentTestFiles.Count -eq 0) {
+    Write-Output "CONTENT_TEST_SOURCE_COMPILE: SKIPPED (no content tests found)"
+} else {
+    $contentExtraFiles = Get-ContentTestExtraFiles
+    $contentOutput = Join-Path $root 'Temp\Warzone.ContentTestsValidation.dll'
+    $contentExitCode = Invoke-Compile -CompilerPath $compilerPath -OutputPath $contentOutput -Files ($contentTestFiles + $contentExtraFiles) -References @($domainOutput, $nunitPath)
+    if ($contentExitCode -eq 0) {
+        Write-Output "CONTENT_TEST_SOURCE_COMPILE: OK"
+    } else {
+        Write-Output "CONTENT_TEST_SOURCE_COMPILE: FAILED"
+        $hasFailure = $true
+    }
 }
 
 $campaignTestFiles = @(Get-ChildItem Assets/_Project/Tests/Campaign -Recurse -Filter *.cs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)

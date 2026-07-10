@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Warzone.Campaign;
 using Warzone.Combat;
+using Warzone.Content;
 using Warzone.Content.Definitions;
 
 namespace Warzone.Application.Services
@@ -8,7 +9,17 @@ namespace Warzone.Application.Services
     public sealed class MissionSettlementService
     {
         private readonly CampaignSettlementSystem _settlementSystem = new CampaignSettlementSystem();
-        private readonly MissionRewardResolver _rewardResolver = new MissionRewardResolver();
+        private readonly MissionRewardResolver _rewardResolver;
+
+        public MissionSettlementService()
+            : this(null)
+        {
+        }
+
+        public MissionSettlementService(ContentCatalog contentCatalog)
+        {
+            _rewardResolver = new MissionRewardResolver(contentCatalog);
+        }
 
         public CampaignSettlement ApplyBattleResult(
             CampaignState campaignState,
@@ -21,8 +32,8 @@ namespace Warzone.Application.Services
             }
 
             List<CampaignResourceRewardSettlement> resourceRewards = _rewardResolver.ResolveResourceRewards(launchPlan, battleResult);
-            List<CampaignItemRewardSettlement> itemRewards = _rewardResolver.ResolveItemRewards(launchPlan);
-            List<CampaignWeaponRewardSettlement> weaponRewards = _rewardResolver.ResolveWeaponRewards(launchPlan);
+            List<CampaignItemRewardSettlement> itemRewards = _rewardResolver.ResolveItemRewards(launchPlan, battleResult);
+            List<CampaignWeaponRewardSettlement> weaponRewards = _rewardResolver.ResolveWeaponRewards(launchPlan, battleResult);
             List<CampaignBaseEffectSettlement> baseEffects = BuildBaseEffects();
             List<CampaignCasualtySettlement> casualties = BuildCasualties(launchPlan, battleResult);
 

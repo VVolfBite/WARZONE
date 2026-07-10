@@ -13,7 +13,8 @@ namespace Warzone.Content.Definitions
             bool isEnterable = true,
             int baseThreatLevel = 0,
             string lootRemainingHint = null,
-            string requiredMissionType = null)
+            string requiredMissionType = null,
+            string defaultOutpostId = null)
             : this(
                 id,
                 displayName,
@@ -26,7 +27,8 @@ namespace Warzone.Content.Definitions
                 0,
                 0,
                 true,
-                null)
+                null,
+                defaultOutpostId)
         {
         }
 
@@ -42,7 +44,8 @@ namespace Warzone.Content.Definitions
             int initialLootRemaining,
             int resourceRichness,
             bool canBecomeOutpost,
-            IReadOnlyList<string> tags)
+            IReadOnlyList<string> tags,
+            string defaultOutpostId = null)
         {
             Id = id;
             DisplayName = displayName;
@@ -55,6 +58,7 @@ namespace Warzone.Content.Definitions
             InitialLootRemaining = initialLootRemaining < 0 ? 0 : initialLootRemaining;
             ResourceRichness = resourceRichness < 0 ? 0 : resourceRichness;
             CanBecomeOutpost = canBecomeOutpost;
+            DefaultOutpostId = defaultOutpostId;
             SyncTags(tags);
         }
 
@@ -69,6 +73,7 @@ namespace Warzone.Content.Definitions
         public int InitialLootRemaining { get; private set; }
         public int ResourceRichness { get; private set; }
         public bool CanBecomeOutpost { get; private set; }
+        public string DefaultOutpostId { get; private set; }
 
         public IReadOnlyList<string> Tags
         {

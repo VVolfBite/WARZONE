@@ -10,6 +10,7 @@ namespace Warzone.Application
             string siteId,
             MissionDefinition missionDefinition,
             MissionSiteContext siteContext,
+            string lootProfileId,
             IReadOnlyList<int> selectedSquadIds,
             IReadOnlyList<MissionSquadLoadout> squadLoadouts,
             IReadOnlyList<MissionMemberLoadout> memberLoadouts,
@@ -22,6 +23,7 @@ namespace Warzone.Application
             SiteId = siteId;
             MissionDefinition = missionDefinition;
             SiteContext = siteContext;
+            LootProfileId = lootProfileId;
             SelectedSquadIds = selectedSquadIds;
             SquadLoadouts = squadLoadouts;
             MemberLoadouts = memberLoadouts;
@@ -35,6 +37,7 @@ namespace Warzone.Application
         public string SiteId { get; private set; }
         public MissionDefinition MissionDefinition { get; private set; }
         public MissionSiteContext SiteContext { get; private set; }
+        public string LootProfileId { get; private set; }
         public IReadOnlyList<int> SelectedSquadIds { get; private set; }
         public IReadOnlyList<MissionSquadLoadout> SquadLoadouts { get; private set; }
         public IReadOnlyList<MissionMemberLoadout> MemberLoadouts { get; private set; }
