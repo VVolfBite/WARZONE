@@ -26,6 +26,7 @@ namespace Warzone.Sandbox.BattleSandbox
             }
 
             cachedRenderer.material.color = isSelected ? new Color(0.95f, 0.95f, 0.25f) : new Color(0.65f, 0.65f, 0.2f);
+            transform.localScale = isSelected ? new Vector3(1.05f, 0.08f, 1.05f) : new Vector3(0.75f, 0.08f, 0.75f);
         }
     }
 }

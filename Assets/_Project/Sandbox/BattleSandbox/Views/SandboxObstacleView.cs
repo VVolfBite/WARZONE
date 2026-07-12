@@ -7,6 +7,7 @@ namespace Warzone.Sandbox.BattleSandbox
     {
         [SerializeField] private int obstacleId;
         [SerializeField] private TacticalObstacleType obstacleType;
+        [SerializeField] private bool blocksMovement;
         [SerializeField] private Renderer cachedRenderer;
 
         public int ObstacleId
@@ -14,10 +15,11 @@ namespace Warzone.Sandbox.BattleSandbox
             get { return obstacleId; }
         }
 
-        public void Initialize(int newObstacleId, TacticalObstacleType newObstacleType, Renderer renderer)
+        public void Initialize(int newObstacleId, TacticalObstacleType newObstacleType, bool newBlocksMovement, Renderer renderer)
         {
             obstacleId = newObstacleId;
             obstacleType = newObstacleType;
+            blocksMovement = newBlocksMovement;
             cachedRenderer = renderer;
             ApplyColor();
         }
@@ -32,10 +34,10 @@ namespace Warzone.Sandbox.BattleSandbox
             switch (obstacleType)
             {
                 case TacticalObstacleType.LowCover:
-                    cachedRenderer.material.color = new Color(0.56f, 0.48f, 0.32f);
+                    cachedRenderer.material.color = blocksMovement ? new Color(0.46f, 0.38f, 0.26f) : new Color(0.56f, 0.48f, 0.32f);
                     break;
                 case TacticalObstacleType.HighCover:
-                    cachedRenderer.material.color = new Color(0.38f, 0.38f, 0.42f);
+                    cachedRenderer.material.color = blocksMovement ? new Color(0.22f, 0.22f, 0.25f) : new Color(0.38f, 0.38f, 0.42f);
                     break;
                 case TacticalObstacleType.Wall:
                 case TacticalObstacleType.BuildingBlocker:

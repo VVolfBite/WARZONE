@@ -25,12 +25,13 @@ namespace Warzone.Sandbox.BattleSandbox
             if (_context != null)
             {
                 GUILayout.Label("Mode: " + _context.ModeLabel);
-                GUILayout.Label("Paused: " + _context.IsPaused + " | Selected Squad: " + _context.SelectedSquadId + " | Fire Lines: " + _context.ShowFireLines);
+                GUILayout.Label("Selected Squad: " + _context.SelectedSquadId + " | Fire Lines: " + _context.ShowFireLines + " | Command Plan: " + _context.ShowCommandPlan);
+                GUILayout.Label("Pause: Hold P " + _context.IsHoldPaused + " | Space Toggle " + _context.IsTogglePaused + " | Effective " + _context.IsPaused);
             }
 
             DrawSectionHeader("Controls");
             GUILayout.Label("LMB Select | RMB Move | D Defend Area | S Search Point | E Extract | G Enter Building | H Defend Building | J Search Building");
-            GUILayout.Label("Debug: C Fire Lines | N Night | B Smoke | F Fire | L Light | P/Space Pause | R Reset");
+            GUILayout.Label("Debug: Hold Shift Command Plan | Hold P Pause | Space Toggle Pause | C Fire Lines | N Night | B Smoke | F Fire | L Light | R Reset");
 
             if (_snapshot == null)
             {
@@ -39,6 +40,9 @@ namespace Warzone.Sandbox.BattleSandbox
                 GUILayout.EndArea();
                 return;
             }
+
+            DrawSelectedSquadSummary();
+            DrawInputDiagnostics();
 
             DrawSectionHeader("Mission");
             if (_snapshot.MissionStatus != null)
@@ -68,7 +72,7 @@ namespace Warzone.Sandbox.BattleSandbox
                     " searched " + searchedNodes + "/" + building.SearchNodeIds.Count);
             }
 
-            DrawSectionHeader("Members");
+            DrawSectionHeader("Member Details");
             for (int i = 0; i < _snapshot.Members.Count; i++)
             {
                 BattleMemberSnapshot member = _snapshot.Members[i];
@@ -78,6 +82,7 @@ namespace Warzone.Sandbox.BattleSandbox
                     " inside " + IsInsideBuilding(_snapshot, member.OccupiedTacticalNodeId) +
                     " node " + (member.OccupiedTacticalNodeId.HasValue ? member.OccupiedTacticalNodeId.Value.ToString() : "-") +
                     " intent " + member.CurrentIntent +
+                    " moveTarget " + (member.MoveTarget.HasValue ? FormatVec2(member.MoveTarget.Value) : "-") +
                     " target " + (member.CurrentTargetEnemyId.HasValue ? member.CurrentTargetEnemyId.Value.Value.ToString() : "-") +
                     " pressure " + member.Pressure.ToString("F1") +
                     " suppressed " + member.IsSuppressed +
@@ -110,6 +115,84 @@ namespace Warzone.Sandbox.BattleSandbox
             }
 
             return count;
+        }
+
+        private void DrawSelectedSquadSummary()
+        {
+            BattleSquadSnapshot squad = BattleSandboxCommandQueries.FindSelectedSquad(_snapshot, _context != null ? _context.SelectedSquadId : 0);
+            DrawSectionHeader("Selected Squad");
+            if (squad == null)
+            {
+                GUILayout.Label("No selected squad snapshot");
+                return;
+            }
+
+            int active = 0;
+            int dead = 0;
+            int extracted = 0;
+            int retreating = 0;
+            for (int i = 0; i < _snapshot.Members.Count; i++)
+            {
+                BattleMemberSnapshot member = _snapshot.Members[i];
+                if (member.SquadId != squad.SquadId)
+                {
+                    continue;
+                }
+
+                if (!member.IsAlive)
+                {
+                    dead++;
+                }
+                else if (member.IsExtracted)
+                {
+                    extracted++;
+                }
+                else
+                {
+                    active++;
+                }
+
+                if (member.IsRetreating)
+                {
+                    retreating++;
+                }
+            }
+
+            GUILayout.Label("Current Order: " + squad.CurrentCommand + " | Stance: " + squad.Stance);
+            GUILayout.Label("Desired Position: " + FormatVec2(squad.DesiredPosition) + " | Center: " + FormatVec2(squad.Position));
+            GUILayout.Label("Active " + active + " | Dead " + dead + " | Extracted " + extracted + " | Retreating " + retreating);
+
+            DrawSectionHeader("Current Command Plan");
+            for (int i = 0; i < _snapshot.Members.Count; i++)
+            {
+                BattleMemberSnapshot member = _snapshot.Members[i];
+                if (member.SquadId != squad.SquadId)
+                {
+                    continue;
+                }
+
+                GUILayout.Label("#" + member.MemberId.Value + " " + member.CurrentIntent + " -> " + (member.MoveTarget.HasValue ? FormatVec2(member.MoveTarget.Value) : "-"));
+            }
+        }
+
+        private void DrawInputDiagnostics()
+        {
+            if (_context == null)
+            {
+                return;
+            }
+
+            DrawSectionHeader("Input Diagnostics");
+            GUILayout.Label("Last Input: " + _context.LastInputAction + " | Last Command: " + _context.LastCommandIssued);
+            GUILayout.Label("Last Command Position: " + (_context.LastCommandWorldPosition.HasValue ? FormatVec2(_context.LastCommandWorldPosition.Value) : "-") + " | Frame: " + _context.LastCommandFrame + " | Time: " + _context.LastCommandTime.ToString("F2"));
+            GUILayout.Label("Raycast Hit: " + _context.LastRaycastHitName + " | Ground Fallback: " + _context.LastRaycastUsedGroundFallback);
+
+            GUILayout.Label("Recent Commands");
+            for (int i = 0; i < _context.RecentCommandRecords.Count; i++)
+            {
+                SquadCommandDebugRecord record = _context.RecentCommandRecords[i];
+                GUILayout.Label("Squad " + record.SquadId + " " + record.CommandName + " -> " + (record.DesiredPosition.HasValue ? FormatVec2(record.DesiredPosition.Value) : "-") + " frame " + record.Frame);
+            }
         }
 
         private static int CountSearchedNodes(BattleSnapshot snapshot, System.Collections.Generic.IReadOnlyList<int> nodeIds)

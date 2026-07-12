@@ -25,11 +25,12 @@ namespace Warzone.Sandbox.BattleSandbox
             if (_context != null)
             {
                 GUILayout.Label("Mode: " + _context.ModeLabel);
-                GUILayout.Label("Paused: " + _context.IsPaused + " | Selected Squad: " + _context.SelectedSquadId + " | Fire Lines: " + _context.ShowFireLines);
+                GUILayout.Label("Selected Squad: " + _context.SelectedSquadId + " | Fire Lines: " + _context.ShowFireLines + " | Command Plan: " + _context.ShowCommandPlan);
+                GUILayout.Label("Pause: Hold P " + _context.IsHoldPaused + " | Space Toggle " + _context.IsTogglePaused + " | Effective " + _context.IsPaused);
             }
 
             DrawSectionHeader("Controls");
-            GUILayout.Label("LMB Select | RMB Move | D Defend | S Search | E Extract | C Fire Lines | P/Space Pause | R Reset");
+            GUILayout.Label("LMB Select | RMB Move | D Defend | S Search | E Extract | Hold Shift Command Plan | Hold P Pause | Space Toggle Pause | C Fire Lines | R Reset");
             GUILayout.Label("Debug: N Night Toggle | V Toggle Player NV | B Smoke | F Fire | L Light");
 
             if (_snapshot == null)
@@ -39,6 +40,9 @@ namespace Warzone.Sandbox.BattleSandbox
                 GUILayout.EndArea();
                 return;
             }
+
+            DrawSelectedSquadSummary();
+            DrawInputDiagnostics();
 
             DrawSectionHeader("Environment");
             if (_snapshot.Environment != null)
@@ -94,6 +98,13 @@ namespace Warzone.Sandbox.BattleSandbox
                 }
             }
 
+            DrawSectionHeader("Obstacles");
+            for (int i = 0; i < _snapshot.Obstacles.Count; i++)
+            {
+                TacticalObstacleSnapshot obstacle = _snapshot.Obstacles[i];
+                GUILayout.Label("#" + obstacle.ObstacleId + " " + obstacle.ObstacleType + " move " + obstacle.BlocksMovement + " los " + obstacle.BlocksLineOfSight + " fire " + obstacle.BlocksFire);
+            }
+
             DrawSectionHeader("Recent Events");
             int startIndex = _snapshot.RecentEvents.Count > 14 ? _snapshot.RecentEvents.Count - 14 : 0;
             for (int i = startIndex; i < _snapshot.RecentEvents.Count; i++)
@@ -115,6 +126,39 @@ namespace Warzone.Sandbox.BattleSandbox
         {
             GUILayout.Space(8f);
             GUILayout.Label(text);
+        }
+
+        private void DrawSelectedSquadSummary()
+        {
+            BattleSquadSnapshot squad = BattleSandboxCommandQueries.FindSelectedSquad(_snapshot, _context != null ? _context.SelectedSquadId : 0);
+            DrawSectionHeader("Selected Squad");
+            if (squad == null)
+            {
+                GUILayout.Label("No selected squad snapshot");
+                return;
+            }
+
+            GUILayout.Label("Current Order: " + squad.CurrentCommand + " | Desired: " + FormatVec2(squad.DesiredPosition));
+            for (int i = 0; i < _snapshot.Members.Count; i++)
+            {
+                BattleMemberSnapshot member = _snapshot.Members[i];
+                if (member.SquadId == squad.SquadId)
+                {
+                    GUILayout.Label("#" + member.MemberId.Value + " " + member.CurrentIntent + " -> " + (member.MoveTarget.HasValue ? FormatVec2(member.MoveTarget.Value) : "-"));
+                }
+            }
+        }
+
+        private void DrawInputDiagnostics()
+        {
+            if (_context == null)
+            {
+                return;
+            }
+
+            DrawSectionHeader("Input Diagnostics");
+            GUILayout.Label("Last Input: " + _context.LastInputAction + " | Last Command: " + _context.LastCommandIssued + " | Pos: " + (_context.LastCommandWorldPosition.HasValue ? FormatVec2(_context.LastCommandWorldPosition.Value) : "-"));
+            GUILayout.Label("Raycast Hit: " + _context.LastRaycastHitName + " | Ground Fallback: " + _context.LastRaycastUsedGroundFallback);
         }
 
         private static string FormatVec2(Vec2 value)

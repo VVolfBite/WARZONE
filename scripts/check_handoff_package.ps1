@@ -1,5 +1,6 @@
 param(
-    [string]$PackagePath = $null
+    [string]$PackagePath = $null,
+    [string]$Milestone = $null
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,13 +9,21 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 if ([string]::IsNullOrWhiteSpace($PackagePath)) {
-    $latest = Get-ChildItem -Path $root -Filter "Warzone_M16_source_*.zip" -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    $packageFilter = if ([string]::IsNullOrWhiteSpace($Milestone)) { "Warzone_*_source_*.zip" } else { "Warzone_${Milestone}_source_*.zip" }
+    $latest = Get-ChildItem -Path $root -Filter $packageFilter -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($null -eq $latest) {
-        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no M16 handoff package found)"
+        Write-Output "HANDOFF_PACKAGE_CHECK: SKIPPED (no handoff package found)"
         exit 0
     }
 
     $PackagePath = $latest.FullName
+}
+
+if ([string]::IsNullOrWhiteSpace($Milestone)) {
+    $fileName = [System.IO.Path]::GetFileName($PackagePath)
+    if ($fileName -match '^Warzone_([^_]+)_source_') {
+        $Milestone = $Matches[1]
+    }
 }
 
 if (-not (Test-Path $PackagePath)) {
@@ -75,16 +84,21 @@ try {
         exit 1
     }
 
+    $summaryPath = "Docs/engineering/M16_validation_summary_2026-07-11.md"
+    if ($Milestone -eq "U1") {
+        $summaryPath = "Docs/engineering/U1_playtest_feedback_fix_summary_2026-07-11.md"
+    }
+
     $summaryFound = $false
     foreach ($entry in $entries) {
-        if ($entry.FullName -eq "Docs/engineering/M16_validation_summary_2026-07-11.md") {
+        if ($entry.FullName -eq $summaryPath) {
             $summaryFound = $true
             break
         }
     }
 
     if (-not $summaryFound) {
-        Write-Output "HANDOFF_PACKAGE_CHECK: FAILED (missing M16 validation summary)"
+        Write-Output "HANDOFF_PACKAGE_CHECK: FAILED (missing validation summary: $summaryPath)"
         exit 1
     }
 }

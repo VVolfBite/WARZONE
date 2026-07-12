@@ -133,3 +133,17 @@ Required first-pass checks:
 3. run static project checks
 4. verify asmdef graph
 5. only then inspect sandbox scenes or launcher wiring
+
+## 13. U1 Playtest Feedback Checks
+
+After U1, prioritize these manual sandbox checks:
+
+1. Hold `P` pauses only while held.
+2. `Space` toggles persistent pause.
+3. Hold `Shift` shows the current squad command plan overlay.
+4. Clicking a member selects the squad and does not create a member micro-control feel.
+5. Right-click movement records a squad command and uses ground targeting.
+6. Right-clicking over members, obstacles, nodes, or buildings still resolves the command target to ground.
+7. Walls and building blockers stop movement and emit `MovementBlocked`.
+8. Low cover with `BlocksMovement=false` does not stop movement.
+9. The debug panel shows selected squad, current order, desired position, recent commands, and raycast diagnostics.

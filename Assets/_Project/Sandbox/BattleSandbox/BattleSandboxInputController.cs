@@ -19,6 +19,8 @@ namespace Warzone.Sandbox.BattleSandbox
         private Action<Vec2> _spawnSmokeAction;
         private Action<Vec2> _spawnFireAction;
         private Action<Vec2> _spawnLightAction;
+        private string _lastCommandRaycastHitName;
+        private bool _lastCommandUsedGroundFallback;
 
         public void Initialize(BattleSandboxRuntimeContext context, UnityEngine.Camera mainCamera, Action resetAction)
         {
@@ -59,6 +61,8 @@ namespace Warzone.Sandbox.BattleSandbox
             }
 
             HandlePauseToggle();
+            HandlePauseHold();
+            HandleCommandPlanVisibility();
             HandleReset();
             HandleDebugLineToggle();
             HandleDebugPressureKeys();
@@ -70,10 +74,23 @@ namespace Warzone.Sandbox.BattleSandbox
         private void HandlePauseToggle()
         {
             Keyboard keyboard = Keyboard.current;
-            if (keyboard != null && (keyboard.pKey.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame))
+            if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
             {
                 _context.TogglePause();
             }
+        }
+
+        private void HandlePauseHold()
+        {
+            Keyboard keyboard = Keyboard.current;
+            _context.SetHoldPause(keyboard != null && keyboard.pKey.isPressed);
+        }
+
+        private void HandleCommandPlanVisibility()
+        {
+            Keyboard keyboard = Keyboard.current;
+            bool showPlan = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+            _context.SetCommandPlanVisible(showPlan);
         }
 
         private void HandleReset()
@@ -139,8 +156,9 @@ namespace Warzone.Sandbox.BattleSandbox
             if (keyboard.bKey.wasPressedThisFrame && _spawnSmokeAction != null)
             {
                 Vec2 position;
-                if (TryGetGroundPosition(out position))
+                if (TryGetCommandGroundPosition(out position))
                 {
+                    RecordInput("B", "SpawnSmoke", position);
                     _spawnSmokeAction(position);
                 }
             }
@@ -148,8 +166,9 @@ namespace Warzone.Sandbox.BattleSandbox
             if (keyboard.fKey.wasPressedThisFrame && _spawnFireAction != null)
             {
                 Vec2 position;
-                if (TryGetGroundPosition(out position))
+                if (TryGetCommandGroundPosition(out position))
                 {
+                    RecordInput("F", "SpawnFire", position);
                     _spawnFireAction(position);
                 }
             }
@@ -157,8 +176,9 @@ namespace Warzone.Sandbox.BattleSandbox
             if (keyboard.lKey.wasPressedThisFrame && _spawnLightAction != null)
             {
                 Vec2 position;
-                if (TryGetGroundPosition(out position))
+                if (TryGetCommandGroundPosition(out position))
                 {
+                    RecordInput("L", "SpawnLight", position);
                     _spawnLightAction(position);
                 }
             }
@@ -199,10 +219,11 @@ namespace Warzone.Sandbox.BattleSandbox
 
             if (mouse != null && mouse.rightButton.wasPressedThisFrame)
             {
-                RaycastHit hit;
-                if (TryRaycast(out hit))
+                Vec2 position;
+                if (TryGetCommandGroundPosition(out position))
                 {
-                    _context.TacticalCommandService.MoveSquad(_context.SelectedSquadId, new Vec2(hit.point.x, hit.point.z));
+                    _context.TacticalCommandService.MoveSquad(_context.SelectedSquadId, position);
+                    RecordSquadCommand("Move", position, "RMB");
                 }
             }
 
@@ -213,10 +234,11 @@ namespace Warzone.Sandbox.BattleSandbox
 
             if (keyboard.dKey.wasPressedThisFrame)
             {
-                RaycastHit hit;
-                if (TryRaycast(out hit))
+                Vec2 position;
+                if (TryGetCommandGroundPosition(out position))
                 {
-                    _context.TacticalCommandService.DefendArea(_context.SelectedSquadId, new Vec2(hit.point.x, hit.point.z), 8f);
+                    _context.TacticalCommandService.DefendArea(_context.SelectedSquadId, position, 8f);
+                    RecordSquadCommand("Defend", position, "D");
                 }
             }
 
@@ -229,6 +251,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 if (node != null)
                 {
                     _context.TacticalCommandService.SearchPoint(_context.SelectedSquadId, node.NodeId);
+                    RecordSquadCommand("Search", node.Position, "S");
                 }
             }
 
@@ -238,6 +261,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 if (node != null)
                 {
                     _context.TacticalCommandService.ExtractSquad(_context.SelectedSquadId, node.NodeId);
+                    RecordSquadCommand("Extract", node.Position, "E");
                 }
             }
 
@@ -249,16 +273,19 @@ namespace Warzone.Sandbox.BattleSandbox
                     if (keyboard.gKey.wasPressedThisFrame)
                     {
                         _context.TacticalCommandService.EnterBuilding(_context.SelectedSquadId, building.BuildingId);
+                        RecordSquadCommand("EnterBuilding", building.Position, "G");
                     }
 
                     if (keyboard.hKey.wasPressedThisFrame)
                     {
                         _context.TacticalCommandService.DefendBuilding(_context.SelectedSquadId, building.BuildingId);
+                        RecordSquadCommand("DefendBuilding", building.Position, "H");
                     }
 
                     if (keyboard.jKey.wasPressedThisFrame)
                     {
                         _context.TacticalCommandService.SearchBuilding(_context.SelectedSquadId, building.BuildingId);
+                        RecordSquadCommand("SearchBuilding", building.Position, "J");
                     }
                 }
             }
@@ -277,17 +304,77 @@ namespace Warzone.Sandbox.BattleSandbox
             return Physics.Raycast(ray, out hit, 1000f);
         }
 
-        private bool TryGetGroundPosition(out Vec2 position)
+        private bool TryGetCommandGroundPosition(out Vec2 position)
         {
-            RaycastHit hit;
-            if (TryRaycast(out hit))
+            Mouse mouse = Mouse.current;
+            if (_mainCamera == null || mouse == null)
             {
-                position = new Vec2(hit.point.x, hit.point.z);
+                position = Vec2.Zero;
+                _lastCommandRaycastHitName = "-";
+                _lastCommandUsedGroundFallback = false;
+                return false;
+            }
+
+            Ray ray = _mainCamera.ScreenPointToRay(mouse.position.ReadValue());
+            RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
+            Array.Sort(hits, CompareRaycastHitDistance);
+            _lastCommandRaycastHitName = hits.Length > 0 && hits[0].collider != null ? hits[0].collider.name : "-";
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (IsGroundHit(hits[i]))
+                {
+                    position = new Vec2(hits[i].point.x, hits[i].point.z);
+                    _lastCommandUsedGroundFallback = false;
+                    return true;
+                }
+            }
+
+            float enter;
+            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+            if (groundPlane.Raycast(ray, out enter))
+            {
+                Vector3 point = ray.GetPoint(enter);
+                position = new Vec2(point.x, point.z);
+                _lastCommandUsedGroundFallback = true;
                 return true;
             }
 
             position = Vec2.Zero;
+            _lastCommandUsedGroundFallback = false;
             return false;
+        }
+
+        private static int CompareRaycastHitDistance(RaycastHit left, RaycastHit right)
+        {
+            return left.distance.CompareTo(right.distance);
+        }
+
+        private static bool IsGroundHit(RaycastHit hit)
+        {
+            if (hit.collider == null)
+            {
+                return false;
+            }
+
+            GameObject gameObject = hit.collider.gameObject;
+            if (gameObject.name.IndexOf("Ground", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            string layerName = LayerMask.LayerToName(gameObject.layer);
+            return layerName != null && layerName.IndexOf("Ground", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void RecordSquadCommand(string commandName, Vec2 desiredPosition, string inputAction)
+        {
+            _context.RecordSquadCommand(commandName, desiredPosition, Time.frameCount, Time.time);
+            RecordInput(inputAction, commandName, desiredPosition);
+        }
+
+        private void RecordInput(string inputAction, string commandName, Vec2 position)
+        {
+            _context.RecordInput(inputAction, commandName, position, Time.frameCount, Time.time, _lastCommandRaycastHitName, _lastCommandUsedGroundFallback);
         }
     }
 }

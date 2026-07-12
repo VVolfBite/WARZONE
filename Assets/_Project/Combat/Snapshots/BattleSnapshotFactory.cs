@@ -119,6 +119,7 @@ namespace Warzone.Combat
                         obstacleState.ObstacleType,
                         obstacleState.Position,
                         obstacleState.Radius,
+                        obstacleState.BlocksMovement,
                         obstacleState.BlocksLineOfSight,
                         obstacleState.BlocksFire,
                         obstacleState.ProvidesCover,

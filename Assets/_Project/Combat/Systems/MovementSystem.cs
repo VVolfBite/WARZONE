@@ -68,7 +68,19 @@ namespace Warzone.Combat
             float stepDistance = SuppressionRule.ApplyMovementPenalty(memberState.MovementSpeed, memberState.IsSuppressed) * deltaTimeSeconds;
             if (stepDistance >= distance)
             {
-                memberState.UpdatePosition(memberState.CurrentIntent.TargetPosition);
+                Vec2 finalPosition = memberState.CurrentIntent.TargetPosition;
+                TacticalObstacleState finalBlocker;
+                Vec2 finalSafePosition;
+                if (MovementBlockingRule.TryProjectMovement(battleState, memberState.Position, finalPosition, out finalBlocker, out finalSafePosition))
+                {
+                    memberState.ClearOccupiedTacticalNode();
+                    memberState.UpdatePosition(finalSafePosition);
+                    memberState.UpdateFacing(direction);
+                    battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MovementBlocked, memberState.SquadId, memberState.MemberId, finalBlocker.ObstacleId.ToString()));
+                    return;
+                }
+
+                memberState.UpdatePosition(finalPosition);
                 CompleteIntent(memberState);
                 memberState.UpdateFacing(direction);
                 UpdateOccupiedNode(battleState, memberState);
@@ -77,7 +89,18 @@ namespace Warzone.Combat
             }
 
             memberState.ClearOccupiedTacticalNode();
-            memberState.UpdatePosition(memberState.Position + (direction * stepDistance));
+            Vec2 nextPosition = memberState.Position + (direction * stepDistance);
+            TacticalObstacleState blocker;
+            Vec2 safePosition;
+            if (MovementBlockingRule.TryProjectMovement(battleState, memberState.Position, nextPosition, out blocker, out safePosition))
+            {
+                memberState.UpdatePosition(safePosition);
+                memberState.UpdateFacing(direction);
+                battleState.AddEvent(new BattleEventRecord(BattleEventTypes.MovementBlocked, memberState.SquadId, memberState.MemberId, blocker.ObstacleId.ToString()));
+                return;
+            }
+
+            memberState.UpdatePosition(nextPosition);
             memberState.UpdateFacing(direction);
         }
 

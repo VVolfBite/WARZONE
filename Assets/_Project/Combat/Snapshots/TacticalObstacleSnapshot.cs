@@ -9,6 +9,7 @@ namespace Warzone.Combat
             TacticalObstacleType obstacleType,
             Vec2 position,
             float radius,
+            bool blocksMovement,
             bool blocksLineOfSight,
             bool blocksFire,
             bool providesCover,
@@ -19,6 +20,7 @@ namespace Warzone.Combat
             ObstacleType = obstacleType;
             Position = position;
             Radius = radius;
+            BlocksMovement = blocksMovement;
             BlocksLineOfSight = blocksLineOfSight;
             BlocksFire = blocksFire;
             ProvidesCover = providesCover;
@@ -30,6 +32,7 @@ namespace Warzone.Combat
         public TacticalObstacleType ObstacleType { get; private set; }
         public Vec2 Position { get; private set; }
         public float Radius { get; private set; }
+        public bool BlocksMovement { get; private set; }
         public bool BlocksLineOfSight { get; private set; }
         public bool BlocksFire { get; private set; }
         public bool ProvidesCover { get; private set; }

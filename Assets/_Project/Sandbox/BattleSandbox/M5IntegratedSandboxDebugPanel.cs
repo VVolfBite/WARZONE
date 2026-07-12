@@ -110,6 +110,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 TacticalObstacleSnapshot obstacle = _snapshot.Obstacles[i];
                 GUILayout.Label(
                     "#" + obstacle.ObstacleId + " " + obstacle.ObstacleType +
+                    " move " + obstacle.BlocksMovement +
                     " los " + obstacle.BlocksLineOfSight +
                     " fire " + obstacle.BlocksFire +
                     " cover " + obstacle.ProvidesCover +

@@ -16,6 +16,7 @@ namespace Warzone.Sandbox.BattleSandbox
         private readonly Dictionary<int, SandboxEnvironmentalZoneView> _zoneViews = new Dictionary<int, SandboxEnvironmentalZoneView>();
 
         private SandboxFireLineView _fireLineView;
+        private SandboxCommandPlanView _commandPlanView;
 
         private void Awake()
         {
@@ -77,7 +78,7 @@ namespace Warzone.Sandbox.BattleSandbox
             RebuildFromSnapshot(battleState != null ? BattleSnapshotFactory.Create(battleState) : null);
         }
 
-        public void Refresh(BattleSnapshot snapshot, int selectedSquadId, bool showFireLines)
+        public void Refresh(BattleSnapshot snapshot, int selectedSquadId, bool showFireLines, bool showCommandPlan)
         {
             if (snapshot == null)
             {
@@ -102,7 +103,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 if (_memberViews.TryGetValue(member.MemberId, out memberView) && memberView != null)
                 {
                     memberView.transform.position = new Vector3(member.Position.X, member.IsAlive ? 0.6f : 0.15f, member.Position.Y);
-                    memberView.ApplyState(member.SquadId == selectedSquadId, !member.IsAlive, member.IsExtracted, member.IsSuppressed, member.IsBroken || member.IsRetreating);
+                    memberView.ApplyState(!member.IsAlive, member.IsExtracted, member.IsSuppressed, member.IsBroken || member.IsRetreating);
                 }
             }
 
@@ -147,6 +148,7 @@ namespace Warzone.Sandbox.BattleSandbox
             }
 
             _fireLineView.Render(snapshot, _memberViews, _enemyViews, showFireLines);
+            _commandPlanView.Render(snapshot, _memberViews, _nodeViews, selectedSquadId, showCommandPlan);
         }
 
         public void ClearViews()
@@ -176,6 +178,15 @@ namespace Warzone.Sandbox.BattleSandbox
                 if (_fireLineView == null)
                 {
                     _fireLineView = gameObject.AddComponent<SandboxFireLineView>();
+                }
+            }
+
+            if (_commandPlanView == null)
+            {
+                _commandPlanView = GetComponent<SandboxCommandPlanView>();
+                if (_commandPlanView == null)
+                {
+                    _commandPlanView = gameObject.AddComponent<SandboxCommandPlanView>();
                 }
             }
         }
@@ -246,7 +257,7 @@ namespace Warzone.Sandbox.BattleSandbox
             root.name = "SandboxSquad_" + squadState.SquadId;
             root.transform.SetParent(transform, false);
             root.transform.position = new Vector3(squadState.Position.X, 0.25f, squadState.Position.Y);
-            root.transform.localScale = new Vector3(0.45f, 0.1f, 0.45f);
+            root.transform.localScale = new Vector3(0.75f, 0.08f, 0.75f);
             Renderer renderer = root.GetComponent<Renderer>();
             renderer.material.color = new Color(0.65f, 0.65f, 0.2f);
 
@@ -353,6 +364,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 obstacleState.ObstacleType,
                 obstacleState.Position,
                 obstacleState.Radius,
+                obstacleState.BlocksMovement,
                 obstacleState.BlocksLineOfSight,
                 obstacleState.BlocksFire,
                 obstacleState.ProvidesCover,
@@ -372,11 +384,15 @@ namespace Warzone.Sandbox.BattleSandbox
             {
                 height = 0.1f;
             }
+            else if (obstacleState.BlocksMovement)
+            {
+                height = obstacleState.ObstacleType == TacticalObstacleType.LowCover ? 0.9f : 1.8f;
+            }
 
             root.transform.localScale = new Vector3(obstacleState.Radius * 1.6f, height, obstacleState.Radius * 1.6f);
             Renderer renderer = root.GetComponent<Renderer>();
             SandboxObstacleView view = root.AddComponent<SandboxObstacleView>();
-            view.Initialize(obstacleState.ObstacleId, obstacleState.ObstacleType, renderer);
+            view.Initialize(obstacleState.ObstacleId, obstacleState.ObstacleType, obstacleState.BlocksMovement, renderer);
             _obstacleViews[obstacleState.ObstacleId] = view;
         }
 

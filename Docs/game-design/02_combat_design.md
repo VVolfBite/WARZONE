@@ -138,3 +138,21 @@ targets.
 The player still commands squads, not individuals. `EnterBuilding`, `DefendBuilding`,
 and `SearchBuilding` are squad-level intents; the system assigns members to
 entrances, windows, interior points, and search nodes automatically.
+
+## 14. U1 Playtest Feedback Addendum
+
+The player command object is the squad. Members are system-operated execution
+units. Member target lines and ghost markers are debug visibility for the derived
+plan, not an individual command entry point.
+
+Clicking a member may select its owning squad, but the UI should communicate
+selected squad state through the squad marker, squad label, current order, and
+desired position. Members should primarily show affiliation and status.
+
+Obstacles now have first-pass movement blocking when `BlocksMovement` is true.
+This is intentionally minimal: it prevents crossing a blocking obstacle and emits
+`MovementBlocked`, but it does not compute paths around the obstacle. Players must
+currently command squads around blockers manually.
+
+Hold `Shift` shows the current command plan only. It is not a multi-step queued
+command system.

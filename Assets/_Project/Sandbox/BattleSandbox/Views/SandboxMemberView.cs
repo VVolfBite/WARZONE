@@ -25,7 +25,7 @@ namespace Warzone.Sandbox.BattleSandbox
             cachedRenderer = renderer;
         }
 
-        public void ApplyState(bool isSelected, bool isDead, bool isExtracted, bool isSuppressed, bool isBrokenOrRetreating)
+        public void ApplyState(bool isDead, bool isExtracted, bool isSuppressed, bool isBrokenOrRetreating)
         {
             if (cachedRenderer == null)
             {
@@ -41,26 +41,26 @@ namespace Warzone.Sandbox.BattleSandbox
 
             if (isExtracted)
             {
-                cachedRenderer.material.color = isSelected ? new Color(0.7f, 1f, 0.7f) : new Color(0.45f, 0.8f, 0.45f);
+                cachedRenderer.material.color = new Color(0.45f, 0.8f, 0.45f);
                 transform.localScale = new Vector3(0.45f, 0.35f, 0.45f);
                 return;
             }
 
             if (isBrokenOrRetreating)
             {
-                cachedRenderer.material.color = isSelected ? new Color(1f, 0.72f, 0.25f) : new Color(0.92f, 0.48f, 0.18f);
+                cachedRenderer.material.color = new Color(0.92f, 0.48f, 0.18f);
                 transform.localScale = new Vector3(0.52f, 0.52f, 0.52f);
                 return;
             }
 
             if (isSuppressed)
             {
-                cachedRenderer.material.color = isSelected ? new Color(0.95f, 0.92f, 0.32f) : new Color(0.82f, 0.74f, 0.2f);
+                cachedRenderer.material.color = new Color(0.82f, 0.74f, 0.2f);
                 transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
                 return;
             }
 
-            cachedRenderer.material.color = isSelected ? new Color(0.2f, 0.85f, 1f) : new Color(0.25f, 0.55f, 0.75f);
+            cachedRenderer.material.color = new Color(0.25f, 0.55f, 0.75f);
             transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
         }
     }

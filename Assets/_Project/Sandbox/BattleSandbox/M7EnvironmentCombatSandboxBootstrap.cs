@@ -84,7 +84,7 @@ namespace Warzone.Sandbox.BattleSandbox
                 return;
             }
 
-            _viewPresenter.Refresh(_context.GetSnapshot(), _context.SelectedSquadId, _context.ShowFireLines);
+            _viewPresenter.Refresh(_context.GetSnapshot(), _context.SelectedSquadId, _context.ShowFireLines, _context.ShowCommandPlan);
             _debugPanel.Bind(_context.GetSnapshot(), _context);
         }
 

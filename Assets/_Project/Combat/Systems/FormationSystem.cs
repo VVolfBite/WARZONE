@@ -265,8 +265,14 @@ namespace Warzone.Combat
 
         private static void ReserveNodeForMember(BattleState battleState, BattleSquadState squadState, BattleMemberState memberState, TacticalNodeState nodeState, MemberIntentType intentType)
         {
+            bool isSameIntent = IsSameIntent(memberState, intentType, nodeState.Position, nodeState.NodeId);
             nodeState.ReserveFor(memberState.MemberId);
             ApplyIntent(memberState, intentType, nodeState.Position, nodeState.NodeId);
+            if (isSameIntent)
+            {
+                return;
+            }
+
             battleState.AddEvent(new BattleEventRecord(BattleEventTypes.TacticalNodeReserved, squadState.SquadId, memberState.MemberId, nodeState.NodeId.ToString()));
 
             if (intentType == MemberIntentType.TakeCover || nodeState.NodeType == TacticalNodeType.Window || nodeState.NodeType == TacticalNodeType.Doorway)
@@ -317,6 +323,19 @@ namespace Warzone.Combat
             {
                 memberState.CurrentIntent.UpdateTarget(targetPosition, tacticalNodeId);
             }
+        }
+
+        private static bool IsSameIntent(BattleMemberState memberState, MemberIntentType intentType, Vec2 targetPosition, int? tacticalNodeId)
+        {
+            if (memberState == null || memberState.CurrentIntent == null)
+            {
+                return false;
+            }
+
+            Vec2 delta = memberState.CurrentIntent.TargetPosition - targetPosition;
+            return memberState.CurrentIntent.IntentType == intentType &&
+                   delta.LengthSquared <= 0.0001f &&
+                   memberState.CurrentIntent.TacticalNodeId == tacticalNodeId;
         }
     }
 }
