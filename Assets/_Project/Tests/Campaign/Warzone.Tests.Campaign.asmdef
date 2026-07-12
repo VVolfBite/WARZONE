@@ -4,7 +4,8 @@
     "references": [
         "Warzone.Core",
         "Warzone.Content",
-        "Warzone.Campaign"
+        "Warzone.Campaign",
+        "Warzone.Application"
     ],
     "includePlatforms": [
         "Editor"

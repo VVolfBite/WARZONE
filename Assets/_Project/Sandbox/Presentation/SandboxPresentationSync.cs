@@ -4,7 +4,12 @@ using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Content.Definitions;
 using Warzone.Core;
+using Warzone.Runtime.Audio;
+using Warzone.Runtime.Physics;
+using Warzone.Runtime.UI;
 using Warzone.Runtime.Views;
+using Warzone.Sandbox.Selection;
+using Warzone.Sandbox.UI;
 
 namespace Warzone.Sandbox.Presentation
 {
@@ -12,14 +17,14 @@ namespace Warzone.Sandbox.Presentation
     {
         private readonly Dictionary<int, SandboxSquadView> _squadViews = new Dictionary<int, SandboxSquadView>();
         private readonly Dictionary<BattleEntityId, SandboxSquadView> _entityViews = new Dictionary<BattleEntityId, SandboxSquadView>();
-        private readonly Camera _mainCamera;
+        private readonly UnityEngine.Camera _mainCamera;
         private readonly SandboxSelectionInfoOverlay _selectionInfoOverlay;
         private readonly AudioService _audioService;
         private readonly SimpleObjectPool<DamageNumberView> _damageNumberPool;
         private readonly SimpleObjectPool<MuzzleFlashView> _muzzleFlashPool;
         private readonly SimpleObjectPool<CommandMarkerView> _commandMarkerPool;
 
-        public SandboxPresentationSync(Camera mainCamera, SandboxSelectionInfoOverlay selectionInfoOverlay, AudioService audioService = null)
+        public SandboxPresentationSync(UnityEngine.Camera mainCamera, SandboxSelectionInfoOverlay selectionInfoOverlay, AudioService audioService = null)
         {
             _mainCamera = mainCamera;
             _selectionInfoOverlay = selectionInfoOverlay;

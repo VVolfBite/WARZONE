@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Warzone.Combat;
+using Warzone.Sandbox.Selection;
+using Warzone.Sandbox.Waves;
 
 namespace Warzone.Sandbox.UI
 {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Warzone.Combat;
+using Warzone.Core.Math;
 
 namespace Warzone.Sandbox.Input
 {
@@ -16,7 +17,7 @@ namespace Warzone.Sandbox.Input
 
         public void IssueMove(BattleSession battleSession, IReadOnlyList<int> orderedSquadIds, UnityEngine.Vector3 worldPoint, bool queue)
         {
-            List<System.Numerics.Vector2> destinations = BuildFormationDestinations(new System.Numerics.Vector2(worldPoint.x, worldPoint.z), orderedSquadIds.Count);
+            List<Vec2> destinations = BuildFormationDestinations(new Vec2(worldPoint.x, worldPoint.z), orderedSquadIds.Count);
             for (int i = 0; i < orderedSquadIds.Count; i++)
             {
                 battleSession.ExecuteCommand(new Command(
@@ -40,7 +41,7 @@ namespace Warzone.Sandbox.Input
 
         public void IssueFormationMove(BattleSession battleSession, IReadOnlyList<int> orderedSquadIds, UnityEngine.Vector3 worldPoint, int formationIndex, bool queue)
         {
-            List<System.Numerics.Vector2> destinations = BuildFormationDestinations(new System.Numerics.Vector2(worldPoint.x, worldPoint.z), orderedSquadIds.Count, formationIndex);
+            List<Vec2> destinations = BuildFormationDestinations(new Vec2(worldPoint.x, worldPoint.z), orderedSquadIds.Count, formationIndex);
             for (int i = 0; i < orderedSquadIds.Count; i++)
             {
                 battleSession.ExecuteCommand(new Command(
@@ -51,9 +52,9 @@ namespace Warzone.Sandbox.Input
             }
         }
 
-        private static List<System.Numerics.Vector2> BuildFormationDestinations(System.Numerics.Vector2 center, int count, int formationIndex = 0)
+        private static List<Vec2> BuildFormationDestinations(Vec2 center, int count, int formationIndex = 0)
         {
-            List<System.Numerics.Vector2> destinations = new List<System.Numerics.Vector2>(count);
+            List<Vec2> destinations = new List<Vec2>(count);
             if (count <= 0)
             {
                 return destinations;
@@ -72,7 +73,7 @@ namespace Warzone.Sandbox.Input
                 for (int i = 0; i < count; i++)
                 {
                     float offsetX = (i * lineSpacing) - (lineWidth * 0.5f);
-                    destinations.Add(new System.Numerics.Vector2(center.X + offsetX, center.Y));
+                    destinations.Add(new Vec2(center.X + offsetX, center.Y));
                 }
 
                 return destinations;
@@ -85,7 +86,7 @@ namespace Warzone.Sandbox.Input
                 for (int i = 0; i < count; i++)
                 {
                     float offsetY = (i * columnSpacing) - (columnHeight * 0.5f);
-                    destinations.Add(new System.Numerics.Vector2(center.X, center.Y + offsetY));
+                    destinations.Add(new Vec2(center.X, center.Y + offsetY));
                 }
 
                 return destinations;
@@ -97,7 +98,7 @@ namespace Warzone.Sandbox.Input
                 for (int i = 0; i < count; i++)
                 {
                     float angle = ((float)i / count) * Mathf.PI * 2f;
-                    destinations.Add(new System.Numerics.Vector2(
+                    destinations.Add(new Vec2(
                         center.X + (Mathf.Cos(angle) * radius),
                         center.Y + (Mathf.Sin(angle) * radius)));
                 }
@@ -117,7 +118,7 @@ namespace Warzone.Sandbox.Input
                 int column = i % columns;
                 float offsetX = (column * spacing) - (width * 0.5f);
                 float offsetY = (row * spacing) - (height * 0.5f);
-                destinations.Add(new System.Numerics.Vector2(center.X + offsetX, center.Y + offsetY));
+                destinations.Add(new Vec2(center.X + offsetX, center.Y + offsetY));
             }
 
             return destinations;

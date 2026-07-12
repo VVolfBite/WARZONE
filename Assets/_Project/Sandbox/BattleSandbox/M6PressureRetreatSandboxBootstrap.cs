@@ -13,7 +13,7 @@ namespace Warzone.Sandbox.BattleSandbox
         private BattleSandboxViewPresenter _viewPresenter;
         private BattleSandboxInputController _inputController;
         private M6PressureRetreatDebugPanel _debugPanel;
-        private Camera _mainCamera;
+        private UnityEngine.Camera _mainCamera;
 
         private void Awake()
         {
@@ -232,7 +232,7 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void EnsureCamera()
         {
-            _mainCamera = Camera.main;
+            _mainCamera = UnityEngine.Camera.main;
             if (_mainCamera != null)
             {
                 return;
@@ -242,7 +242,7 @@ namespace Warzone.Sandbox.BattleSandbox
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(1f, 24f, -16f);
             cameraObject.transform.rotation = Quaternion.Euler(58f, 0f, 0f);
-            _mainCamera = cameraObject.AddComponent<Camera>();
+            _mainCamera = cameraObject.AddComponent<UnityEngine.Camera>();
             cameraObject.AddComponent<AudioListener>();
         }
 

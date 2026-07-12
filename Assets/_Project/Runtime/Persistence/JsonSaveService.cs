@@ -51,12 +51,12 @@ namespace Warzone.Runtime.Persistence
 
         private static string GetSettingsPath()
         {
-            return Path.Combine(Application.persistentDataPath, SettingsFileName);
+            return Path.Combine(UnityEngine.Application.persistentDataPath, SettingsFileName);
         }
 
         private static string GetBestScorePath(string missionId)
         {
-            return Path.Combine(Application.persistentDataPath, BestScorePrefix + missionId + ".json");
+            return Path.Combine(UnityEngine.Application.persistentDataPath, BestScorePrefix + missionId + ".json");
         }
 
         [System.Serializable]

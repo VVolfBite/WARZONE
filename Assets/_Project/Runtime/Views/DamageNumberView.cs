@@ -4,14 +4,14 @@ namespace Warzone.Runtime.Views
 {
     public sealed class DamageNumberView : PooledTransientView
     {
-        private Camera _camera;
+        private UnityEngine.Camera _camera;
         private string _text;
         private Color _color;
         private float _remainingLifetime;
         private Vector3 _velocity;
         private System.Action<DamageNumberView> _release;
 
-        public void Initialize(Camera camera, string text, Color color, System.Action<DamageNumberView> release)
+        public void Initialize(UnityEngine.Camera camera, string text, Color color, System.Action<DamageNumberView> release)
         {
             _camera = camera;
             _text = text;

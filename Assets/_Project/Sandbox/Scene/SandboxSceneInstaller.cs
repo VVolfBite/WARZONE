@@ -1,9 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using Warzone.Application;
+using Warzone.Runtime.Audio;
+using Warzone.Runtime.Bootstrap;
+using Warzone.Runtime.Camera;
+using Warzone.Runtime.Physics;
 using Warzone.Runtime.UI;
+using Warzone.Runtime.Views;
 using Warzone.Campaign;
 using Warzone.Runtime.Persistence;
+using Warzone.Sandbox.Audio;
+using Warzone.Sandbox.Bootstrap;
+using Warzone.Sandbox.Factories;
+using Warzone.Sandbox.Presentation;
 
 namespace Warzone.Sandbox.Scene
 {
@@ -12,14 +21,14 @@ namespace Warzone.Sandbox.Scene
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
-            Scene activeScene = SceneManager.GetActiveScene();
+            UnityEngine.SceneManagement.Scene activeScene = SceneManager.GetActiveScene();
             if (!activeScene.IsValid() || activeScene.name != "SampleScene")
             {
                 return;
             }
 
             EnsureGroundPlane();
-            Camera mainCamera = EnsureCamera();
+            UnityEngine.Camera mainCamera = EnsureCamera();
             BattleRuntimeHost battleRuntimeHost = new GameObject("BattleRuntimeHost").AddComponent<BattleRuntimeHost>();
             AudioService audioService = new GameObject("AudioService").AddComponent<AudioService>();
             GameFlow gameFlow = new GameFlow();
@@ -104,9 +113,9 @@ namespace Warzone.Sandbox.Scene
             terrainZoneView.Initialize(color, scale);
         }
 
-        private static Camera EnsureCamera()
+        private static UnityEngine.Camera EnsureCamera()
         {
-            Camera mainCamera = Camera.main;
+            UnityEngine.Camera mainCamera = UnityEngine.Camera.main;
             if (mainCamera != null)
             {
                 if (mainCamera.GetComponent<RtsCameraController>() == null)
@@ -121,7 +130,7 @@ namespace Warzone.Sandbox.Scene
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(0f, 18f, -12f);
             cameraObject.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
-            mainCamera = cameraObject.AddComponent<Camera>();
+            mainCamera = cameraObject.AddComponent<UnityEngine.Camera>();
             cameraObject.AddComponent<AudioListener>();
             cameraObject.AddComponent<RtsCameraController>();
             return mainCamera;

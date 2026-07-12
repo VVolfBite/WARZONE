@@ -3,6 +3,17 @@ using UnityEngine;
 using Warzone.Application;
 using Warzone.Combat;
 using Warzone.Content;
+using Warzone.Runtime.Audio;
+using Warzone.Runtime.Bootstrap;
+using Warzone.Runtime.Physics;
+using Warzone.Runtime.UI;
+using Warzone.Sandbox.Camera;
+using Warzone.Sandbox.Factories;
+using Warzone.Sandbox.Input;
+using Warzone.Sandbox.Presentation;
+using Warzone.Sandbox.Selection;
+using Warzone.Sandbox.UI;
+using Warzone.Sandbox.Waves;
 
 namespace Warzone.Sandbox.Bootstrap
 {
@@ -25,11 +36,11 @@ namespace Warzone.Sandbox.Bootstrap
         private bool _isPaused;
         private bool _hasPublishedBattleResult;
         private ObstacleVolume[] _obstacleVolumes = new ObstacleVolume[0];
-        private Camera _mainCamera;
+        private UnityEngine.Camera _mainCamera;
         private int _timeScaleIndex = 2;
         private int _formationIndex;
 
-        public void Configure(BattleRuntimeHost battleRuntimeHost, Camera mainCamera)
+        public void Configure(BattleRuntimeHost battleRuntimeHost, UnityEngine.Camera mainCamera)
         {
             _battleRuntimeHost = battleRuntimeHost;
             _mainCamera = mainCamera;

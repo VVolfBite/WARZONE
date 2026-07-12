@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using Warzone.Combat;
+using Warzone.Sandbox.Selection;
 
 namespace Warzone.Sandbox.Camera
 {
     public sealed class SandboxCameraFocusController
     {
-        public void FocusOnSelection(Camera mainCamera, SandboxSelectionService selectionService, BattleSession battleSession)
+        public void FocusOnSelection(UnityEngine.Camera mainCamera, SandboxSelectionService selectionService, BattleSession battleSession)
         {
             if (mainCamera == null || battleSession == null || selectionService == null || selectionService.SelectedSquadIds.Count == 0)
             {

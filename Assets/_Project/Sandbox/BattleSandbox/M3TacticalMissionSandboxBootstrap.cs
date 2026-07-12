@@ -18,7 +18,7 @@ namespace Warzone.Sandbox.BattleSandbox
         private BattleService _battleService;
         private TacticalCommandService _tacticalCommandService;
         private M3TacticalMissionDebugPanel _debugPanel;
-        private Camera _mainCamera;
+        private UnityEngine.Camera _mainCamera;
         private bool _isPaused;
         private int _selectedSquadId = 1;
 
@@ -400,7 +400,7 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void EnsureCamera()
         {
-            _mainCamera = Camera.main;
+            _mainCamera = UnityEngine.Camera.main;
             if (_mainCamera != null)
             {
                 return;
@@ -410,7 +410,7 @@ namespace Warzone.Sandbox.BattleSandbox
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(1f, 22f, -14f);
             cameraObject.transform.rotation = Quaternion.Euler(58f, 0f, 0f);
-            _mainCamera = cameraObject.AddComponent<Camera>();
+            _mainCamera = cameraObject.AddComponent<UnityEngine.Camera>();
             cameraObject.AddComponent<AudioListener>();
         }
 

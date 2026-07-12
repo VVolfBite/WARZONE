@@ -1,15 +1,18 @@
 using System;
-using System.Web.Script.Serialization;
+using System.Text.Json;
 
 namespace Warzone.Application.Save
 {
     public sealed class JsonSaveGameSerializer : ISaveGameSerializer
     {
-        private readonly JavaScriptSerializer _serializer = new JavaScriptSerializer();
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            PropertyNameCaseInsensitive = true
+        };
 
         public JsonSaveGameSerializer()
         {
-            _serializer.MaxJsonLength = int.MaxValue;
         }
 
         public string Serialize(SaveGameSnapshot snapshot)
@@ -19,7 +22,7 @@ namespace Warzone.Application.Save
                 return null;
             }
 
-            return _serializer.Serialize(snapshot);
+            return JsonSerializer.Serialize(snapshot, SerializerOptions);
         }
 
         public bool TryDeserialize(string data, out SaveGameSnapshot snapshot, out string reason)
@@ -35,7 +38,7 @@ namespace Warzone.Application.Save
 
             try
             {
-                snapshot = _serializer.Deserialize<SaveGameSnapshot>(data);
+                snapshot = JsonSerializer.Deserialize<SaveGameSnapshot>(data, SerializerOptions);
                 if (snapshot == null)
                 {
                     reason = "Save data could not be parsed.";

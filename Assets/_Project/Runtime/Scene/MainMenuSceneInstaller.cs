@@ -12,13 +12,13 @@ namespace Warzone.Runtime.Scene
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Install()
         {
-            Scene activeScene = SceneManager.GetActiveScene();
+            UnityEngine.SceneManagement.Scene activeScene = SceneManager.GetActiveScene();
             if (!activeScene.IsValid() || activeScene.name != "MainMenu")
             {
                 return;
             }
 
-            Camera mainCamera = EnsureCamera();
+            UnityEngine.Camera mainCamera = EnsureCamera();
             mainCamera.backgroundColor = new Color(0.06f, 0.08f, 0.1f);
             mainCamera.clearFlags = CameraClearFlags.SolidColor;
 
@@ -29,9 +29,9 @@ namespace Warzone.Runtime.Scene
             menuScreen.Configure(controller);
         }
 
-        private static Camera EnsureCamera()
+        private static UnityEngine.Camera EnsureCamera()
         {
-            Camera mainCamera = Camera.main;
+            UnityEngine.Camera mainCamera = UnityEngine.Camera.main;
             if (mainCamera != null)
             {
                 return mainCamera;
@@ -41,7 +41,7 @@ namespace Warzone.Runtime.Scene
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(0f, 8f, -10f);
             cameraObject.transform.rotation = Quaternion.Euler(20f, 0f, 0f);
-            mainCamera = cameraObject.AddComponent<Camera>();
+            mainCamera = cameraObject.AddComponent<UnityEngine.Camera>();
             cameraObject.AddComponent<AudioListener>();
             return mainCamera;
         }

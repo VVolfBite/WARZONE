@@ -4,14 +4,14 @@ namespace Warzone.Runtime.UI
 {
     public sealed class UnitWorldUiView : MonoBehaviour
     {
-        private Camera _camera;
+        private UnityEngine.Camera _camera;
         private float _healthNormalized = 1f;
         private bool _showRange;
         private float _rangeRadius;
         private Color _rangeColor;
         private LineRenderer _rangeRenderer;
 
-        public void Initialize(Camera camera)
+        public void Initialize(UnityEngine.Camera camera)
         {
             _camera = camera;
             EnsureRangeRenderer();

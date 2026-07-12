@@ -3,6 +3,8 @@ using UnityEngine;
 using Warzone.Combat;
 using Warzone.Content;
 using Warzone.Content.Definitions;
+using Warzone.Core.Math;
+using Warzone.Sandbox.Waves;
 
 namespace Warzone.Sandbox.Factories
 {
@@ -107,7 +109,7 @@ namespace Warzone.Sandbox.Factories
             return new BattleSquadState(
                 squadId,
                 factionId,
-                new System.Numerics.Vector2(x, y),
+                new Vec2(x, y),
                 new List<BattleUnitState>
                 {
                     new BattleUnitState(new BattleEntityId(squadId), definitionId, factionId, health)

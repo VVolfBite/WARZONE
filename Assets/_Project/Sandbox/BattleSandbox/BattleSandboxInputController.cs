@@ -9,7 +9,7 @@ namespace Warzone.Sandbox.BattleSandbox
     public sealed class BattleSandboxInputController : MonoBehaviour
     {
         private BattleSandboxRuntimeContext _context;
-        private Camera _mainCamera;
+        private UnityEngine.Camera _mainCamera;
         private Action _resetAction;
         private Action _applyPressureAction;
         private Action _clearPressureAction;
@@ -20,14 +20,14 @@ namespace Warzone.Sandbox.BattleSandbox
         private Action<Vec2> _spawnFireAction;
         private Action<Vec2> _spawnLightAction;
 
-        public void Initialize(BattleSandboxRuntimeContext context, Camera mainCamera, Action resetAction)
+        public void Initialize(BattleSandboxRuntimeContext context, UnityEngine.Camera mainCamera, Action resetAction)
         {
             Initialize(context, mainCamera, resetAction, null, null, null);
         }
 
         public void Initialize(
             BattleSandboxRuntimeContext context,
-            Camera mainCamera,
+            UnityEngine.Camera mainCamera,
             Action resetAction,
             Action applyPressureAction,
             Action clearPressureAction,

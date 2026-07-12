@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Warzone.Combat;
 using Warzone.Content.Definitions;
+using Warzone.Runtime.Audio;
 
 namespace Warzone.Sandbox.Waves
 {

@@ -3,12 +3,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Warzone.Combat;
 using Warzone.Content.Definitions;
+using Warzone.Runtime.UI;
+using Warzone.Sandbox.Presentation;
+using Warzone.Sandbox.Selection;
 
 namespace Warzone.Sandbox.Input
 {
     public sealed class SandboxInputInterpreter
     {
-        private readonly Camera _mainCamera;
+        private readonly UnityEngine.Camera _mainCamera;
         private readonly SelectionBoxOverlay _selectionBoxOverlay;
         private readonly SandboxSelectionService _selectionService;
         private readonly SandboxCommandDispatcher _commandDispatcher;
@@ -20,7 +23,7 @@ namespace Warzone.Sandbox.Input
         private int? _lastClickedSquadId;
 
         public SandboxInputInterpreter(
-            Camera mainCamera,
+            UnityEngine.Camera mainCamera,
             SelectionBoxOverlay selectionBoxOverlay,
             SandboxSelectionService selectionService,
             SandboxCommandDispatcher commandDispatcher,

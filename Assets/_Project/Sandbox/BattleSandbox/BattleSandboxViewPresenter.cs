@@ -429,7 +429,7 @@ namespace Warzone.Sandbox.BattleSandbox
             {
                 if (view != null)
                 {
-                    if (Application.isPlaying)
+                    if (UnityEngine.Application.isPlaying)
                     {
                         Destroy(view.gameObject);
                     }

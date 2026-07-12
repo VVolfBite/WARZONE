@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Warzone.Combat;
+using Warzone.Core.Math;
 
 namespace Warzone.Sandbox.BattleSandbox
 {
@@ -14,7 +15,7 @@ namespace Warzone.Sandbox.BattleSandbox
         private BattleState _battleState;
         private BattleSimulation _battleSimulation;
         private M1MemberSquadDebugPanel _debugPanel;
-        private Camera _mainCamera;
+        private UnityEngine.Camera _mainCamera;
         private bool _isPaused;
         private int _selectedSquadId = 1;
 
@@ -187,7 +188,7 @@ namespace Warzone.Sandbox.BattleSandbox
 
         private void EnsureCamera()
         {
-            _mainCamera = Camera.main;
+            _mainCamera = UnityEngine.Camera.main;
             if (_mainCamera != null)
             {
                 return;
@@ -197,7 +198,7 @@ namespace Warzone.Sandbox.BattleSandbox
             cameraObject.tag = "MainCamera";
             cameraObject.transform.position = new Vector3(0f, 18f, -12f);
             cameraObject.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
-            _mainCamera = cameraObject.AddComponent<Camera>();
+            _mainCamera = cameraObject.AddComponent<UnityEngine.Camera>();
             cameraObject.AddComponent<AudioListener>();
         }
 
