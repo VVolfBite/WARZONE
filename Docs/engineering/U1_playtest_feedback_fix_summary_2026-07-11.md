@@ -9,7 +9,8 @@ Baseline when work started:
 - Branch: `main`
 - Start HEAD: `20529118da1aeeca43cfaa28c1ec707932ae3b84`
 - M16 reference commit: `fa1c9eb32281a5a940db502d93ad203741e33acc`
-- U1 final commit SHA: recorded in the final handoff response and package validation output.
+- U1 implementation commit SHA: `92722849e1c6131c32b99dd7b26ef380b78e35e0`
+- U1 handoff package commit SHA: recorded in `package_manifest.txt` inside the generated handoff zip.
 
 ## 2. Playtest Feedback
 
